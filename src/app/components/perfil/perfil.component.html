@@ -1,0 +1,136 @@
+<h1>
+  perfil
+</h1>
+<div *ngIf="usuarioSeleccionado" class="container mt-4">
+  <hr />
+  <h2 class="text-center">Editar Usuario</h2>
+  <hr />
+  <form [formGroup]="form" (ngSubmit)="onSubmit()">
+    <div class="row">
+      <div class="col-md-8">
+        <div class="form-group row mb-4">
+          <!-- Agregado mb-4 para margen inferior -->
+          <div class="col-sm-5 text-start">
+            <label for="nombre" class="col-form-label" style="font-size: 1.3rem">Nombre de Usuario:</label>
+            <input type="text" id="nombre" formControlName="nombre" class="form-control"
+              style="height: 45px; font-size: 1.2rem" />
+            <div *ngIf="
+                form.get('nombre')?.invalid &&
+                (form.get('nombre')?.touched || form.get('nombre')?.dirty)
+              " class="text-danger">
+              El nombre de usuario es obligatorio.
+            </div>
+          </div>
+          <div class="col-sm-5 text-start">
+            <label for="apellido" class="col-form-label" style="font-size: 1.3rem">Apellido:</label>
+            <input type="text" id="apellido" formControlName="apellido" class="form-control"
+              style="height: 45px; font-size: 1.2rem" />
+            <div *ngIf="
+                form.get('apellido')?.invalid &&
+                (form.get('apellido')?.touched || form.get('apellido')?.dirty)
+              " class="text-danger">
+              El apellido es obligatorio.
+            </div>
+          </div>
+        </div>
+        <div class="form-group row mb-4">
+          <div class="col-sm-5 text-start">
+            <label for="fecha_nacimiento" class="col-form-label" style="font-size: 1.3rem">Fecha de Nacimiento:</label>
+            <input type="date" id="fecha_nacimiento" formControlName="fecha_nacimiento" class="form-control"
+              style="height: 45px; font-size: 1.2rem" />
+            <div *ngIf="
+                form.get('fecha_nacimiento')?.invalid &&
+                (form.get('fecha_nacimiento')?.touched ||
+                  form.get('fecha_nacimiento')?.dirty)
+              " class="text-danger">
+              La fecha de nacimiento es obligatoria.
+            </div>
+          </div>
+
+          <div class="col-sm-5 text-start">
+            <label for="telefono" class="col-form-label" style="font-size: 1.3rem">Teléfono:</label>
+            <input type="text" id="telefono" formControlName="telefono" class="form-control"
+              style="height: 45px; font-size: 1.2rem" />
+            <div *ngIf="
+                form.get('telefono')?.invalid &&
+                (form.get('telefono')?.touched || form.get('telefono')?.dirty)
+              " class="text-danger">
+              El teléfono es obligatorio y debe ser un número.
+            </div>
+          </div>
+        </div>
+        <div class="form-group row mb-4">
+          <div class="col-sm-5 text-start">
+            <label for="correo" class="col-form-label" style="font-size: 1.3rem">Correo Electrónico:</label>
+            <input type="email" id="correo" formControlName="correo" class="form-control"
+              style="height: 45px; font-size: 1.2rem" />
+            <div *ngIf="
+                form.get('correo')?.invalid &&
+                (form.get('correo')?.touched || form.get('correo')?.dirty)
+              " class="text-danger">
+              Se requiere un correo electrónico válido.
+            </div>
+          </div>
+
+          <div class="col-sm-5 text-start">
+            <label for="password" class="col-form-label" style="font-size: 1.3rem">Contraseña No Es Obligatorio:</label>
+            <div class="input-group">
+              <input type="password" id="password" formControlName="password" class="form-control"
+                placeholder="Contraseña: Ejemplo/123" style="height: 45px; font-size: 1.1rem"
+                [type]="isPasswordVisible ? 'text' : 'password'" />
+              <div class="input-group-append">
+                <button class="btn btn-outline-secondary h-100" type="button" (click)="togglePasswordVisibility()">
+                  <i [ngClass]="
+                      isPasswordVisible ? 'bi bi-eye-slash' : 'bi bi-eye'
+                    "></i>
+                </button>
+              </div>
+            </div>
+            <div *ngIf="
+                form.get('password')?.invalid &&
+                (form.get('password')?.touched ||
+                  form.get('password')?.dirty) &&
+                form.get('password')?.value !== ''
+              " class="text-danger">
+              La contraseña debe tener al menos 6 caracteres, incluir
+              mayúsculas, minúsculas, números y caracteres especiales.
+            </div>
+          </div>
+        </div>
+        <div class="form-group row mb-4">
+          <div class="col-sm-5 text-start">
+            <label for="ci" class="col-form-label" style="font-size: 1.3rem">C.I.:</label>
+            <input type="text" id="ci" formControlName="ci" class="form-control" style="height: 45px; font-size: 1.2rem"
+              placeholder="Ingrese su Identificación" />
+          </div>
+        </div>
+        <div class="d-flex justify-content-center mt-3">
+          <button type="submit" class="btn btn-primary" [disabled]="form.invalid && form.get('password')?.value !== ''">
+            Actualizar Usuario
+          </button>
+        </div>
+      </div>
+
+      <div class="col-md-4 text-center">
+        <div class="form-group">
+          <label for="imagen" style="font-size: 1.6rem">Imagen de Usuario</label>
+          <div>
+            <img *ngIf="!selectedImage && usuarioSeleccionado?.imagen_url" [src]="usuarioSeleccionado.imagen_url"
+              alt="Imagen de Usuario" class="img-thumbnail" style="width: 450px; height: 450px" />
+            <img *ngIf="selectedImage" [src]="imagePreviewUrl" alt="Vista previa de la nueva imagen"
+              class="img-thumbnail" style="width: 450px; height: 450px" />
+          </div>
+          <input type="file" id="imagen" (change)="onImageSelected($event)" class="form-control mt-2"
+            accept="image/*" />
+          <div *ngIf="
+              form.get('imagen')?.invalid &&
+              (form.get('imagen')?.touched || form.get('imagen')?.dirty)
+            " class="text-danger">
+            Por favor, selecciona una nueva imagen si deseas cambiarla.
+          </div>
+        </div>
+      </div>
+    </div>
+  </form>
+  <hr />
+</div>

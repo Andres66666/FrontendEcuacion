@@ -1,0 +1,211 @@
+<div class="container py-4">
+    <div class="card shadow rounded-4 mx-auto" style="max-width: 700px">
+        <div class="card-body">
+            <h3 class="card-title mb-4 text-center text-primary">
+                Registrar Usuario
+            </h3>
+
+            <form [formGroup]="form" (ngSubmit)="onSubmit()">
+                <div class="row g-3">
+                    <!-- Nombre -->
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Nombre</label>
+                        <input type="text" class="form-control" formControlName="nombre"
+                            placeholder="Ingrese sus nombres" (input)="form.get('nombre')?.markAsTouched()"
+                            [class.is-invalid]="
+                  form.get('nombre')?.invalid && form.get('nombre')?.touched
+                " />
+                        <div class="invalid-feedback" *ngIf="
+                  form.get('nombre')?.invalid &&
+                  (form.get('nombre')?.dirty || form.get('nombre')?.touched)
+                ">
+                            <div *ngIf="form.get('nombre')?.hasError('required')">
+                                El nombre Usuario es requerido
+                            </div>
+                            <div *ngIf="form.get('nombre')?.hasError('minlength')">
+                                Mínimo 3 caracteres
+                            </div>
+                            <div *ngIf="form.get('nombre')?.hasError('maxlength')">
+                                Máximo 20 caracteres
+                            </div>
+                            <div *ngIf="form.get('nombre')?.hasError('soloTexto')">
+                                Solo se permiten letras y espacios
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Apellido -->
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Apellido</label>
+                        <input type="text" class="form-control" formControlName="apellido"
+                            placeholder="Ingrese sus apellidos" (input)="form.get('apellido')?.markAsTouched()"
+                            [class.is-invalid]="
+                  form.get('apellido')?.invalid && form.get('apellido')?.touched
+                " />
+                        <div class="invalid-feedback" *ngIf="
+                  form.get('apellido')?.invalid &&
+                  (form.get('apellido')?.dirty || form.get('apellido')?.touched)
+                ">
+                            <div *ngIf="form.get('apellido')?.hasError('required')">
+                                El apellido Usuario es requerido
+                            </div>
+                            <div *ngIf="form.get('apellido')?.hasError('minlength')">
+                                Mínimo 3 caracteres
+                            </div>
+                            <div *ngIf="form.get('apellido')?.hasError('maxlength')">
+                                Máximo 20 caracteres
+                            </div>
+                            <div *ngIf="form.get('apellido')?.hasError('soloTexto')">
+                                Solo se permiten letras y espacios
+                            </div>
+                        </div>
+                    </div>
+                    <!--Correo  -->
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Correo</label>
+                        <input type="email" class="form-control" formControlName="correo"
+                            placeholder="ejemplo@gmail.com" [class.is-invalid]="
+                  form.get('correo')?.invalid && form.get('correo')?.touched
+                " />
+                        <div class="invalid-feedback" *ngIf="form.get('correo')?.touched">
+                            <div *ngIf="form.get('correo')?.hasError('required')">
+                                El correo es obligatorio
+                            </div>
+                            <div *ngIf="form.get('correo')?.hasError('email')">
+                                Debe ser un correo válido
+                            </div>
+                            <div *ngIf="form.get('correo')?.hasError('invalidEmail')">
+                                Solo se permiten correos de Gmail, Hotmail u Outlook
+                            </div>
+                            <div *ngIf="form.get('correo')?.hasError('emailExists')">
+                                Este correo ya está registrado
+                            </div>
+                            <div *ngIf="form.get('correo')?.hasError('userFetchError')">
+                                No se pudo verificar el correo en la base de datos
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Telefono -->
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Teléfono</label>
+                        <input type="text" class="form-control" formControlName="telefono" placeholder="Ej: 71234567"
+                            inputmode="numeric" maxlength="8" [class.is-invalid]="
+                  form.get('telefono')?.invalid && form.get('telefono')?.touched
+                " />
+
+                        <div class="invalid-feedback" *ngIf="form.get('telefono')?.touched">
+                            <div *ngIf="form.get('telefono')?.hasError('required')">
+                                El teléfono es obligatorio
+                            </div>
+                            <div *ngIf="form.get('telefono')?.hasError('invalidPhone')">
+                                Debe comenzar con 6 o 7 y tener 8 dígitos
+                            </div>
+                            <div *ngIf="form.get('telefono')?.hasError('phoneExists')">
+                                Este número ya está registrado
+                            </div>
+                            <div *ngIf="form.get('telefono')?.hasError('userFetchError')">
+                                No se pudo verificar el teléfono en la base de datos
+                            </div>
+                        </div>
+                    </div>
+                    <!-- CI -->
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">CI</label>
+                        <input type="text" class="form-control" formControlName="ci" placeholder="Ej: 12345678"
+                            maxlength="8" [class.is-invalid]="
+                  form.get('ci')?.invalid && form.get('ci')?.touched
+                " />
+                        <div class="invalid-feedback" *ngIf="form.get('ci')?.touched">
+                            <div *ngIf="form.get('ci')?.hasError('required')">
+                                El CI es obligatorio
+                            </div>
+                            <div *ngIf="form.get('ci')?.hasError('invalidCI')">
+                                El CI debe tener entre 7 y 8 dígitos
+                            </div>
+                            <div *ngIf="form.get('ci')?.hasError('ciExists')">
+                                Este CI ya está registrado
+                            </div>
+                            <div *ngIf="form.get('ci')?.hasError('userFetchError')">
+                                No se pudo verificar el CI en la base de datos
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Fecha de Nacimiento -->
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Fecha de Nacimiento</label>
+                        <input type="date" class="form-control" formControlName="fecha_nacimiento" [class.is-invalid]="
+                  form.get('fecha_nacimiento')?.invalid &&
+                  form.get('fecha_nacimiento')?.touched
+                " />
+                        <div class="invalid-feedback" *ngIf="form.get('fecha_nacimiento')?.touched">
+                            <div *ngIf="form.get('fecha_nacimiento')?.hasError('required')">
+                                La fecha de nacimiento es obligatoria
+                            </div>
+                            <div *ngIf="form.get('fecha_nacimiento')?.hasError('underage')">
+                                Debe tener al menos 18 años
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Contraseña -->
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Contraseña</label>
+                        <div class="input-group">
+                            <input [type]="showPassword ? 'text' : 'password'" class="form-control rounded-start-3"
+                                formControlName="password" placeholder="Ingrese la contraseña"
+                                [class.is-invalid]="form.get('password')?.invalid && form.get('password')?.touched" />
+                            <button type="button" class="btn rounded-end-3"
+                                [ngClass]="showPassword ? 'btn-success' : 'btn-danger'"
+                                (click)="togglePasswordVisibility()">
+                                <i [ngClass]="showPassword ? 'bi bi-eye' : 'bi bi-eye-slash'"></i>
+                            </button>
+                        </div>
+
+                        <div class="invalid-feedback" *ngIf="form.get('password')?.touched">
+                            <div *ngIf="form.get('password')?.hasError('required')">
+                                La contraseña es obligatoria
+                            </div>
+                            <div *ngIf="form.get('password')?.hasError('invalidPassword')">
+                                La contraseña debe tener al menos 8 caracteres, incluyendo una mayúscula,
+                                una minúscula, un número y un carácter especial
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Imagen</label>
+
+                        <input type="file" id="imagenInput" (change)="onFileChange($event)"
+                            accept="image/png, image/jpeg" />
+
+                        <div *ngIf="imagenPreview" class="mt-2">
+                            <img [src]="imagenPreview" alt="Vista Previa" class="img-fluid"
+                                style="max-width: 200px; max-height: 200px" />
+                        </div>
+                        <div class="invalid-feedback" *ngIf="errorMensaje">
+                            {{ errorMensaje }}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex flex-column flex-md-row justify-content-between gap-2 mt-4">
+                    <button type="button" class="btn btn-outline-secondary w-100" (click)="volver()">
+                        <i class="bi bi-arrow-left-circle me-2"></i> Volver
+                    </button>
+
+                    <button type="button" class="btn btn-warning w-100" (click)="limpiarFormulario()">
+                        <i class="bi bi-eraser me-2"></i> Limpiar
+                    </button>
+
+                    <button type="submit" class="btn btn-primary w-100" [disabled]="form.invalid">
+                        <i class="bi bi-save me-2"></i> Registrar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<!-- Modal de Éxito -->
+<app-ok *ngIf="mensajeExito" [mensaje]="mensajeExito" (close)="manejarOk()"></app-ok>
+
+<!-- Modal de Error -->
+<app-error *ngIf="mensajeError" [mensaje]="mensajeError" (close)="manejarError()"></app-error>

@@ -1,0 +1,106 @@
+/* Layout general */
+.layout {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+/* Navbar fijo en la parte superior */
+.header {
+    position: sticky;
+    top: 0;
+    z-index: 1030;
+    height: 56px;
+    /* Altura estándar de navbar */
+}
+
+/* Sidebar debajo del navbar */
+.leftSide {
+    position: fixed;
+    top: 56px;
+    /* Debajo del navbar */
+    left: 0;
+    height: calc(100vh - 56px);
+    width: 250px;
+    background-color: #f8f9fa;
+    transition: transform 0.3s ease-in-out;
+    z-index: 1020;
+    overflow-y: auto;
+}
+
+/* Estados del sidebar */
+.sidebar-open {
+    transform: translateX(0);
+}
+
+.sidebar-closed {
+    transform: translateX(-100%);
+}
+
+/* Contenido principal */
+.main-content {
+    margin-top: 56px;
+    /* Compensa el navbar */
+    flex: 1;
+    transition: margin-left 0.3s ease-in-out;
+}
+
+.content-shifted {
+    margin-left: 250px;
+}
+
+/* Overlay para móvil */
+.overlay {
+    position: fixed;
+    top: 56px;
+    left: 0;
+    width: 100%;
+    height: calc(100% - 56px);
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1019;
+    opacity: 0;
+    visibility: hidden;
+    transition:
+        opacity 0.3s,
+        visibility 0.3s;
+}
+
+.overlay-visible {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Responsive para desktop */
+@media (min-width: 768px) {
+    .leftSide {
+        transform: translateX(0);
+    }
+
+    .sidebar-closed {
+        transform: translateX(-250px);
+    }
+
+    .main-content {
+        margin-left: 0;
+    }
+
+    .content-shifted {
+        margin-left: 250px;
+    }
+}
+
+.toggle-button {
+    background-color: transparent; /* Fondo transparente */
+    color: black; /* Color del ícono */
+    border: 2px solid black; /* Solo borde negro */
+    padding: 8px 10px; /* Espaciado interno */
+    border-radius: 5px; /* Bordes redondeados */
+    cursor: pointer; /* Cambia el cursor al pasar */
+    transition: all 0.3s ease; /* Transición suave */
+}
+
+.toggle-button:hover {
+    background-color: rgba(0, 0, 0, 0.1); /* Ligero fondo al pasar el mouse */
+}
+
+

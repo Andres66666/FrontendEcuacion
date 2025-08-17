@@ -1,0 +1,36 @@
+<div class="modal" tabindex="-1" style="display: block">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Error</h5>
+        <button
+          type="button"
+          class="btn-close"
+          (click)="manejarCerrar()"
+        ></button>
+      </div>
+      <div class="modal-body d-flex align-items-center p-3">
+        <img
+          src="
+          https://res.cloudinary.com/dtqv5ejlr/image/upload/v1748614841/Error_wtu6db.png"
+          class="img-fluid custom-img"
+          style="max-width: 100px; height: auto"
+        />
+        <div class="flex-grow-1 text-center d-flex align-items-center">
+          <p class="mb-0">{{ mensaje }}</p>
+        </div>
+      </div>
+      <div
+        class="modal-footer d-grid gap-2 d-md-flex justify-content-md-center"
+      >
+        <button
+          type="button"
+          class="btn btn-secondary me-md-2"
+          (click)="manejarCerrar()"
+        >
+          Aceptar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

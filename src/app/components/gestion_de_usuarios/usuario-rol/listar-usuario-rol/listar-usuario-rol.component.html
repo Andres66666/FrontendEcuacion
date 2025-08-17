@@ -1,0 +1,48 @@
+<h2 class="mb-4 text-primary text-center text-uppercase">
+    Lista de Usuario Rol Sucursal
+</h2>
+
+<!-- Filtros -->
+<div class="mb-4 d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-2">
+    <div class="d-flex flex-row gap-2 w-100">
+        <input type="text" [(ngModel)]="busqueda" (input)="filtrar()" class="form-control"
+            placeholder="Buscar por nombre de usuario..." />
+    </div>
+    <select class="form-select me-2" [(ngModel)]="rolSeleccionado" (change)="filtrar()">
+        <option value="">Todos los roles</option>
+        <option *ngFor="let r of rolesDisponibles" [value]="r">{{ r }}</option>
+    </select>
+
+    <button class="btn btn-success" (click)="irARegistrar()">
+        <i class="bi bi-plus-circle me-1"></i> Registrar
+    </button>
+</div>
+
+<!-- Tabla -->
+<div class="table-responsive rounded border" style="max-height: 400px; overflow-y: auto" (scroll)="onScroll($event)">
+    <table class="table table-bordered table-hover align-middle text-center mb-0">
+        <thead class="table-primary">
+            <tr>
+                <th scope="col">Usuario</th>
+                <th scope="col">Rol</th>
+                <th scope="col">Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr *ngFor="let urs of mostrados">
+                <td>{{ urs.usuario.nombre }}</td>
+                <td>{{ urs.rol.nombre }}</td>
+                <td>
+                    <button class="btn btn-warning btn-sm" (click)="irAEditar(urs.id)">
+                        <i class="bi bi-pencil"></i> Editar
+                    </button>
+                </td>
+            </tr>
+            <tr *ngIf="mostrados.length === 0">
+                <td colspan="4" class="text-center text-muted py-4">
+                    No se encontraron registros.
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>

@@ -1,0 +1,202 @@
+<form [formGroup]="formulario" *ngIf="formulario">
+  <div class="card border-success mb-4">
+    <div class="card-header bg-success text-white">
+      <h5 class="mb-0">
+        <i class="bi bi-person-workspace me-2"></i>2. Mano de Obra
+      </h5>
+    </div>
+    <div class="card-body" formArrayName="manoObra">
+      <table class="table table-bordered table-hover align-middle mb-3">
+        <thead class="table-light text-center">
+          <tr>
+            <th>Descripción</th>
+            <th>Unidad</th>
+            <th>Cantidad</th>
+            <th>P. Unitario</th>
+            <th>Precio parcial</th>
+            <th>Acción</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr
+            *ngFor="let trabajo of manoObra.controls; let i = index"
+            [formGroupName]="i"
+          >
+            <!-- Descripción -->
+            <td>
+              <input
+                class="form-control"
+                formControlName="descripcion"
+                placeholder="Ej. Albañil"
+              />
+              <div
+                *ngIf="trabajo.get('descripcion')?.errors?.['required']"
+                class="text-danger small"
+              >
+                Campo requerido.
+              </div>
+            </td>
+
+            <!-- Unidad -->
+            <td>
+              <select
+                class="form-select"
+                formControlName="unidad"
+                (change)="onUnidadChange(trabajo)"
+              >
+                <option value="">Seleccione unidad</option>
+                <option value="h">h – hora</option>
+                <option value="día">día</option>
+                <option value="sem">sem – semana</option>
+                <option value="mes">mes</option>
+              </select>
+              <div
+                *ngIf="trabajo.get('unidad')?.errors?.['required']"
+                class="text-danger small"
+              >
+                Campo requerido.
+              </div>
+            </td>
+
+            <!-- Cantidad -->
+            <td>
+              <input
+                type="number"
+                class="form-control"
+                min="0"
+                formControlName="cantidad"
+                (keydown)="blockE($event)"
+                (change)="onCantidadChange(trabajo)"
+              />
+              <div
+                *ngIf="trabajo.get('cantidad')?.errors?.['required']"
+                class="text-danger small"
+              >
+                Campo requerido.
+              </div>
+              <div
+                *ngIf="
+                  trabajo.get('cantidad')?.hasError('min') &&
+                  trabajo.get('cantidad')?.touched
+                "
+                class="text-danger small"
+              >
+                No puede ser menor o igual a 0.
+              </div>
+            </td>
+
+            <!-- Precio Unitario -->
+            <td>
+              <input
+                type="number"
+                class="form-control"
+                min="0"
+                formControlName="precioUnitario"
+                (keydown)="blockE($event)"
+                (change)="onPrecioUniChange(trabajo)"
+              />
+              <div
+                *ngIf="trabajo.get('precioUnitario')?.errors?.['required']"
+                class="text-danger small"
+              >
+                Campo requerido.
+              </div>
+              <div
+                *ngIf="
+                  trabajo.get('precioUnitario')?.hasError('min') &&
+                  trabajo.get('precioUnitario')?.touched
+                "
+                class="text-danger small"
+              >
+                No puede ser menor o igual a 0.
+              </div>
+            </td>
+
+            <!-- Precio Parcial -->
+            <td>
+              <input
+                type="number"
+                class="form-control bg-white"
+                [value]="trabajo.get('precioParcial')?.value"
+                readonly
+              />
+            </td>
+
+            <!-- Botón eliminar -->
+            <td class="text-center">
+              <button
+                type="button"
+                class="btn btn-outline-danger btn-sm"
+                (click)="eliminarManoObra(i)"
+              >
+                <i class="bi bi-trash"></i>
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <button
+        type="button"
+        class="btn btn-outline-success mt-2"
+        (click)="agregarManoObra()"
+      >
+        <i class="bi bi-plus-circle me-1"></i> Añadir Mano de Obra
+      </button>
+    </div>
+
+    <div class="card-footer">
+      <table class="table table-bordered table-hover mb-0">
+        <tbody>
+          <tr>
+            <td>Subtotal Mano de Obra</td>
+            <td class="text-end">
+              {{ subtotalManoObra | number : "1.2-2" }}
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <div class="col-md-4">
+                <label for="cargasSociales" class="form-label fw-bold"
+                  >Cargas Sociales (55% al 71,18%)</label
+                >
+                <input
+                  type="number"
+                  class="form-control"
+                  step="0.0001"
+                  min="0.55"
+                  max="0.7118"
+                  formControlName="cargasSociales"
+                  (keydown)="blockE($event)"
+                />
+              </div>
+            </td>
+            <td class="text-end">
+              {{ cargasManoObra | number : "1.2-2" }}
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <div class="col-md-3">
+                <label for="iva" class="form-label fw-bold">IVA (14,94%)</label>
+                <input
+                  type="number"
+                  class="form-control"
+                  step="0.01"
+                  min="0.1494"
+                  formControlName="iva"
+                  (keydown)="blockE($event)"
+                />
+              </div>
+            </td>
+            <td class="text-end">{{ ivaManoObra | number : "1.2-2" }}</td>
+          </tr>
+          <tr class="table-success fw-bold">
+            <td>Total Mano de Obra</td>
+            <td class="text-end">{{ totalManoObra | number : "1.2-2" }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</form>

@@ -1,0 +1,15 @@
+.hover-scale {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.hover-scale:hover {
+    transform: scale(1.08);
+    /* Aumenta tamaño un 8% */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    /* Sombra suave */
+}
+
+.nav-link:hover {
+  cursor: pointer;
+}
+

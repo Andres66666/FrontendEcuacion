@@ -1,0 +1,51 @@
+thead th {
+  position: sticky;
+  top: 0;
+  background-color: #008528; /* Color igual al .table-primary de Bootstrap */
+  color: #ffffff; /* Texto blanco */
+  z-index: 2;
+  border-bottom: 2px solid #ffffff; /* línea de división inferior */
+}
+tfoot td {
+  position: sticky;
+  bottom: 0;
+  background-color: #008528; /* Igual que el thead */
+  color: #ffffff;
+  z-index: 2;
+  border-top: 2px solid #ffffff;
+}
+
+/* Estilo para la celda */
+.input-cell {
+  padding: 0;
+  margin: 0;
+  height: 40px;
+}
+
+/* Estilo para los inputs */
+.full-width-input {
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  border: none;
+  background-color: transparent;
+  padding: 8px;
+  font-size: 14px;
+}
+
+/* Ocultar flechas en inputs tipo number */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+/* Opcional: Estilo cuando el input esté enfocado */
+.full-width-input:focus {
+  outline: none;
+  background-color: #f0f8ff; /* Azul clarito al enfocar */
+}

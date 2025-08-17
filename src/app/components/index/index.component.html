@@ -1,0 +1,297 @@
+<header class="bg-white text-dark py-2 fixed-top">
+  <div class="container-fluid">
+    <div class="d-flex align-items-center justify-content-between">
+      <!-- Logo a la izquierda -->
+      <div class="d-flex align-items-center">
+        <img
+          src="https://res.cloudinary.com/dexggkhkd/image/upload/v1750767599/logoMallaPNG_g2ta8p.png"
+          alt="Logo Malla Finita"
+          class="img-fluid"
+          style="max-width: 200px; margin-right: 10px"
+        />
+      </div>
+
+      <!-- Opciones de navegación para escritorio -->
+      <nav class="d-none d-md-flex gap-3">
+        <a
+          href="#"
+          class="btn btn-outline-success px-3 py-1 fw-semibold hover-scale">Inicio</a>
+        <a
+          href="#"
+          class="btn btn-outline-success px-3 py-1 fw-semibold hover-scale"
+          >Servicios</a
+        >
+        <a
+          href="#"
+          class="btn btn-outline-success px-3 py-1 fw-semibold hover-scale"
+          >Proyectos</a
+        >
+        <a
+          (click)="navigateToRegistroUsers()"
+          style="cursor: pointer"
+          class="btn btn-outline-success px-3 py-1 fw-semibold hover-scale"
+          >Registrate</a
+        >
+        <a
+          (click)="navigateToLogin()"
+          style="cursor: pointer"
+          class="btn btn-outline-success px-3 py-1 fw-semibold hover-scale"
+          >Iniciar Sesión</a
+        >
+      </nav>
+
+      <!-- Menú hamburguesa para móviles -->
+      <div class="d-md-none">
+        <button
+          class="btn btn-light"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#menuMobile"
+        >
+          <i class="bi bi-list"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Opciones para móvil -->
+    <div class="collapse" id="menuMobile">
+      <!-- Para el menú móvil -->
+      <nav class="d-flex flex-column mt-2">
+        <a href="#" class="btn btn-outline-success mb-2 hover-scale text-start"
+          >Inicio</a
+        >
+        <a href="#" class="btn btn-outline-success mb-2 hover-scale text-start"
+          >Servicios</a
+        >
+        <a href="#" class="btn btn-outline-success mb-2 hover-scale text-start"
+          >Proyectos</a
+        >
+        <a
+          (click)="navigateToRegistroUsers()"
+          style="cursor: pointer"
+          class="btn btn-outline-success mb-2 hover-scale text-start"
+          >Registrate</a
+        >
+        <a
+          (click)="navigateToLogin()"
+          style="cursor: pointer"
+          class="btn btn-outline-success mb-2 hover-scale text-start"
+          >Iniciar Sesión</a
+        >
+      </nav>
+    </div>
+  </div>
+</header>
+
+<!-- Para que no tape el contenido -->
+<div style="margin-top: 100px"></div>
+
+<section class="bg-white py-5">
+  <div class="container px-5">
+    <div class="row align-items-center">
+      <!-- Texto -->
+      <div class="col-md-6">
+        <p
+          class="display-4 fw-bold"
+          style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif"
+        >
+          <span class="text-dark">Construimos tu futuro,</span>
+          <span class="text-success"> impulsamos tus proyectos</span>
+          <span class="text-dark"> y analizamos tu rentabilidad</span>
+          <span class="text-info"> con la ecuación Malla Finita</span>
+        </p>
+        <p class="lead text-muted">
+          Más de 30 años de experiencia en el departamento de Potosí brindando
+          soluciones en construcción, agua potable, finanzas y arquitectura.
+        </p>
+      </div>
+
+      <!-- Carrusel -->
+      <div class="col-md-6">
+        <div
+          id="carouselExampleIndicators"
+          class="carousel slide position-relative"
+          data-bs-ride="carousel"
+        >
+          <div class="carousel-inner" style="position: relative; height: 500px">
+            <!-- Botón Anterior -->
+            <button
+              class="carousel-control-prev border border-success rounded-circle bg-success"
+              type="button"
+              data-bs-target="#carouselExampleIndicators"
+              data-bs-slide="prev"
+              style="
+                width: 40px;
+                height: 40px;
+                position: absolute;
+                top: 50%;
+                left: 10px;
+                transform: translateY(-50%);
+              "
+            >
+              <span
+                class="carousel-control-prev-icon"
+                style="filter: invert(1)"
+              ></span>
+            </button>
+
+            <!-- Botón Siguiente -->
+            <button
+              class="carousel-control-next border border-success rounded-circle bg-success"
+              type="button"
+              data-bs-target="#carouselExampleIndicators"
+              data-bs-slide="next"
+              style="
+                width: 40px;
+                height: 40px;
+                position: absolute;
+                top: 50%;
+                right: 10px;
+                transform: translateY(-50%);
+              "
+            >
+              <span
+                class="carousel-control-next-icon"
+                style="filter: invert(1)"
+              ></span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Cuerpo principal -->
+<main class="container py-4">
+  <section class="mb-5">
+    <h2 class="text-center mb-5">Nuestros Servicios</h2>
+
+    <div class="row g-4">
+      <div class="col-md-4">
+        <div class="card h-100 border-0 shadow-sm text-center">
+          <div class="card-body p-4">
+            <i class="fas fa-building fa-3x mb-3 text-primary"></i>
+            <h4 class="card-title">Construcción de Edificaciones</h4>
+            <p class="card-text text-muted">
+              Levantamos tus proyectos de manera eficiente y profesional,
+              cumpliendo los más altos estándares de calidad.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-4">
+        <div class="card h-100 border-0 shadow-sm text-center">
+          <div class="card-body p-4">
+            <i class="fas fa-water fa-3x mb-3 text-success"></i>
+            <h4 class="card-title">Proyectos de Agua Potable</h4>
+            <p class="card-text text-muted">
+              Expertos en sistemas de agua potable, garantizando el acceso a
+              este recurso vital para comunidades y empresas.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-4">
+        <div class="card h-100 border-0 shadow-sm text-center">
+          <div class="card-body p-4">
+            <i class="fas fa-coins fa-3x mb-3 text-warning"></i>
+            <h4 class="card-title">Asesoramiento Financiero</h4>
+            <p class="card-text text-muted">
+              Evaluamos la viabilidad y rentabilidad de tus negocios,
+              optimizando tus recursos e inversiones.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-4">
+        <div class="card h-100 border-0 shadow-sm text-center">
+          <div class="card-body p-4">
+            <i class="fas fa-project-diagram fa-3x mb-3 text-info"></i>
+            <h4 class="card-title">Diseños de Arquitectura</h4>
+            <p class="card-text text-muted">
+              Creamos diseños arquitectónicos modernos y funcionales, adaptados
+              a tus necesidades.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-4">
+        <div class="card h-100 border-0 shadow-sm text-center">
+          <div class="card-body p-4">
+            <i class="fas fa-chart-line fa-3x mb-3 text-danger"></i>
+            <h4 class="card-title">La Ecuación Malla Finita</h4>
+            <p class="card-text text-muted">
+              Analizamos tu emprendimiento con nuestra ecuación exclusiva que
+              determina si tu negocio es rentable o no.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="text-white py-5" style="background-color: #005b4f">
+  <div class="container">
+    <div class="row">
+      <!-- Información de la Empresa -->
+      <div class="col-md-4 mb-4 mb-md-0">
+        <h5 class="fw-bold">Malla Finita - Potosí</h5>
+        <p>
+          Más de 30 años ayudando a empresas, emprendedores y comunidades a
+          crecer con soluciones integrales en construcción, agua potable,
+          finanzas y arquitectura.
+        </p>
+      </div>
+
+      <!-- Información de contacto -->
+      <div class="col-md-4 mb-4 mb-md-0">
+        <h5 class="fw-bold">Contáctanos</h5>
+        <p>
+          <i class="fas fa-envelope me-2"></i
+          ><a
+            href="mailto:contacto@mallafinita.com"
+            class="text-white text-decoration-none"
+            >contactomallafinita.com</a
+          >
+        </p>
+        <p>
+          <i class="fas fa-phone me-2"></i
+          ><a href="tel:+59171516600" class="text-white text-decoration-none"
+            >+591 71516600</a
+          >
+        </p>
+        <p><i class="fas fa-map-marker-alt me-2"></i>Potosí, Bolivia</p>
+      </div>
+
+      <!-- Redes sociales -->
+      <div class="col-md-4">
+        <h5 class="fw-bold">Síguenos</h5>
+        <div class="d-flex align-items-center">
+          <a href="#" class="text-white fs-5 me-3"
+            ><i class="fab fa-facebook-f"></i
+          ></a>
+          <a href="#" class="text-white fs-5 me-3"
+            ><i class="fab fa-whatsapp"></i
+          ></a>
+          <a href="#" class="text-white fs-5 me-3"
+            ><i class="fab fa-youtube"></i
+          ></a>
+        </div>
+      </div>
+    </div>
+
+    <hr class="my-4 bg-light opacity-25" />
+
+    <div class="text-center">
+      <p class="mb-0 text-white-50">
+        &copy; 2025 Malla Finita. Todos los derechos reservados.
+      </p>
+    </div>
+  </div>
+</footer>

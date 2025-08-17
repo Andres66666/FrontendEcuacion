@@ -1,0 +1,52 @@
+<div class="container py-4">
+    <div class="card shadow rounded-4 mx-auto" style="max-width: 600px">
+        <div class="card-body">
+            <h3 class="card-title mb-4 text-center text-primary">
+                Registrar Usuario - Rol
+            </h3>
+
+            <form [formGroup]="form" (ngSubmit)="registrar()">
+                <!-- Usuario -->
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Usuario</label>
+                    <select class="form-select" formControlName="usuario" required>
+                        <option value="">Seleccione un usuario</option>
+                        <option *ngFor="let u of usuarios" [ngValue]="u">
+                            {{ u.nombre }} {{ u.apellido }}
+                        </option>
+                    </select>
+                </div>
+
+                <!-- Rol -->
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Rol</label>
+                    <select class="form-select" formControlName="rol" required>
+                        <option value="">Seleccione un rol</option>
+                        <option *ngFor="let r of roles" [ngValue]="r">
+                            {{ r.nombre }}
+                        </option>
+                    </select>
+                </div>
+                <!-- Botones -->
+                <div class="d-flex flex-column flex-md-row justify-content-between gap-2">
+                    <button class="btn btn-outline-secondary w-100" type="button" (click)="volver()">
+                        <i class="bi bi-arrow-left-circle me-2"></i> Volver
+                    </button>
+
+                    <button class="btn btn-warning w-100" type="button" (click)="limpiarFormulario()">
+                        <i class="bi bi-eraser me-2"></i> Limpiar
+                    </button>
+
+                    <button class="btn btn-primary w-100" type="submit" [disabled]="form.invalid">
+                        <i class="bi bi-save me-2"></i> Registrar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<!-- Modal de Éxito -->
+<app-ok *ngIf="mensajeExito" [mensaje]="mensajeExito" (close)="manejarOk()"></app-ok>
+
+<!-- Modal de Error -->
+<app-error *ngIf="mensajeError" [mensaje]="mensajeError" (close)="manejarError()"></app-error>

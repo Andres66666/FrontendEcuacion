@@ -1,0 +1,291 @@
+<section class="layout">
+  <!-- Navbar (header) -->
+  <nav class="navbar navbar-expand-md header bg-light">
+    <div class="container-fluid mx-2">
+      
+
+
+      <button class="toggle-button btn me-2" (click)="toggleSidebar()">
+          <i [ngClass]="isSidebarOpen ? 'fas fa-times' : 'fas fa-bars'"></i>
+      </button>
+
+
+      <div class="ms-auto d-flex align-items-center gap-2">
+        <div class="dropdown d-flex align-items-center">
+          <div class="me-2">
+            <img
+              *ngIf="imagenUrl"
+              [src]="imagenUrl"
+              alt="Foto de usuario"
+              class="rounded-circle img-fluid"
+              style="width: 40px; height: 40px"
+            />
+          </div>
+
+          <button
+            class="btn btn-secondary dropdown-toggle d-flex align-items-center"
+            type="button"
+            id="dropdownMenuButton"
+            data-bs-toggle="dropdown"
+            aria-expanded="false"
+          >
+            {{ userName }}
+          </button>
+
+          <ul
+            class="dropdown-menu dropdown-menu-end"
+            aria-labelledby="dropdownMenuButton"
+          >
+            <li>
+              <div
+                class="dropdown-item d-flex align-items-center"
+                (click)="verPerfil()"
+              >
+                <i class="fas fa-user-circle me-2"></i>
+                <span>Ver Perfil</span>
+              </div>
+            </li>
+            <li>
+              <div
+                class="dropdown-item text-danger d-flex align-items-center"
+                (click)="onSelectChange('cerrarSesion')"
+              >
+                <i class="fas fa-power-off text-danger fs-6 me-2"></i>
+                <span> Cerrar Sesión</span>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Sidebar (leftSide) -->
+  <aside
+    class="leftSide bg-light p-3"
+    [class.sidebar-open]="isSidebarOpen"
+    [class.sidebar-closed]="!isSidebarOpen"
+  >
+    <div class="mb-3">
+      <div class="d-flex justify-content-center align-items-center">
+        <img
+          src=""
+          alt=""
+          style="max-width: 80px"
+        />
+      </div>
+
+      <hr class="text-dark" />
+      <p class="text-dark mb-0">Nombre: {{ userName }}</p>
+      <p class="text-dark">Rol: {{ userRole }}</p>
+
+      <hr class="text-dark" />
+    </div>
+
+    <ul class="list-group">
+      <li class="d-flex align-items-center" *ngIf="puedeVer('servicios')">
+        <div class="col-auto pe-2">
+          <i class="bi bi-boxes fs-2 text-dark"></i>
+        </div>
+        <div class="col text-start">
+          <a
+            routerLink="/panel-control/servicios"
+            class="text-dark text-decoration-none"
+            (click)="closeSidebarOnMobile()"
+          >
+            servicios
+          </a>
+        </div>
+      </li>
+      <!-- Gestión de Usuarios -->
+      <li
+        class="d-flex align-items-center"
+        *ngIf="puedeVer('GestionDeUsuarios')"
+        (click)="toggleSection('GestióndeUsuarios')"
+        style="cursor: pointer"
+      >
+        <div class="col-auto pe-2">
+          <i class="bi bi-people fs-2 text-dark"></i>
+        </div>
+        <div class="col text-start">
+          <span class="text-dark">Gestión de Usuarios</span>
+        </div>
+        <div class="col-auto pe-2">
+          <i
+            class="bi"
+            [ngClass]="
+              isActive('GestionDeUsuarios')
+                ? 'bi-chevron-down'
+                : 'bi-chevron-right'
+            "
+            class="text-dark"
+          ></i>
+        </div>
+      </li>
+      <ul class="list-group ps-3" *ngIf="isActive('GestióndeUsuarios')">
+        <li class="d-flex align-items-center" *ngIf="puedeVer('ListarRoles')">
+          <div class="col-auto pe-2">
+            <i class="bi bi-shield-lock fs-2 text-dark"></i>
+          </div>
+          <div class="col text-start">
+            <a
+              routerLink="/panel-control/listar-rol"
+              class="text-dark text-decoration-none"
+              (click)="closeSidebarOnMobile()"
+              >Rol</a
+            >
+          </div>
+        </li>
+        <li
+          class="d-flex align-items-center"
+          *ngIf="puedeVer('ListarPermisos')"
+        >
+          <div class="col-auto pe-2">
+            <i class="bi bi-key fs-2 text-dark"></i>
+          </div>
+          <div class="col text-start">
+            <a
+              routerLink="/panel-control/listar-permiso"
+              class="text-dark text-decoration-none"
+              (click)="closeSidebarOnMobile()"
+              >Permiso</a
+            >
+          </div>
+        </li>
+        <li
+          class="d-flex align-items-center"
+          *ngIf="puedeVer('ListarUsuarios')"
+        >
+          <div class="col-auto pe-2">
+            <i class="bi bi-person-badge fs-2 text-dark"></i>
+          </div>
+          <div class="col text-start">
+            <a
+              routerLink="/panel-control/listar-usuario"
+              class="text-dark text-decoration-none"
+              (click)="closeSidebarOnMobile()"
+              >Usuarios</a
+            >
+          </div>
+        </li>
+        <li
+          class="d-flex align-items-center"
+          *ngIf="puedeVer('ListarUsuarioRol')"
+        >
+          <div class="col-auto pe-2">
+            <i class="bi bi-person-lines-fill fs-2 text-dark"></i>
+          </div>
+          <div class="col text-start">
+            <a
+              routerLink="/panel-control/listar-usuario-rol"
+              class="text-dark text-decoration-none"
+              (click)="closeSidebarOnMobile()"
+              >Usuario Rol</a
+            >
+          </div>
+        </li>
+        <li
+          class="d-flex align-items-center"
+          *ngIf="puedeVer('ListarRolPermiso')"
+        >
+          <div class="col-auto pe-2">
+            <i class="bi bi-shield-check fs-2 text-dark"></i>
+          </div>
+          <div class="col text-start">
+            <a
+              routerLink="/panel-control/listar-rol-permiso"
+              class="text-dark text-decoration-none"
+              (click)="closeSidebarOnMobile()"
+              >Rol Permiso</a
+            >
+          </div>
+        </li>
+      </ul>
+      <!-- Gestión de Productos de la ecuación (Operaciones Económicas) -->
+      <li
+        class="d-flex align-items-center"
+        *ngIf="puedeVer('Operaciones')"
+        (click)="toggleSection('Operacion')"
+        style="cursor: pointer"
+      >
+        <div class="col-auto pe-2">
+          <i class="bi bi-calculator fs-2 text-dark"></i>
+          <!-- icono actualizado -->
+        </div>
+        <div class="col text-start">
+          <span class="text-dark">Operaciones</span>
+        </div>
+        <div class="col-auto pe-2">
+          <i
+            class="bi"
+            [ngClass]="
+              isActive('Operacion') ? 'bi-chevron-down' : 'bi-chevron-right'
+            "
+            class="text-dark"
+          ></i>
+        </div>
+      </li>
+
+      <ul class="list-group ps-3" *ngIf="isActive('Operacion')">
+        <li class="d-flex align-items-center" *ngIf="puedeVer('Ecuacion')">
+          <div class="col-auto pe-2">
+            <i class="bi bi-file-earmark-text fs-2 text-dark"></i>
+            <!-- Icono de documento para Ecuación -->
+          </div>
+          <div class="col text-start">
+            <a
+              routerLink="/panel-control/ListarEcuacion"
+              class="text-dark text-decoration-none"
+              (click)="closeSidebarOnMobile()"
+              >Operaciones</a
+            >
+          </div>
+        </li>
+        <li class="d-flex align-items-center">
+          <div class="col-auto pe-2">
+            <i class="bi bi-cash fs-2 text-dark"></i>
+            <!-- Icono de dinero para Precio Factura -->
+          </div>
+          <div class="col text-start">
+            <a
+              routerLink="/panel-control/precio-factura"
+              class="text-dark text-decoration-none"
+              (click)="closeSidebarOnMobile()"
+              >Precio Factura</a
+            >
+          </div>
+        </li>
+        <li class="d-flex align-items-center">
+          <div class="col-auto pe-2">
+            <i class="bi bi-bar-chart fs-2 text-dark"></i>
+            <!-- Icono de gráfico para Gastos Operaciones -->
+          </div>
+          <div class="col text-start">
+            <a
+              routerLink="/panel-control/gastos-operaciones"
+              class="text-dark text-decoration-none"
+              (click)="closeSidebarOnMobile()"
+              >Gastos Operaciones</a
+            >
+          </div>
+        </li>
+      </ul>
+    </ul>
+  </aside>
+  <!-- Overlay para móvil -->
+  <div
+    class="overlay"
+    *ngIf="windowWidth < 768"
+    [class.overlay-visible]="isSidebarOpen"
+    (click)="toggleSidebar()"
+  ></div>
+  <!-- Contenido principal (body) -->
+  <main
+    class="main-content"
+    [class.content-shifted]="isSidebarOpen && windowWidth >= 768"
+  >
+    <div class="p-2">
+      <router-outlet></router-outlet>
+    </div>
+  </main>
+</section>

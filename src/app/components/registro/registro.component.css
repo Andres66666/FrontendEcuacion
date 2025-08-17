@@ -1,0 +1,8 @@
+:host {
+  display: block;
+  background-image: url("/assets/LogoMallaFinitaFondo.png");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  min-height: 100vh;
+}

@@ -1,0 +1,62 @@
+<div class="container py-4">
+    <div class="card shadow rounded-4 mx-auto" style="max-width: 600px">
+        <div class="card-body">
+            <h3 class="card-title mb-4 text-center text-primary">
+                Registrar Permiso
+            </h3>
+            <form [formGroup]="form" (ngSubmit)="onSubmit()">
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Nombre del Permiso</label>
+                    <input type="text" class="form-control" formControlName="nombre"
+                        placeholder="Ej. Ver, Editar, Registrar" (input)="form.get('nombre')?.markAsTouched()"
+                        [class.is-invalid]="
+                form.get('nombre')?.invalid && form.get('nombre')?.touched
+              " />
+                    <div class="invalid-feedback" *ngIf="
+                form.get('nombre')?.invalid &&
+                (form.get('nombre')?.dirty || form.get('nombre')?.touched)
+              ">
+                        <div *ngIf="form.get('nombre')?.hasError('required')">
+                            El nombre Permiso es requerido
+                        </div>
+                        <div *ngIf="form.get('nombre')?.hasError('minlength')">
+                            Mínimo 3 caracteres
+                        </div>
+                        <div *ngIf="form.get('nombre')?.hasError('maxlength')">
+                            Máximo 20 caracteres
+                        </div>
+                        <div *ngIf="form.get('nombre')?.hasError('soloTexto')">
+                            Solo se permiten letras y espacios
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-check form-switch mb-4">
+                    <input class="form-check-input" type="checkbox" role="switch" formControlName="estado"
+                        id="estadoSwitch" />
+                    <label class="form-check-label" for="estadoSwitch">Permiso activo</label>
+                </div>
+
+                <div class="d-flex flex-column flex-md-row justify-content-between gap-2">
+                    <button class="btn btn-outline-secondary w-100" type="button" (click)="volver()">
+                        <i class="bi bi-arrow-left-circle me-2"></i> Volver
+                    </button>
+
+                    <button class="btn btn-warning w-100" type="button" (click)="limpiarFormulario()">
+                        <i class="bi bi-eraser me-2"></i> Limpiar
+                    </button>
+
+                    <button class="btn btn-primary w-100" type="submit" [disabled]="form.invalid">
+                        <i class="bi bi-save me-2"></i> Registrar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Éxito -->
+<app-ok *ngIf="mensajeExito" [mensaje]="mensajeExito" (close)="manejarOk()"></app-ok>
+
+<!-- Modal de Error -->
+<app-error *ngIf="mensajeError" [mensaje]="mensajeError" (close)="manejarError()"></app-error>

@@ -1,0 +1,53 @@
+<div class="container py-4">
+    <div class="card shadow rounded-4 mx-auto" style="max-width: 600px">
+        <div class="card-body">
+            <h3 class="card-title mb-4 text-center text-primary">
+                Editar Rol - Permiso
+            </h3>
+
+            <form [formGroup]="form" (ngSubmit)="actualizar()">
+                <!-- Rol -->
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Rol</label>
+                    <select class="form-select" formControlName="rol" required>
+                        <option value="">Seleccione un rol</option>
+                        <option *ngFor="let r of roles" [value]="r.id">
+                            {{ r.nombre }}
+                        </option>
+                    </select>
+                </div>
+
+                <!-- Permiso -->
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Permiso</label>
+                    <select class="form-select" formControlName="permiso" required>
+                        <option value="">Seleccione un permiso</option>
+                        <option *ngFor="let p of permisos" [value]="p.id">
+                            {{ p.nombre }}
+                        </option>
+                    </select>
+                </div>
+
+                <!-- Botones -->
+                <div class="d-flex flex-column flex-md-row justify-content-between gap-2">
+                    <button class="btn btn-outline-secondary w-100" type="button" (click)="volver()">
+                        <i class="bi bi-arrow-left-circle me-2"></i> Volver
+                    </button>
+
+                    <button class="btn btn-warning w-100" type="button" (click)="limpiarFormulario()">
+                        <i class="bi bi-eraser me-2"></i> Restaurar
+                    </button>
+
+                    <button class="btn btn-primary w-100" type="submit" [disabled]="form.invalid">
+                        <i class="bi bi-save me-2"></i> Actualizar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<!-- Modal de Éxito -->
+<app-ok *ngIf="mensajeExito" [mensaje]="mensajeExito" (close)="manejarOk()"></app-ok>
+
+<!-- Modal de Error -->
+<app-error *ngIf="mensajeError" [mensaje]="mensajeError" (close)="manejarError()"></app-error>

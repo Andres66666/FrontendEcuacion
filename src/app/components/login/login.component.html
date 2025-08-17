@@ -1,0 +1,142 @@
+<div
+  class="container-fluid vh-100 d-flex align-items-center justify-content-center fondo"
+>
+  <div class="row w-100 justify-content-center g-0">
+    <!-- Formulario -->
+    <div
+      class="col-10 col-md-6 col-lg-4 col-xl-3 d-flex align-items-center position-relative"
+    >
+      <!-- Botón Volver a Inicio -->
+      <a
+        class="btn btn-sm btn-success position-absolute top-0 end-0 m-2 z-1"
+        (click)="navigateToHome()"
+        title="Volver a Inicio"
+      >
+        <i class="bi bi-door-open me-1"></i> Inicio
+      </a>
+
+      <div
+        class="card p-4 rounded w-100 d-flex flex-column bg-light bg-opacity-75 shadow"
+      >
+        <!-- Logo -->
+        <div class="d-flex justify-content-center mb-3">
+          <img
+            src="https://res.cloudinary.com/dexggkhkd/image/upload/v1750767599/logoMallaPNG_g2ta8p.png"
+            alt="Logo Malla Finita"
+            class="img-fluid"
+            style="max-width: 100%; height: auto; max-height: 200px"
+          />
+        </div>
+
+        <h2 class="text-center mb-3">Iniciar Sesión</h2>
+
+        <form (ngSubmit)="onSubmit()" #loginForm="ngForm" class="mt-3">
+          <!-- Campo Correo -->
+          <div class="mb-3">
+            <label for="correo" class="form-label">Correo Electrónico</label>
+            <input
+              type="email"
+              class="form-control rounded-3"
+              id="correo"
+              name="correo"
+              placeholder="you@example.com"
+              autocomplete="username"
+              required
+              [(ngModel)]="correo"
+              [ngClass]="{
+                'is-invalid':
+                  loginForm.controls['correo'] &&
+                  loginForm.controls['correo'].invalid &&
+                  loginForm.controls['correo'].touched
+              }"
+            />
+            <div
+              *ngIf="
+                loginForm.controls['correo']?.invalid &&
+                loginForm.controls['correo']?.touched
+              "
+              class="invalid-feedback"
+            >
+              Por favor, ingrese su correo electrónico.
+            </div>
+          </div>
+
+          <!-- Campo Contraseña -->
+          <div class="mb-3">
+            <label for="password" class="form-label">Contraseña</label>
+            <div class="input-group">
+              <input
+                [type]="showPassword ? 'text' : 'password'"
+                class="form-control rounded-start-3"
+                id="password"
+                name="password"
+                placeholder="Ingrese su contraseña"
+                autocomplete="current-password"
+                [(ngModel)]="password"
+                required
+                [ngClass]="{
+                  'is-invalid':
+                    loginForm.controls['password'] &&
+                    loginForm.controls['password'].invalid &&
+                    loginForm.controls['password'].touched
+                }"
+              />
+              <button
+                type="button"
+                class="btn rounded-end-3"
+                [ngClass]="showPassword ? 'btn-success' : 'btn-danger'"
+                (click)="togglePasswordVisibility()"
+              >
+                <i
+                  [ngClass]="showPassword ? 'bi bi-eye' : 'bi bi-eye-slash'"
+                ></i>
+              </button>
+            </div>
+            <div
+              *ngIf="
+                loginForm.controls['password']?.invalid &&
+                loginForm.controls['password']?.touched
+              "
+              class="invalid-feedback"
+            >
+              Por favor, ingrese su contraseña.
+            </div>
+          </div>
+
+          <!-- Botón Iniciar Sesión -->
+          <button
+            type="submit"
+            class="btn w-100 mt-3 fw-bold rounded-3"
+            [ngClass]="{
+              'btn-danger': !isFormValid(),
+              'btn-success': isFormValid()
+            }"
+            [disabled]="!isFormValid() || isLoading"
+          >
+            <span
+              *ngIf="isLoading"
+              class="spinner-border spinner-border-sm me-2"
+              role="status"
+              aria-hidden="true"
+            ></span>
+            Iniciar Sesión
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de Éxito -->
+<app-ok
+  *ngIf="mensajeExito"
+  [mensaje]="mensajeExito"
+  (close)="manejarOk()"
+></app-ok>
+
+<!-- Modal de Error -->
+<app-error
+  *ngIf="mensajeError"
+  [mensaje]="mensajeError"
+  (close)="manejarError()"
+></app-error>

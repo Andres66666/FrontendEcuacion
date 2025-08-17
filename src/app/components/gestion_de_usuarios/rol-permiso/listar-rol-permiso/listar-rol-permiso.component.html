@@ -1,0 +1,56 @@
+<h2 class="mb-4 text-primary text-center text-uppercase">
+    Lista de Rol Permiso
+</h2>
+<!-- Filtros -->
+<div class="mb-4 d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-2">
+    <!-- NUEVOS SELECTS DE FILTRADO -->
+    <div class="d-flex flex-row gap-2 w-100">
+        <input type="text" [(ngModel)]="busqueda" (input)="filtrar()" class="form-control"
+            placeholder="Buscar por nombre de rol..." />
+
+        <select class="form-select" [(ngModel)]="filtroRol" (change)="filtrar()">
+            <option value="">Todos los Roles</option>
+            <option *ngFor="let r of roles" [value]="r.nombre">{{ r.nombre }}</option>
+        </select>
+        
+        <select class="form-select" [(ngModel)]="filtroPermiso" (change)="filtrar()">
+            <option value="">Todos los Permisos</option>
+            <option *ngFor="let p of permisos" [value]="p.nombre">
+                {{ p.nombre }}
+            </option>
+        </select>
+        </div>
+        
+        <button class="btn btn-success" (click)="irARegistrar()">
+            <i class="bi bi-plus-circle me-1"></i> Registrar
+        </button>
+        </div>
+        
+        <!-- Tabla -->
+        <div class="table-responsive rounded border" style="max-height: 400px; overflow-y: auto" (scroll)="onScroll($event)">
+            <table class="table table-bordered table-hover align-middle text-center mb-0">
+                <thead class="table-primary">
+                    <tr>
+                        <th scope="col">Rol</th>
+                        <th scope="col">Permiso</th>
+                        <th scope="col">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let rp of mostrados">
+                        <td class="text-start">{{ rp.rol.nombre }}</td>
+                        <td class="text-start">{{ rp.permiso.nombre }}</td>
+                        <td>
+                            <button class="btn btn-warning btn-sm" (click)="irAEditar(rp.id)">
+                                <i class="bi bi-pencil"></i> Editar
+                            </button>
+                        </td>
+                    </tr>
+                    <tr *ngIf="mostrados.length === 0">
+                        <td colspan="3" class="text-center text-muted py-4">
+                            No se encontraron registros.
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>

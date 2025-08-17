@@ -1,0 +1,89 @@
+<div class="container py-4">
+    <div class="card shadow rounded-4 mx-auto" style="max-width: 700px">
+        <div class="card-body">
+            <h3 class="card-title mb-4 text-center text-primary">Editar Usuario</h3>
+
+            <form [formGroup]="form" (ngSubmit)="actualizarUsuario()">
+                <div class="row g-3">
+                    <!-- Andres -->
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Nombre</label>
+                        <input type="text" class="form-control" formControlName="nombre" />
+                    </div>
+                    <!-- Apellidos -->
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Apellido</label>
+                        <input type="text" class="form-control" formControlName="apellido" />
+                    </div>
+                    <!-- Correo -->
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Correo</label>
+                        <input type="email" class="form-control" formControlName="correo" />
+                    </div>
+                    <!-- Teléfono -->
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Teléfono</label>
+                        <input type="text" class="form-control" formControlName="telefono" />
+                    </div>
+                    <!-- CI -->
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">CI</label>
+                        <input type="text" class="form-control" formControlName="ci" />
+                    </div>
+                    <!-- Fecha de Nacimiento -->
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Fecha de Nacimiento</label>
+                        <input type="date" class="form-control" formControlName="fecha_nacimiento" />
+                    </div>
+                    <!-- Contraseña -->
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Contraseña</label>
+                        <div class="input-group">
+                            <input [type]="showPassword ? 'text' : 'password'" class="form-control rounded-start-3"
+                                formControlName="password" placeholder="Ingrese la nueva contraseña" />
+                            <button type="button" class="btn rounded-end-3"
+                                [ngClass]="showPassword ? 'btn-success' : 'btn-danger'"
+                                (click)="togglePasswordVisibility()">
+                                <i [ngClass]="showPassword ? 'bi bi-eye' : 'bi bi-eye-slash'"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Imagen</label>
+
+                        <input type="file" id="imagenInput" (change)="onFileChange($event)" class="form-control"
+                            required />
+
+                        <div *ngIf="imagenPreview" class="mt-2">
+                            <img [src]="imagenPreview" alt="Vista Previa" class="img-fluid"
+                                style="max-width: 200px; max-height: 200px" />
+                        </div>
+                        <div class="invalid-feedback" *ngIf="errorMensaje">
+                            {{ errorMensaje }}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex flex-column flex-md-row justify-content-between gap-2 mt-4">
+                    <button type="button" class="btn btn-outline-secondary w-100" (click)="volver()">
+                        <i class="bi bi-arrow-left-circle me-2"></i> Volver
+                    </button>
+
+                    <button type="button" class="btn btn-warning w-100" (click)="restablecerFormulario()">
+                        <i class="bi bi-arrow-counterclockwise me-2"></i> Restablecer
+                    </button>
+
+                    <button type="submit" class="btn btn-primary w-100" [disabled]="form.invalid">
+                        <i class="bi bi-save me-2"></i> Actualizar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<!-- Modal de Éxito -->
+<app-ok *ngIf="mensajeExito" [mensaje]="mensajeExito" (close)="manejarOk()"></app-ok>
+
+<!-- Modal de Error -->
+<app-error *ngIf="mensajeError" [mensaje]="mensajeError" (close)="manejarError()"></app-error>
