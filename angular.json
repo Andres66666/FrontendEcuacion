@@ -21,9 +21,13 @@
             ],
             "tsConfig": "tsconfig.app.json",
             "assets": [
+               "src/assets",
+              "src/favicon.ico",
+               "src/_redirects",
               {
                 "glob": "**/*",
-                "input": "public"
+                "input": "public",
+                "output": "/"
               }
             ],
             "styles": [
@@ -47,21 +51,25 @@
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "500kB",
-                  "maximumError": "1MB"
+                  "maximumWarning": "2MB",
+                  "maximumError": "3MB"
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "4kB",
-                  "maximumError": "8kB"
+                  "maximumWarning": "10kB",
+                  "maximumError": "15kB"
                 }
               ],
-              "outputHashing": "all"
+              "outputHashing": "all",
+              "optimization": true,
+              "extractLicenses": true,
+              "sourceMap": false
             },
             "development": {
               "optimization": false,
               "extractLicenses": false,
-              "sourceMap": true
+              "sourceMap": true,
+              "outputHashing": "none"
             }
           },
           "defaultConfiguration": "production"
@@ -73,7 +81,8 @@
               "buildTarget": "FrontendEcuacion:build:production"
             },
             "development": {
-              "buildTarget": "FrontendEcuacion:build:development"
+              "buildTarget": "FrontendEcuacion:build:development",
+              "hmr": false
             }
           },
           "defaultConfiguration": "development"
@@ -90,13 +99,17 @@
             ],
             "tsConfig": "tsconfig.spec.json",
             "assets": [
+               "src/assets",
+               "src/favicon.ico",
               {
                 "glob": "**/*",
-                "input": "public"
+                "input": "public",
+                "output": "/"
               }
             ],
             "styles": [
-              "src/styles.css"
+              "src/styles.css",
+              "@angular/material/prebuilt-themes/azure-blue.css"
             ],
             "scripts": []
           }
