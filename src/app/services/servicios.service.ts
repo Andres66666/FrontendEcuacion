@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { BehaviorSubject, map, Observable } from 'rxjs';
 
 import {
   Rol,
@@ -8,12 +8,10 @@ import {
   Usuario,
   UsuarioRol,
   RolPermiso,
-  Categorias,
   Materiales,
   ManoDeObra,
   EquipoHerramienta,
-  Ecuacion,
-  GastosGeneralesAdministrativos,
+  GastosGenerales,
   GastoOperacion,
   IdentificadorGeneral,
 } from '../models/models';
@@ -25,8 +23,14 @@ export class ServiciosService {
   private apiUrl = 'http://localhost:8000/api/';
 
   constructor(private http: HttpClient) {}
-
-  // === Rol ===
+  //  =====================================================
+  //  ================  seccion 1    ======================
+  //  =====================================================
+    /* servicio de login */
+  login(correo: string, password: string): Observable<any> {
+    const loginData = { correo: correo, password: password };
+    return this.http.post<any>(`${this.apiUrl}login/`, loginData);
+  }
   getRoles(): Observable<Rol[]> {
     return this.http.get<Rol[]>(`${this.apiUrl}rol/`);
   }
@@ -67,30 +71,6 @@ export class ServiciosService {
   editarUsuario(id: number, usuario: FormData): Observable<Usuario> {
     return this.http.put<Usuario>(`${this.apiUrl}usuario/${id}/`, usuario);
   }
-  // === Clientes ===
-
-  createCliente(usuario: any, imagenArchivo?: File): Observable<Usuario> {
-    if (imagenArchivo) {
-      const formData = new FormData();
-      formData.append('nombre', usuario.nombre);
-      formData.append('apellido', usuario.apellido);
-      formData.append(
-        'fecha_nacimiento',
-        typeof usuario.fecha_nacimiento === 'string'
-          ? usuario.fecha_nacimiento
-          : new Date(usuario.fecha_nacimiento).toISOString().split('T')[0]
-      );
-      formData.append('telefono', usuario.telefono);
-      formData.append('correo', usuario.correo);
-      formData.append('password', usuario.password);
-      formData.append('ci', usuario.ci);
-      formData.append('estado', usuario.estado ? 'true' : 'false');
-      formData.append('imagen_url', imagenArchivo);
-      return this.http.post<Usuario>(`${this.apiUrl}cliente/`, formData);
-    } else {
-      return this.http.post<Usuario>(`${this.apiUrl}cliente/`, usuario);
-    }
-  }
 
   // === UsuarioRol ===
   getUsuarioRoles(): Observable<UsuarioRol[]> {
@@ -122,100 +102,16 @@ export class ServiciosService {
       rolPermiso
     );
   }
-
-  // === Categorias ===
-  getCategorias(): Observable<Categorias[]> {
-    return this.http.get<Categorias[]>(`${this.apiUrl}categoria/`);
-  }
-  createCategoria(c: Categorias): Observable<Categorias> {
-    return this.http.post<Categorias>(`${this.apiUrl}categoria/`, c);
-  }
-  updateCategoria(c: Categorias): Observable<Categorias> {
-    return this.http.put<Categorias>(`${this.apiUrl}categoria/${c.id}/`, c);
-  }
-
-  // === Materiales ===
-  getMateriales(): Observable<Materiales[]> {
-    return this.http.get<Materiales[]>(`${this.apiUrl}materiales/`);
-  }
-  createMaterial(m: Materiales): Observable<Materiales> {
-    return this.http.post<Materiales>(`${this.apiUrl}materiales/`, m);
-  }
-  updateMaterial(m: Materiales): Observable<Materiales> {
-    return this.http.put<Materiales>(`${this.apiUrl}materiales/${m.id}/`, m);
-  }
-
-  // === Mano de Obra ===
-  getManoDeObra(): Observable<ManoDeObra[]> {
-    return this.http.get<ManoDeObra[]>(`${this.apiUrl}mano_de_obra/`);
-  }
-  createManoDeObra(m: ManoDeObra): Observable<ManoDeObra> {
-    return this.http.post<ManoDeObra>(`${this.apiUrl}mano_de_obra/`, m);
-  }
-  updateManoDeObra(m: ManoDeObra): Observable<ManoDeObra> {
-    return this.http.put<ManoDeObra>(`${this.apiUrl}mano_de_obra/${m.id}/`, m);
-  }
-
-  // === Equipo Herramienta ===
-  getEquiposHerramientas(): Observable<EquipoHerramienta[]> {
-    return this.http.get<EquipoHerramienta[]>(
-      `${this.apiUrl}equipo_herramienta/`
-    );
-  }
-  createEquipoHerramienta(e: EquipoHerramienta): Observable<EquipoHerramienta> {
-    return this.http.post<EquipoHerramienta>(
-      `${this.apiUrl}equipo_herramienta/`,
-      e
-    );
-  }
-  updateEquipoHerramienta(e: EquipoHerramienta): Observable<EquipoHerramienta> {
-    return this.http.put<EquipoHerramienta>(
-      `${this.apiUrl}equipo_herramienta/${e.id}/`,
-      e
-    );
-  }
-
-  // === Ecuacion ===
-  getEcuaciones(): Observable<Ecuacion[]> {
-    return this.http.get<Ecuacion[]>(`${this.apiUrl}ecuacion/`);
-  }
-  createEcuacion(e: Ecuacion): Observable<Ecuacion> {
-    return this.http.post<Ecuacion>(`${this.apiUrl}ecuacion/`, e);
-  }
-  updateEcuacion(e: Ecuacion): Observable<Ecuacion> {
-    return this.http.put<Ecuacion>(`${this.apiUrl}ecuacion/${e.id}/`, e);
-  }
-
-  // === Gastos Generales y Administrativos ===
-  getGastos(): Observable<GastosGeneralesAdministrativos[]> {
-    return this.http.get<GastosGeneralesAdministrativos[]>(
-      `${this.apiUrl}gastos/`
-    );
-  }
-  createGasto(
-    g: GastosGeneralesAdministrativos
-  ): Observable<GastosGeneralesAdministrativos> {
-    return this.http.post<GastosGeneralesAdministrativos>(
-      `${this.apiUrl}gastos/`,
-      g
-    );
-  }
-  updateGasto(
-    g: GastosGeneralesAdministrativos
-  ): Observable<GastosGeneralesAdministrativos> {
-    return this.http.put<GastosGeneralesAdministrativos>(
-      `${this.apiUrl}gastos/${g.id}/`,
-      g
-    );
-  }
-  // === Gasto de identificador general ===
+  //  =====================================================
+  //  ================  seccion 2    ======================
+  //  =====================================================
   getIdentificadorGeneral(): Observable<IdentificadorGeneral[]> {
-    return this.http.get<IdentificadorGeneral[]>(`${this.apiUrl}IDGeneral/`);
+    return this.http.get<IdentificadorGeneral[]>(`${this.apiUrl}IdGeneral/`);
   }
 
   getIdentificadorGeneralID(id: number): Observable<IdentificadorGeneral> {
     return this.http.get<IdentificadorGeneral>(
-      `${this.apiUrl}IDGeneral/${id}/`
+      `${this.apiUrl}IdGeneral/${id}/`
     );
   }
 
@@ -223,8 +119,16 @@ export class ServiciosService {
     gasto: Partial<IdentificadorGeneral>
   ): Observable<IdentificadorGeneral> {
     return this.http.post<IdentificadorGeneral>(
-      `${this.apiUrl}IDGeneral/`,
+      `${this.apiUrl}IdGeneral/`,
       gasto
+    );
+  }
+  updateIdentificadorGeneral(
+    identificador: IdentificadorGeneral
+  ): Observable<IdentificadorGeneral> {
+    return this.http.put<IdentificadorGeneral>(
+      `${this.apiUrl}IdGeneral/${identificador.id_general}/`,
+      identificador
     );
   }
   // === Gasto de Operación ===
@@ -237,7 +141,6 @@ export class ServiciosService {
       `${this.apiUrl}GastosOperaciones/?identificador=${id}`
     );
   }
-
   // El método para crear gastos recibe un arreglo de Partial<GastoOperacion> (sin id, identificador, etc)
   createGastoOperacion(gastos: Partial<GastoOperacion>[]): Observable<{
     mensaje: string;
@@ -263,10 +166,125 @@ export class ServiciosService {
   deleteGastoOperacion(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}GastosOperaciones/${id}/`);
   }
+  //  =====================================================
+  //  ================  seccion 3    ======================
+  //  =====================================================
+  // ==================
+  // === Materiales ===
+  // ==================
 
-  /* servicio de login */
-  login(correo: string, password: string): Observable<any> {
-    const loginData = { correo: correo, password: password };
-    return this.http.post<any>(`${this.apiUrl}login/`, loginData);
+  getMateriales(): Observable<Materiales[]> {
+    return this.http.get<Materiales[]>(`${this.apiUrl}materiales/`);
   }
+  getMaterialesID(id: number): Observable<Materiales> {
+    return this.http.get<Materiales>(
+      `${this.apiUrl}materiales/${id}/`
+    );
+  }
+  getMaterialesIDGasto(id_gasto_operacion: number): Observable<Materiales[]> {
+    return this.http.get<Materiales[]>(`${this.apiUrl}materiales/?id_gasto_operacion=${id_gasto_operacion}`);
+  }
+
+  createMaterial(m: Materiales): Observable<Materiales> {
+    return this.http.post<Materiales>(`${this.apiUrl}materiales/`, m);
+  }
+  updateMaterial(m: Materiales): Observable<Materiales> {
+    return this.http.put<Materiales>(`${this.apiUrl}materiales/${m.id}/`, m);
+  }
+  deleteMaterial(id: number): Observable<Materiales> {
+    return this.http.delete<Materiales>(`${this.apiUrl}materiales/${id}/`);
+  }
+  // ====================
+  // === Mano de Obra ===
+  // ====================
+  getManoDeObra(): Observable<ManoDeObra[]> {
+    return this.http.get<ManoDeObra[]>(`${this.apiUrl}mano_de_obra/`);
+  }
+  getManoDeObraIDGasto(id_gasto_operacion: number): Observable<ManoDeObra[]> {
+    return this.http.get<ManoDeObra[]>(`${this.apiUrl}mano_de_obra/?id_gasto_operacion=${id_gasto_operacion}`);
+  }
+  createManoDeObra(m: ManoDeObra): Observable<ManoDeObra> {
+    return this.http.post<ManoDeObra>(`${this.apiUrl}mano_de_obra/`, m);
+  }
+  updateManoDeObra(m: ManoDeObra): Observable<ManoDeObra> {
+    return this.http.put<ManoDeObra>(`${this.apiUrl}mano_de_obra/${m.id}/`, m);
+  }
+  deleteManoDeObra(id: number): Observable<ManoDeObra> {
+    return this.http.delete<ManoDeObra>(`${this.apiUrl}mano_de_obra/${id}/`);
+  }
+
+  // ==========================
+  // === Equipo Herramienta ===
+  // ==========================
+  getEquiposHerramientas(): Observable<EquipoHerramienta[]> {
+    return this.http.get<EquipoHerramienta[]>(`${this.apiUrl}equipo_herramienta/`);
+  }
+  getEquipoHerramientas(id_gasto_operacion: number): Observable<EquipoHerramienta[]> {
+    return this.http.get<EquipoHerramienta[]>(
+      `${this.apiUrl}equipo_herramienta/?id_gasto_operacion=${id_gasto_operacion}`
+    );
+  }
+  createEquipoHerramienta(e: EquipoHerramienta): Observable<EquipoHerramienta> {
+    return this.http.post<EquipoHerramienta>(
+      `${this.apiUrl}equipo_herramienta/`,
+      e
+    );
+  }
+  updateEquipoHerramienta(e: EquipoHerramienta): Observable<EquipoHerramienta> {
+    return this.http.put<EquipoHerramienta>(
+      `${this.apiUrl}equipo_herramienta/${e.id}/`,
+      e
+    );
+  }
+  deleteEquipoHerramienta(id: number): Observable<EquipoHerramienta> {
+    return this.http.delete<EquipoHerramienta>(`${this.apiUrl}equipo_herramienta/${id}/`);
+  }
+
+
+
+  // === Gastos Generales y Administrativos === suma de 1+2+3 * 0.12 % 
+  getGastos(): Observable<GastosGenerales[]> {
+    return this.http.get<GastosGenerales[]>(
+      `${this.apiUrl}gastos_generales/`
+    );
+  }  
+  getGastosGenerales(id_gasto_operacion: number): Observable<GastosGenerales[]> {
+    return this.http.get<GastosGenerales[]>(
+      `${this.apiUrl}gastos_generales/?id_gasto_operacion=${id_gasto_operacion}`
+    );
+  }
+  createGasto(g: GastosGenerales): Observable<GastosGenerales> {
+    return this.http.post<GastosGenerales>(
+      `${this.apiUrl}gastos_generales/`,
+      g
+    );
+  }
+
+  updateGasto(g: GastosGenerales): Observable<GastosGenerales> {
+    return this.http.put<GastosGenerales>(
+      `${this.apiUrl}gastos_generales/${g.id}/`,
+      g
+    );
+  }
+  //  =====================================================
+  //  =========== seccion 4 Mandar Totales   ==============
+  //  =====================================================
+
+  private totalMaterialesSubject = new BehaviorSubject<number>(0);
+  totalMateriales$ = this.totalMaterialesSubject.asObservable();
+  private totalManoObraSubject = new BehaviorSubject<number>(0);
+  totalManoObra$ = this.totalManoObraSubject.asObservable();
+  private totalEquiposSubject = new BehaviorSubject<number>(0);
+  totalEquipos$ = this.totalEquiposSubject.asObservable();
+  // === Materiales ===
+  setTotalMateriales(total: number) {this.totalMaterialesSubject.next(total);}
+  // === Mano de Obra ===
+  setTotalManoObra(total: number) {this.totalManoObraSubject.next(total);}
+  // === Equipos y Herramientas ===
+  setTotalEquipos(total: number) {this.totalEquiposSubject.next(total);}
+
+  //  =====================================================
+  //  ================  seccion 5    ======================
+  //  =====================================================
+
 }

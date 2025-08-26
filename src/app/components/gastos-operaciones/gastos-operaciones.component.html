@@ -1,0 +1,277 @@
+
+  <h2 class="mb-4 text-primary text-center text-uppercase">
+    PRESUPUESTO POR ACTIVIDAD Y GENERAL DEL PROYECTO
+  </h2>
+  <div class="mb-3 text-center">
+    <ng-container *ngIf="identificadorGeneral === 0; else proyectoFijo">
+      <input
+        [(ngModel)]="nombreProyecto"
+        class="form-control text-center"
+        placeholder="Nombre del Proyecto (único)"
+      />
+    </ng-container>
+    <ng-template #proyectoFijo>
+      <p class="text-start text-muted mb-2">
+        {{ nombreProyecto }}
+      </p>
+    </ng-template>
+    <P>IDENTIFICADOR : {{ identificadorGeneral }}</P>
+  </div>
+  <div class="container">
+    <!-- 📌 Fila 1 -->
+    <div class="row mb-3">
+      <div class="col-12 col-md-3">
+        <label class="form-label fw-bold">Cargas Sociales (55%)</label>
+        <input type="number" class="form-control text-center" [(ngModel)]="carga_social" placeholder="55%"/>
+      </div>
+      <div class="col-12 col-md-3">
+        <label class="form-label fw-bold">IVA Nominal (14.94%)</label>
+        <input type="number" class="form-control text-center" [(ngModel)]="impuestos_iva" placeholder="14.94%"/>
+      </div>
+      <div class="col-12 col-md-3">
+        <label class="form-label fw-bold">Herramientas (5%)</label>
+        <input type="number" class="form-control text-center" [(ngModel)]="herramientas" placeholder="5%"/>
+      </div>
+      <div class="col-12 col-md-3">
+        <label class="form-label fw-bold">Gastos Generales (12%)</label>
+        <input type="number" class="form-control text-center" [(ngModel)]="gastos_generales" placeholder="12%"/>
+      </div>
+    </div>
+
+    <!-- 📌 Fila 2 -->
+    <div class="row mb-3">
+      <div class="col-12 col-md-3">
+        <label class="form-label fw-bold">IVA Efectiva (13%)</label>
+        <input type="number" class="form-control text-center" [(ngModel)]="iva_efectiva" placeholder="13%"/>
+      </div>
+      <div class="col-12 col-md-3">
+        <label class="form-label fw-bold">IT (3%)</label>
+        <input type="number" class="form-control text-center" [(ngModel)]="it" placeholder="3%"/>
+      </div>
+      <div class="col-12 col-md-3">
+        <label class="form-label fw-bold">IUE (25%)</label>
+        <input type="number" class="form-control text-center" [(ngModel)]="iue" placeholder="25%"/>
+      </div>
+      <div class="col-12 col-md-3">
+        <label class="form-label fw-bold">Ganancia (50%)</label>
+        <input type="number" class="form-control text-center" [(ngModel)]="ganancia" placeholder="50%"/>
+      </div>
+    </div>
+    <!-- 📌 Fila 3 -->
+    <div class="row mb-3">
+      <div class="col-12 col-md-4">
+        <label class="form-label fw-bold">A Costo Venta (77%)</label>
+        <input type="number" class="form-control text-center" [(ngModel)]="a_costo_venta" placeholder="77%"/>
+      </div>
+      <div class="col-12 col-md-4">
+        <label class="form-label fw-bold">B Margen Utilidad (10%)</label>
+        <input type="number" class="form-control text-center" [(ngModel)]="b_margen_utilidad" placeholder="10%"/>
+      </div>
+      <div class="col-12 col-md-4">
+        <label class="form-label fw-bold">Porcentaje Global (100%)</label>
+        <input type="number" class="form-control text-center" [(ngModel)]="porcentaje_global_100" placeholder="100%"/>
+      </div>
+    </div>
+
+    <!-- 📌 Selección Proyecto + Botones -->
+    <div class="row mb-3">
+      <div class="col-12">
+        <label class="form-label fw-bold">Seleccione un Proyecto</label>
+        <div class="input-group">
+          <select
+            id="selectorProyecto"
+            class="form-select text-center"
+            [(ngModel)]="proyectoSeleccionado"
+            (change)="onProyectoSeleccionado()"
+          >
+            <option class="text-start" [ngValue]="null" disabled>-- Elige un proyecto --</option>
+            <option class="text-start" *ngFor="let proyecto of listaProyectos" [ngValue]="proyecto">
+              {{ proyecto.NombreProyecto }}
+            </option>
+          </select>
+
+          <button class="btn btn-success" *ngIf="identificadorGeneral === 0" (click)="crearIdentificadorSiEsNecesario()">
+            Agregar Ítem Proyecto
+          </button>
+          <button class="btn btn-primary" *ngIf="identificadorGeneral !== 0" (click)="actualizarProyecto()">
+            Actualizar Proyecto
+          </button>
+          <button class="btn btn-success" [disabled]="identificadorGeneral === 0" (click)="agregarItem()">
+            Agregar Ítem Gastos Operación
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+
+
+  <div
+    class="table-responsive border rounded shadow-sm"
+    style="max-height: 500px; overflow-y: auto"
+  >
+    <table class="table table-bordered table-hover align-middle text-center mb-0">
+
+      <thead class="table-primary">
+        <tr>
+          <th>Item</th>
+          <th>Descripción</th>
+          <th>Unidad.</th>
+          <th>Cantidad</th>
+          <th>Gastos De Operacion</th>
+          <th>Valor Agregado</th>
+          <th>Precio Unitario Actividad</th>
+          <th>Precio Unitario Literal</th>
+          <th>Precio Factura Parcial</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let item of items; let i = index">
+          <td>{{ i + 1 }}</td>
+          <td class="input-cell">
+            <input
+              [(ngModel)]="item.descripcion"
+              class="full-width-input"
+              placeholder="Descripción"
+            />
+          </td>
+          <td>
+            <select [(ngModel)]="item.unidad" class="form-select">
+              <option selected value="">Seleccione unidad</option>
+              <option value="kg">kg – kilogramo</option>
+              <option value="g">g – gramo</option>
+              <option value="m">m – metro</option>
+              <option value="m²">m² – metro cuadrado</option>
+              <option value="m³">m³ – metro cúbico</option>
+              <option value="l">l – litro</option>
+              <option value="h">h – hora</option>
+              <option value="ud">ud – unidad</option>
+              <option value="mm">mm – milímetro</option>
+              <option value="cm">cm – centímetro</option>
+            </select>
+          </td>
+          <td class="input-cell">
+            <input
+              type="number"
+              
+              [(ngModel)]="item.cantidad"
+              class="full-width-input text-end"
+              placeholder="Cantidad"
+              (ngModelChange)="item.cantidad = item.cantidad ?? 0"
+            />
+          </td>
+
+          <td class="input-cell">
+            <ng-container *ngIf="item.id !== undefined; else normalPrecio">
+              <span class="fw-bold text-success">
+                {{ item.precio_unitario | number:'1.2-2' }}
+              </span>
+            </ng-container>
+
+            <ng-template #normalPrecio>
+              <input
+                type="number"
+                step="0.01"
+                [(ngModel)]="item.precio_unitario"
+                (change)="onPrecioUnitarioChange(i)"
+                class="full-width-input text-end"
+                placeholder="Precio Unitario"
+                (ngModelChange)="item.precio_unitario = item.precio_unitario ?? 0"
+              />
+            </ng-template>
+          </td>
+
+          <td class="input-cell">
+              <p>{{ getValorAgregado(item) | number:'1.2-2' }}</p>
+          </td>
+          <td class="input-cell">
+            <p>{{ SumaPrecioUnitarioActividad(item) | number:'1.2-2' }}</p>
+          </td>
+          <td class="input-cell col-md-3">
+            <textarea
+              readonly
+              [ngModel]="item.precio_literal"
+              class="form-control"
+              placeholder="Literal"
+              rows="2"
+              style="resize: none; white-space: pre-line"
+            ></textarea>
+          </td>
+          <td>
+            {{
+              (MultiplicacionPrecioUnitarioActividadPORcantidad(item)) | number : "1.2-2"
+            }}
+          </td>
+          <td>
+            <div class="d-flex justify-content-center gap-2">
+              <ng-container *ngIf="item.esNuevo; else accionesExistente">
+                <button
+                  class="btn btn-success btn-sm"
+                  (click)="registrarItem(i)"
+                >
+                  <i class="bi bi-check2-circle me-1"></i> Registrar
+                </button>
+                <button class="btn btn-danger btn-sm" (click)="eliminarItem(i)">
+                  <i class="bi bi-trash"></i> Eliminar
+                </button>
+                <!-- 🚀 Nuevo botón para ir a la vista de ecuaciones -->
+                <button
+                  class="btn btn-warning btn-sm"
+                  (click)="enviarAEcuacion(item)"
+                >
+                  <i class="bi bi-send"></i> Ver Ecuaciones
+                </button>
+              </ng-container>
+
+              <ng-template #accionesExistente>
+                <button
+                  class="btn btn-primary btn-sm"
+                  (click)="actualizarItem(i)"
+                >
+                  <i class="bi bi-pencil"></i> Actualizar
+                </button>
+                <button class="btn btn-danger btn-sm" (click)="eliminarItem(i)">
+                  <i class="bi bi-trash"></i> Eliminar
+                </button>
+                <!-- 🚀 Nuevo botón para ir a la vista de ecuaciones -->
+                <button
+                  class="btn btn-warning btn-sm"
+                  (click)="enviarAEcuacion(item)"
+                >
+                  <i class="bi bi-send"></i>Precio Unitario
+                </button>
+                <button
+                  class="btn btn-success btn-sm"
+                  (click)="enviarTotalGastosGenerales(item)"
+                >
+                  <i class="bi bi-receipt"></i>Precio Factura
+                </button>
+              </ng-template>
+            </div>
+          </td>
+        </tr>
+
+        <tr *ngIf="items.length === 0">
+          <td colspan="8" class="text-center text-muted py-4">
+            No hay ítems registrados.
+          </td>
+        </tr>
+      </tbody>
+
+      <tfoot class="table-light">
+        <tr>
+          <td colspan="8" class="text-end fw-bold">
+            TOTAL PRECIO FACTURA (Numeral)
+          </td>
+          <td class="fw-bold">{{ total | number : "1.2-2" }}</td>
+          <td></td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+
+<p class="text-center text-muted mt-3 fw-bold">
+  Son: {{ totalLiteral }}
+</p>

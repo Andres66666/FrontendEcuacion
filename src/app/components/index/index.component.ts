@@ -21,15 +21,4 @@ export class IndexComponent {
   navigateToLogin() {
     this.router.navigate(['/login']);
   }
-  navigateToRegistroUsers() {
-    this.router.navigate(['/registrousuarios']);
-  }
-  navigateToRegister() {
-    this.router.navigate(['/registro']);
-  }
-  navigateToEcuacion() {
-    this.router.navigate(['/ecuacion']);
-  }
-
-
 }

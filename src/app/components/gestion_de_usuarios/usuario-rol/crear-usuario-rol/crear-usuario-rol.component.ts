@@ -6,7 +6,6 @@ import { ErrorComponent } from '../../../mensajes/error/error.component';
 import { Rol, Usuario } from '../../../../models/models';
 import { ServiciosService } from '../../../../services/servicios.service';
 import { Router } from '@angular/router';
-import { CustomValidatorsService } from '../../../../shared/custom-validators.service';
 
 @Component({
   selector: 'app-crear-usuario-rol',
@@ -33,7 +32,6 @@ export class CrearUsuarioRolComponent {
     private fb: FormBuilder,
     private service: ServiciosService,
     private router: Router,
-    private customValidators: CustomValidatorsService,
   ) {
     this.form = this.fb.group({
       usuario: ['', Validators.required],

@@ -1,9 +1,6 @@
 import { Routes } from '@angular/router';
-
 import { IndexComponent } from './components/index/index.component';
 import { LoginComponent } from './components/login/login.component';
-import { RegistroComponent } from './components/registro/registro.component';
-
 import { PanelControlComponent } from './components/panel-control/panel-control.component';
 import { ListarPermisoComponent } from './components/gestion_de_usuarios/permiso/listar-permiso/listar-permiso.component';
 import { EditarPermisoComponent } from './components/gestion_de_usuarios/permiso/editar-permiso/editar-permiso.component';
@@ -15,7 +12,6 @@ import { ListarRolPermisoComponent } from './components/gestion_de_usuarios/rol-
 import { EditarRolPermisoComponent } from './components/gestion_de_usuarios/rol-permiso/editar-rol-permiso/editar-rol-permiso.component';
 import { ListarUsuarioRolComponent } from './components/gestion_de_usuarios/usuario-rol/listar-usuario-rol/listar-usuario-rol.component';
 import { EditarUsuarioRolComponent } from './components/gestion_de_usuarios/usuario-rol/editar-usuario-rol/editar-usuario-rol.component';
-import { ServiciosComponent } from './components/servicios/servicios.component';
 import { authGuard } from './guards/auth.guard';
 import { CrearRolComponent } from './components/gestion_de_usuarios/rol/crear-rol/crear-rol.component';
 import { CrearPermisoComponent } from './components/gestion_de_usuarios/permiso/crear-permiso/crear-permiso.component';
@@ -23,40 +19,36 @@ import { CrearUsuarioComponent } from './components/gestion_de_usuarios/usuario/
 import { CrearUsuarioRolComponent } from './components/gestion_de_usuarios/usuario-rol/crear-usuario-rol/crear-usuario-rol.component';
 import { CrearRolPermisoComponent } from './components/gestion_de_usuarios/rol-permiso/crear-rol-permiso/crear-rol-permiso.component';
 import { PerfilComponent } from './components/perfil/perfil.component';
-import { RegistrosUsuariosComponent } from './components/registros-usuarios/registros-usuarios.component';
-import { PrecioFacturaComponent } from './components/gestion_de_productos/precio-factura/precio-factura.component';
-import { GastosOperacionesComponent } from './components/gestion_de_productos/gastos-operaciones/gastos-operaciones.component';
-import { CrearMaterialesComponent } from './components/gestion_de_productos/materiales/crear-materiales/crear-materiales.component';
-import { EditarMaterialesComponent } from './components/gestion_de_productos/materiales/editar-materiales/editar-materiales.component';
-import { ListarMaterialesComponent } from './components/gestion_de_productos/materiales/listar-materiales/listar-materiales.component';
-import { CrearManoDeObraComponent } from './components/gestion_de_productos/mano-de-obra/crear-mano-de-obra/crear-mano-de-obra.component';
-import { EditarManoDeObraComponent } from './components/gestion_de_productos/mano-de-obra/editar-mano-de-obra/editar-mano-de-obra.component';
-import { ListarManoDeObraComponent } from './components/gestion_de_productos/mano-de-obra/listar-mano-de-obra/listar-mano-de-obra.component';
-import { CrearEquipoHerramientaComponent } from './components/gestion_de_productos/equipo-herramienta/crear-equipo-herramienta/crear-equipo-herramienta.component';
-import { EditarEquipoHerramientaComponent } from './components/gestion_de_productos/equipo-herramienta/editar-equipo-herramienta/editar-equipo-herramienta.component';
-import { ListarEquipoHerramientaComponent } from './components/gestion_de_productos/equipo-herramienta/listar-equipo-herramienta/listar-equipo-herramienta.component';
-import { CrearGastosGeneralesComponent } from './components/gestion_de_productos/gastos-generales/crear-gastos-generales/crear-gastos-generales.component';
-import { EditarGastosGeneralesComponent } from './components/gestion_de_productos/gastos-generales/editar-gastos-generales/editar-gastos-generales.component';
-import { ListarGastosGeneralesComponent } from './components/gestion_de_productos/gastos-generales/listar-gastos-generales/listar-gastos-generales.component';
-import { CrearEcuacionComponent } from './components/gestion_de_productos/ecuacion/crear-ecuacion/crear-ecuacion.component';
-import { EditarEcuacionComponent } from './components/gestion_de_productos/ecuacion/editar-ecuacion/editar-ecuacion.component';
-import { ListarEcuacionComponent } from './components/gestion_de_productos/ecuacion/listar-ecuacion/listar-ecuacion.component';
+
+import { GastosOperacionesComponent } from './components/gastos-operaciones/gastos-operaciones.component';
+
+
+
+import { CrearMaterialesComponent } from './components/analisis-precios-unitario/materiales/crear-materiales.component';
+import { CrearManoDeObraComponent } from './components/analisis-precios-unitario/mano-de-obra/crear-mano-de-obra.component';
+import { CrearEquipoHerramientaComponent } from './components/analisis-precios-unitario/equipo-herramienta/crear-equipo-herramienta.component';
+import { CrearEcuacionComponent } from './components/analisis-precios-unitario/1-2-3-4/crear-ecuacion.component';
+import { CrearGastosGeneralesComponent } from './components/analisis-precios-unitario/gastos-generales/crear-gastos-generales.component';
+import { PrecioFacturaComponent } from './components/analisis-precios-unitario/precio-factura/precio-factura.component';
+
 
 export const routes: Routes = [
     { path: '', component: IndexComponent }, // Ruta principal
     { path: 'login', component: LoginComponent },
-    { path: 'registro', component: RegistroComponent },
     { path: 'index', component: IndexComponent },
-    { path: 'registrousuarios', component: RegistrosUsuariosComponent },
 
     {
     path: 'panel-control',
     component: PanelControlComponent,
     canActivate: [authGuard], // ⬅️ Protección con el guard
     children: [
-      //ruta para servicios
-      { path: 'servicios', component: ServiciosComponent },
-
+      {
+        path: 'perfil',
+        component: PerfilComponent,
+      },
+        //  =====================================================
+        //  ================  seccion 1    ======================
+        //  =====================================================
       // Rol
       { path: 'listar-rol', component: ListarRolComponent },
       { path: 'registrar-rol', component: CrearRolComponent },
@@ -93,67 +85,39 @@ export const routes: Routes = [
         path: 'editar-usuario-rol/:id',
         component: EditarUsuarioRolComponent,
       },
-      /* ************************************ */
-      /* Rutas hijas productos de la ecuacion */
-      /* ************************************ */
-      /*  */
-      { path: 'CrearEcuacion', component: CrearEcuacionComponent },
-      { path: 'EditarEcuacion', component: EditarEcuacionComponent },
-      { path: 'ListarEcuacion', component: ListarEcuacionComponent },
-
-      /*  */
-      { path: 'CrearMateriales', component: CrearMaterialesComponent },
-      { path: 'EditarMateriales', component: EditarMaterialesComponent },
-      { path: 'ListarMateriales', component: ListarMaterialesComponent },
-      /*  */
-      { path: 'CrearManoDeObra', component: CrearManoDeObraComponent },
-      { path: 'EditarManoDeObra', component: EditarManoDeObraComponent },
-      { path: 'ListarManoDeObra', component: ListarManoDeObraComponent },
-
-      /*  */
-      {
-        path: 'CrearEquipoHerramienta',
-        component: CrearEquipoHerramientaComponent,
-      },
-      {
-        path: 'EditarEquipoHerramienta',
-        component: EditarEquipoHerramientaComponent,
-      },
-      {
-        path: 'ListarEquipoHerramienta',
-        component: ListarEquipoHerramientaComponent,
-      },
-      /*  */
-      {
-        path: 'CrearGastosGenerales',
-        component: CrearGastosGeneralesComponent,
-      },
-      {
-        path: 'EditarGastosGenerales',
-        component: EditarGastosGeneralesComponent,
-      },
-      {
-        path: 'ListarGastosGenerales',
-        component: ListarGastosGeneralesComponent,
-      },
-      /* ************************************ */
-      /* **********fin de ecuacion*********** */
-      /* ************************************ */
-
-      {
-        path: 'precio-factura',
-        component: PrecioFacturaComponent,
-      },
+        //  =====================================================
+        //  ================  seccion 2    ======================
+        //  =====================================================
       {
         path: 'gastos-operaciones',
         component: GastosOperacionesComponent,
       },
+        //  =====================================================
+        //  ================  seccion 3    ======================
+        //  =====================================================
+      /* crear ecuaciuon */
+      { path: 'CrearEcuacion', component: CrearEcuacionComponent },
 
+      /*materiales   */
+      { path: 'CrearMateriales', component: CrearMaterialesComponent },
+      /* mano de obra */
+      { path: 'CrearManoDeObra', component: CrearManoDeObraComponent },
+      /* equipo herramienta */
+      { path: 'CrearEquipoHerramienta',component: CrearEquipoHerramientaComponent},
+      /* gastos generales administrativos */
       {
-        path: 'perfil',
-        component: PerfilComponent,
+        path: 'CrearGastosGenerales',
+        component: CrearGastosGeneralesComponent,
       },
 
+        //  =====================================================
+        //  ================  seccion 4    ======================
+        //  =====================================================
+
+      {
+        path: 'PrecioFactura',
+        component: PrecioFacturaComponent,
+      },
       // Ruta por defecto
       { path: '', redirectTo: 'servicios', pathMatch: 'full' },
     ],

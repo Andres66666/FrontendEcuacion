@@ -2,14 +2,9 @@
   <!-- Navbar (header) -->
   <nav class="navbar navbar-expand-md header bg-light">
     <div class="container-fluid mx-2">
-      
-
-
       <button class="toggle-button btn me-2" (click)="toggleSidebar()">
           <i [ngClass]="isSidebarOpen ? 'fas fa-times' : 'fas fa-bars'"></i>
       </button>
-
-
       <div class="ms-auto d-flex align-items-center gap-2">
         <div class="dropdown d-flex align-items-center">
           <div class="me-2">
@@ -227,35 +222,7 @@
       </li>
 
       <ul class="list-group ps-3" *ngIf="isActive('Operacion')">
-        <li class="d-flex align-items-center" *ngIf="puedeVer('Ecuacion')">
-          <div class="col-auto pe-2">
-            <i class="bi bi-file-earmark-text fs-2 text-dark"></i>
-            <!-- Icono de documento para Ecuación -->
-          </div>
-          <div class="col text-start">
-            <a
-              routerLink="/panel-control/ListarEcuacion"
-              class="text-dark text-decoration-none"
-              (click)="closeSidebarOnMobile()"
-              >Operaciones</a
-            >
-          </div>
-        </li>
-        <li class="d-flex align-items-center">
-          <div class="col-auto pe-2">
-            <i class="bi bi-cash fs-2 text-dark"></i>
-            <!-- Icono de dinero para Precio Factura -->
-          </div>
-          <div class="col text-start">
-            <a
-              routerLink="/panel-control/precio-factura"
-              class="text-dark text-decoration-none"
-              (click)="closeSidebarOnMobile()"
-              >Precio Factura</a
-            >
-          </div>
-        </li>
-        <li class="d-flex align-items-center">
+         <li class="d-flex align-items-center">
           <div class="col-auto pe-2">
             <i class="bi bi-bar-chart fs-2 text-dark"></i>
             <!-- Icono de gráfico para Gastos Operaciones -->
@@ -269,6 +236,35 @@
             >
           </div>
         </li>
+        <li class="d-flex align-items-center" *ngIf="puedeVer('Ecuacion')">
+          <div class="col-auto pe-2">
+            <i class="bi bi-file-earmark-text fs-2 text-dark"></i>
+            <!-- Icono de documento para Ecuación -->
+          </div>
+          <div class="col text-start">
+            <a
+              routerLink="/panel-control/CrearEcuacion"
+              class="text-dark text-decoration-none"
+              (click)="closeSidebarOnMobile()"
+              >Analisis De Precios Unitarios</a
+            >
+          </div>
+        </li>
+        <li class="d-flex align-items-center">
+          <div class="col-auto pe-2">
+            <i class="bi bi-cash fs-2 text-dark"></i>
+            <!-- Icono de dinero para Precio Factura -->
+          </div>
+          <div class="col text-start">
+            <a
+              routerLink="/panel-control/PrecioFactura"
+              class="text-dark text-decoration-none"
+              (click)="closeSidebarOnMobile()"
+              >Precio Factura</a
+            >
+          </div>
+        </li>
+       
       </ul>
     </ul>
   </aside>

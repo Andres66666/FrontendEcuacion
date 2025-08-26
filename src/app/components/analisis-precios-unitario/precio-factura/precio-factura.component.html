@@ -1,0 +1,253 @@
+<div  class="d-flex gap-0">
+    <div class="flex-grow-1 mb-3 p-3 rounded-3">
+      <!--<p class="mb-1"><strong>Codigo ID Proyecto:</strong> {{ identificadorGeneral }}</p>-->
+      <h3 class="section-title">1.- GASTOS DE OPERACIÓN Y COSTO DE VENTA</h3>
+      <div class="table-responsive-wrapper">
+        <table class="data-table module-table">
+          <tbody>
+            <tr>
+              <td colspan="2" class="description-col bold-text">
+                GASTOS DE OPERACIÓN
+              </td>
+              <td class="amount-col value-cell bold-text">{{ precio_unitario | number:'1.2-2'}}</td>
+            </tr>
+            <tr>
+              <td colspan="2" class="description-col bold-text">
+                CREDITO FISCAL IVA 13%
+              </td>
+              <td class="amount-col value-cell bold-text">-{{ creditoFiscal | number:'1.2-2' }}</td>
+            </tr>
+            <tr>
+              <td colspan="2" class="description-col bold-text">
+                COSTO DE VENTA
+              </td>
+              <td class="amount-col value-cell bold-text">{{ costoVenta | number:'1.2-2' }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <h3 class="section-title">2.- PRECIO FACTURA</h3>
+      <div class="table-responsive-wrapper">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th colspan="2" class="align-center">PORCENTAJES DE ALICUOTAS</th>
+              <th colspan="2" class="align-center">DESCRIPCION</th>
+              <th class="amount-col">MONTO (Bs)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="percentage-col bold-text text-center" rowspan="3"><br> <br>{{SumaIva_SumaAB}}%</td>
+              <td class="percentage-col bold-text text-center" rowspan="2"><br> {{ SumaAB }}%</td>
+              <td class="description-label-col bold-text">
+                A = {{a_costo_venta | number:'1.2-2'}} %
+              </td>
+              <td class="description-col">COSTO DE VENTA</td>
+              <td class="amount-col value-cell">{{ costoVenta | number:'1.2-2' }}</td>
+            </tr>
+            <tr class="dashed-bottom">
+              <td class="description-label-col bold-text">
+                B = {{b_margen_utilidad | number:'1.2-2'}} %
+              </td>
+              <td class="description-col">MARGEN DE UTILIDAD</td>
+              <td class="amount-col value-cell">{{ margenUtilidad | number:'1.2-2' }}</td>
+            </tr>
+            <tr>
+              <td colspan="2" class="percentage-col bold-text text-center">{{ iva_efectiva }} %</td>
+              <td class="description-col">
+                IVA (TASA EFECTIVA 14,94%) DE COSTO DE VENTA MAS MARGEN DE UTILIDAD
+              </td>
+              <td class="amount-col value-cell">{{ ivaEfectiva | number:'1.2-2' }}</td>
+            </tr>
+            <tr class="bold-text">
+              <td colspan="4" class="description-col text-end">PRECIO FACTURA</td>
+              <td class="amount-col value-cell">{{ precioFactura | number:'1.2-2' }}</td>
+            </tr>
+          </tbody>
+        </table>
+        <div *ngIf="mensajeErrorAB" class="alert alert-danger text-center">
+          {{ mensajeErrorAB }}
+        </div>
+        <div *ngIf="mensajeErrorIva" class="alert alert-warning text-center">
+          {{ mensajeErrorIva }}
+        </div>
+      </div>
+      <h3 class="section-title">3.- FISCALIZACION POR IMPUESTOS INTERNOS</h3>
+      <div class="table-responsive-wrapper">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th class="description-col">DESCRIPCION</th>
+              <th class="amount-col">MONTO (Bs)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="dashed-bottom">
+              <td class="description-col">COSTO DE VENTA</td>
+              <td class="amount-col value-cell">{{costoVentaT3 | number:'1.2-2'}}</td>
+            </tr>
+            <tr class="dashed-bottom">
+              <td class="description-col">MARGEN DE UTILIDAD</td>
+              <td class="amount-col value-cell">{{MargenDeUtilidad | number:'1.2-2'}}</td>
+            </tr>
+            <tr class="dashed-bottom">
+              <td class="description-col">IVA 13% DE PRECIO FACTURA</td>
+              <td class="amount-col value-cell">{{PrecioFactura | number:'1.2-2'}}</td>
+            </tr>
+            <tr class="dashed-bottom bold-text">
+              <td class="description-col">PRECIO FACTURA</td>
+              <td class="amount-col value-cell">{{SumaFactura | number:'1.2-2'}}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <h3 class="section-title">4.- ESTADO DE RESULTADOS</h3>
+      <div class="table-responsive-wrapper">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th class="description-col">DESCRIPCION</th>
+              <th class="amount-col">En bolivianos (Bs)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="bold-text">
+              <td class="description-col">PRECIO FACTURA</td>
+              <td class="amount-col value-cell">{{precioFactura | number:'1.2-2'}}</td>
+            </tr>
+            <tr>
+              <td class="description-col">GASTOS DE OPERACIÓN</td>
+              <td class="amount-col value-cell">-{{precio_unitario | number:'1.2-2'}}</td>
+            </tr>
+            <tr class="dashed-bottom">
+              <td class="description-col bold-text text-danger">VALOR AGREGADO</td>
+              <td class="amount-col value-cell bold-text">{{ValorAgregado | number:'1.2-2'}}</td>
+            </tr>
+            <tr>
+              <td class="description-col">Impuestos IVA 13%</td>
+              <td class="amount-col value-cell">{{ImpuestoIva | number:'1.2-2'}}</td>
+            </tr>
+            <tr>
+              <td class="description-col">IT 3% de la factura</td>
+              <td class="amount-col value-cell">{{itFactura | number:'1.2-2'}}</td>
+            </tr>
+            <tr class="dashed-bottom">
+              <td class="description-col">IUE 25% utilidad</td>
+              <td class="amount-col value-cell">{{iueUtilidad | number:'1.2-2'}}</td>
+            </tr>
+            <tr class="dashed-bottom">
+              <td class="description-col bold-text text-danger">TOTAL IMPUESTOS</td>
+              <td class="amount-col value-cell bold-text">{{SumaImpuestos | number:'1.2-2'}}</td>
+            </tr>
+            <tr class="bold-text">
+              <td class="description-col text-danger">TOTAL UTILIDAD NETA</td>
+              <td class="amount-col value-cell">{{SumaTotalNeta | number:'1.2-2'}}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <h3 class="section-title">5.- METODOLOGIA LA GANANCIA ES PRIMERO</h3>
+      <div class="table-responsive-wrapper">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th class="description-col">DESCRIPCION</th>
+              <th class="amount-col">GANANCIAS NETAS</th>
+              <th class="percentage-col">% DE DISTRIBUCION META</th>
+              <th class="ideal-col">IDEAL</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="dashed-bottom">
+              <td class="description-col">GANANCIA</td>
+              <td class="amount-col value-cell">{{gananciaPrimero | number:'1.2'}}</td>
+              <td class="percentage-col">{{gananciaPrimeroPorcentage | number:'1.2'}}%</td>
+              <td class="ideal-col">10%</td>
+            </tr>
+            <tr class="dashed-bottom">
+              <td class="description-col">COMPENSACION DEL DUEÑO</td>
+              <td class="amount-col value-cell">{{CompensacionDueno | number:'1.2'}}</td>
+              <td class="percentage-col">{{CompensacionDuenoPorcentage | number:'1.2'}}%</td>
+              <td class="ideal-col">10%</td>
+            </tr>
+            <tr class="dashed-bottom">
+              <td class="description-col">IMPUESTOS</td>
+              <td class="amount-col value-cell">{{SumaImpuestos | number:'1.2-2'}}</td>
+              <td class="percentage-col">{{ImpuestoPorcentage | number:'1.2-2'}}%</td>
+              <td class="ideal-col">15%</td>
+            </tr>
+            <tr class="dashed-bottom">
+              <td class="description-col">GASTOS DE OPERACIÓN</td>
+              <td class="amount-col value-cell">{{precio_unitario | number:'1.2-2'}}</td>
+              <td class="percentage-col">{{gastoOperacionPorcentage | number:'1.2-2'}}%</td>
+              <td class="ideal-col">65%</td>
+            </tr>
+            <tr class="dashed-bottom bold-text">
+              <td class="description-col">PRECIO FACTURA</td>
+              <td class="amount-col value-cell">{{PrecioFacturaPrimero | number:'1.2-2'}}</td>
+              <td class="percentage-col">{{PorcentajeTotalGananciaPrimero | number:'1.2-2'}}%</td>
+              <td class="ideal-col">100%</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <h3 class="section-title">6.- RENTABILIDAD</h3>
+      <div class="table-responsive-wrapper">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th class="description-col">DESCRIPCION</th>
+              <th class="amount-col">MONTO (Bs)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="dashed-bottom">
+              <td class="description-col bold-text text-danger">RENTABILIDAD (PROYECTO)</td>
+              <td class="amount-col value-cell">{{RentabilidadProyecto | number:'1.2-2'}}%</td>
+            </tr>
+            <tr class="dashed-bottom">
+              <td class="description-col">RENTABILIDAD (GANANCIA)</td>
+              <td class="amount-col value-cell">{{RentabilidadGanancia | number:'1.2-2'}}%</td>
+            </tr>
+            <tr class="dashed-bottom">
+              <td class="description-col">RENTABILIDAD (COMPENSACIÓN DEL DUEÑO)</td>
+              <td class="amount-col value-cell">{{RentabilidadCompensacionDueno | number:'1.2-2'}}%</td>
+            </tr>
+            <tr class="dashed-bottom">
+              <td class="description-col">RENTABILIDAD (IMPUESTOS)</td>
+              <td class="amount-col value-cell">{{RentabilidadImpuestos | number:'1.2-2'}}%</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <h3 class="section-title">7.- RETORNO DE GASTOS DE OPERACIÓN</h3>
+      <div class="table-responsive-wrapper">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th class="description-col">DESCRIPCION</th>
+              <th class="amount-col">NUMERO DE</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="dashed-bottom">
+              <td class="description-col bold-text text-danger">RETORNO</td>
+              <td class="amount-col value-cell">{{Retorno | number:'1.2-2'}}%</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+
+    </div>
+    <div class="position-sticky top-50 translate-middle-y align-self-start z-3" style="width: 60px">
+      <a
+        class="btn btn-primary d-flex align-items-center justify-content-center p-0"
+        (click)="navigateToHome()"
+        style="width: 60px; height: 60px"
+      >
+        <i class="bi bi-arrow-right-circle fs-5"></i>
+      </a>
+    </div>
+</div>

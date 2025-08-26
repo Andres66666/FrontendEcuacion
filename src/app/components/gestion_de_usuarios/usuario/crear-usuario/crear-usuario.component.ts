@@ -6,7 +6,6 @@ import { ErrorComponent } from '../../../mensajes/error/error.component';
 import { Router } from '@angular/router';
 import { ServiciosService } from '../../../../services/servicios.service';
 import { Usuario } from '../../../../models/models';
-import { CustomValidatorsService } from '../../../../shared/custom-validators.service';
 
 @Component({
   selector: 'app-crear-usuario',
@@ -29,7 +28,6 @@ export class CrearUsuarioComponent implements OnInit {
     private fb: FormBuilder,
     private usuarioService: ServiciosService,
     private router: Router,
-    private customValidators: CustomValidatorsService,
   ) {}
 
   ngOnInit(): void {
@@ -40,7 +38,6 @@ export class CrearUsuarioComponent implements OnInit {
           Validators.required,
           Validators.minLength(3),
           Validators.maxLength(20),
-          this.customValidators.soloTexto(),
         ],
       ],
       apellido: [
@@ -49,27 +46,24 @@ export class CrearUsuarioComponent implements OnInit {
           Validators.required,
           Validators.minLength(3),
           Validators.maxLength(20),
-          this.customValidators.soloTexto(),
         ],
       ],
       correo: [
         '',
         [Validators.required, Validators.email],
-        [this.customValidators.validateEmail()],
       ],
       telefono: [
         '',
         [Validators.required],
-        [this.customValidators.validatePhone()],
       ],
-      ci: ['', [Validators.required], [this.customValidators.validateCI()]],
+      ci: ['', [Validators.required]],
       fecha_nacimiento: [
         '',
-        [Validators.required, this.customValidators.validateDateOfBirth()],
+        [Validators.required],
       ],
       password: [
         '',
-        [Validators.required, this.customValidators.validatePassword()],
+        [Validators.required],
       ],
 
       imagen_url: [''],

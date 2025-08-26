@@ -5,7 +5,6 @@ import { OkComponent } from '../../../mensajes/ok/ok.component';
 import { ErrorComponent } from '../../../mensajes/error/error.component';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ServiciosService } from '../../../../services/servicios.service';
-import { CustomValidatorsService } from '../../../../shared/custom-validators.service';
 
 @Component({
   selector: 'app-editar-permiso',
@@ -25,7 +24,6 @@ export class EditarPermisoComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private permisoService: ServiciosService,
-    private customValidators: CustomValidatorsService,
   ) {}
 
   ngOnInit(): void {
@@ -37,7 +35,6 @@ export class EditarPermisoComponent implements OnInit {
           Validators.required,
           Validators.minLength(3),
           Validators.maxLength(20),
-          this.customValidators.soloTexto(),
         ],
       ],
       estado: [true],

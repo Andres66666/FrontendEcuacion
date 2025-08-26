@@ -1,0 +1,197 @@
+<form [formGroup]="formulario" *ngIf="formulario">
+  <div class="card border-success mb-4">
+    <div class="card-header bg-success text-white">
+      <h5 class="mb-0">
+        <i class="bi bi-person-workspace me-2"></i>2. Mano de Obra
+      </h5>
+    </div>
+    <div class="card-body" formArrayName="manoObra">
+      <div class="d-flex justify-content-end">
+        <button
+          type="button"
+          class="btn btn-outline-success mt-2 mb-3"
+          (click)="agregarManoObra()"
+        >
+          <i class="bi bi-plus-circle me-1"></i> Añadir Mano de Obra
+        </button>
+      </div>
+      <table class="table table-bordered table-hover align-middle mb-3">
+        <thead class="table-light text-center">
+          <tr>
+            <th>Descripción</th>
+            <th>Unidad</th>
+            <th>Cantidad</th>
+            <th>P. Unitario</th>
+            <th>Precio parcial</th>
+            <th>Acción</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr
+            *ngFor="let trabajo of manoObra.controls; let i = index"
+            [formGroupName]="i"
+          >
+            <!-- Descripción -->
+            <td>
+              <input
+                class="form-control"
+                formControlName="descripcion"
+                placeholder="Ej. Albañil"
+              />
+              <div
+                *ngIf="trabajo.get('descripcion')?.errors?.['required']"
+                class="text-danger small"
+              >
+                Campo requerido.
+              </div>
+            </td>
+
+            <!-- Unidad -->
+            <td>
+              <select
+                class="form-select"
+                formControlName="unidad"
+                (change)="onUnidadChange(trabajo)"
+              >
+                <option value="">Seleccione unidad</option>
+                <option value="h">h – hora</option>
+                <option value="día">día</option>
+                <option value="sem">sem – semana</option>
+                <option value="mes">mes</option>
+              </select>
+              <div
+                *ngIf="trabajo.get('unidad')?.errors?.['required']"
+                class="text-danger small"
+              >
+                Campo requerido.
+              </div>
+            </td>
+
+            <!-- Cantidad -->
+            <td>
+              <input
+                type="number"
+                class="form-control"
+                min="0"
+                formControlName="cantidad"
+                (keydown)="blockE($event)"
+                (change)="onCantidadChange(trabajo)"
+              />
+              <div
+                *ngIf="trabajo.get('cantidad')?.errors?.['required']"
+                class="text-danger small"
+              >
+                Campo requerido.
+              </div>
+              <div
+                *ngIf="
+                  trabajo.get('cantidad')?.hasError('min') &&
+                  trabajo.get('cantidad')?.touched
+                "
+                class="text-danger small"
+              >
+                No puede ser menor o igual a 0.
+              </div>
+            </td>
+
+            <!-- Precio Unitario -->
+            <td>
+              <input
+                type="number"
+                class="form-control"
+                min="0"
+                formControlName="precio_unitario"
+                (keydown)="blockE($event)"
+                (change)="onPrecioUniChange(trabajo)"
+              />
+              <div
+                *ngIf="trabajo.get('precio_unitario')?.errors?.['required']"
+                class="text-danger small"
+              >
+                Campo requerido.
+              </div>
+              <div
+                *ngIf="
+                  trabajo.get('precio_unitario')?.hasError('min') &&
+                  trabajo.get('precio_unitario')?.touched
+                "
+                class="text-danger small"
+              >
+                No puede ser menor o igual a 0.
+              </div>
+            </td>
+
+            <!-- Precio Parcial -->
+            <td>
+              <input
+                type="number"
+                class="form-control bg-white"
+                [value]="trabajo.get('total')?.value"
+                readonly
+              />
+            </td>
+
+            <!-- Acción -->
+            <td class="text-center">
+              <div class="d-flex justify-content-center gap-2">
+                <ng-container *ngIf="trabajo.get('esNuevo')?.value; else accionesExistente">
+                  <button
+                    class="btn btn-success btn-sm"
+                    (click)="registrarItem(i)"
+                  >
+                    <i class="bi bi-check2-circle me-1"></i> Registrar
+                  </button>
+                  <button class="btn btn-danger btn-sm" (click)="eliminarItem(i)">
+                    <i class="bi bi-trash"></i> Eliminar
+                  </button>
+                </ng-container>
+
+                <ng-template #accionesExistente>
+                  <button
+                    class="btn btn-primary btn-sm"
+                    (click)="actualizarItem(i)"
+                  >
+                    <i class="bi bi-pencil"></i> Actualizar
+                  </button>
+                  <button class="btn btn-danger btn-sm" (click)="eliminarItem(i)">
+                    <i class="bi bi-trash"></i> Eliminar
+                  </button>
+                </ng-template>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="card-footer">
+      <table class="table table-bordered table-hover mb-0">
+        <tbody>
+          <tr>
+            <td>Subtotal Mano de Obra</td>
+            <td class="text-end">
+              {{ subtotalManoObra | number : "1.2-2" }}
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <p>Cargas Sociales: ({{carga_social | number : "1.2-2"}} %)</p>
+            </td>
+            <td class="text-end">
+              {{ cargasManoObra | number : "1.2-2" }}
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <p>IVA: ({{iva | number : "1.2-2"}} %)</p>
+            </td>
+            <td class="text-end">{{ ivaManoObra | number : "1.2-2" }}</td>
+          </tr>
+          <tr class="table-success fw-bold">
+            <td>Total Mano de Obra</td>
+            <td class="text-end">{{ totalManoObra | number : "1.2-2" }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</form>

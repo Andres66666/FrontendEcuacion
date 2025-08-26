@@ -1,104 +1,58 @@
-// models.ts
-
-// === USUARIOS, ROLES Y PERMISOS ===
+  //  =====================================================
+  //  ================  seccion 1    ======================
+  //  =====================================================
 export interface Rol {
   id: number;
   nombre: string;
   estado: boolean;
 }
-
 export interface Permiso {
   id: number;
   nombre: string;
   estado: boolean;
 }
-
 export interface Usuario {
   id: number;
   nombre: string;
   apellido: string;
-  fecha_nacimiento: Date; // formato: YYYY-MM-DD
+  fecha_nacimiento: Date;
   telefono: string;
   correo: string;
-  password: string; // puede omitirse en formularios de edición
+  password: string; 
   ci: string;
-  fecha_creacion: Date; // formato: ISO string
+  fecha_creacion: Date; 
   fecha_actualizacion: Date;
   imagen_url: string;
   estado: boolean;
 }
-
 export interface UsuarioRol {
   id: number;
-  usuario: Usuario; // puede ser ID o el objeto completo
+  usuario: Usuario; 
   rol: Rol;
 }
-
 export interface RolPermiso {
   id: number;
   rol: Rol;
   permiso: Permiso;
 }
 
-// === CATEGORIZACIÓN ===
-
-export interface Categorias {
-  id: number;
-  nombre: string;
-  descripcion: string;
-  estado: boolean;
-}
-
-// === COSTOS DIRECTOS ===
-
-export interface Materiales {
-  id: number;
-  unidad: string;
-  cantidad: number;
-  precio_unitario: number;
-  total: number;
-}
-
-export interface ManoDeObra {
-  id: number;
-  unidad: string;
-  cantidad: number;
-  precio_unitario: number;
-  carga_social: number;
-  impuestos_iva: number;
-  total: number;
-}
-
-export interface EquipoHerramienta {
-  id: number;
-  unidad: string;
-  cantidad: number;
-  precio_unitario: number;
-  herramientas: number;
-  total: number;
-}
-
-// === ECUACIÓN ===
-
-export interface Ecuacion {
-  id: number;
-  materiales: Materiales;
-  mano_de_obra: ManoDeObra;
-  quipo_herramienta: EquipoHerramienta;
-  subtotal: number;
-}
-
-// === GASTOS GENERALES Y ADMINISTRATIVOS ===
-
-export interface GastosGeneralesAdministrativos {
-  id: number;
-  ecuacion: Ecuacion;
-  gastos_generales: number;
-  total: number;
-}
+  //  =====================================================
+  //  ================  seccion 2    ======================
+  //  =====================================================
 export interface IdentificadorGeneral {
   id_general: number;
   NombreProyecto: string;
+  carga_social: number;
+  impuestos_iva: number;
+  herramientas: number;
+  gastos_generales: number;
+  iva_efectiva: number;
+  it: number;
+  iue: number;
+  ganancia: number;
+  a_costo_venta: number;
+  b_margen_utilidad: number;
+  porcentaje_global_100: number;
 }
 
 export interface GastoOperacion {
@@ -113,3 +67,42 @@ export interface GastoOperacion {
   fecha_creacion: string;
   ultima_modificacion: string;
 }
+  //  =====================================================
+  //  ================  seccion 3    ======================
+  //  =====================================================
+export interface Materiales {
+  id: number;
+  id_gasto_operacion: number;
+  descripcion: string;
+  unidad: string;
+  cantidad: number;
+  precio_unitario: number;
+  total: number;
+}
+export interface ManoDeObra {
+  id: number;
+  id_gasto_operacion: number;
+  descripcion: string;
+  unidad: string;
+  cantidad: number;
+  precio_unitario: number;
+  total: number;
+}
+export interface EquipoHerramienta {
+  id: number;
+  id_gasto_operacion: number;
+  descripcion: string;
+  unidad: string;
+  cantidad: number;
+  precio_unitario: number;
+  total: number;
+}
+export interface GastosGenerales {
+  id: number;
+  id_gasto_operacion: number;
+  total: number;
+}
+  //  =====================================================
+  //  ================  seccion 4    ======================
+  //  =====================================================
+

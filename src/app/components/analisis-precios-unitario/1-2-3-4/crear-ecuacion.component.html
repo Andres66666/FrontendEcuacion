@@ -1,0 +1,52 @@
+<div class="d-flex gap-0">
+  <div class="flex-grow-1">
+    <!-- Cabecera -->
+    <section class="mb-3 p-3 text-white rounded-3 ">
+      <div class="card bg-transparent border-0">
+        <div class="card-body p-2">
+          <h1 class="mb-2 fs-4 text-center">ANÁLISIS DE PRECIOS UNITARIOS</h1>
+          <div class="row g-1">
+            <div class="row justify-content-center">
+              <div class="col-12 col-md-9">
+                <p class="mb-1"><strong>Proyecto:</strong> {{ nombreProyecto }}</p>
+                <p class="mb-1"><strong>Actividad:</strong> {{ descripcion }}</p>
+                <p class="mb-1"><strong>Cantidad:</strong> {{ cantidad }}</p>
+                <p class="mb-1"><strong>Unidad:</strong> {{ unidad }}</p>
+                <p class="mb-1"><strong>Moneda:</strong> Bolivianos</p>
+                <p class="mb-1"><strong>Codigo ID:</strong> {{ identificadorGeneral }}</p>
+                <p class="mb-1"><strong>ID Item:</strong> {{ id_gasto_operaciones }}</p>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Secciones -->
+    <section class="mb-3 p-3 text-white rounded-3">
+        <app-crear-materiales></app-crear-materiales>
+    </section>
+
+    <section class="mb-3 p-3 text-dark rounded-3">
+      <app-crear-mano-de-obra></app-crear-mano-de-obra>
+    </section>
+
+    <section class="mb-3 p-3 text-white rounded-3">
+      <app-crear-equipo-herramienta></app-crear-equipo-herramienta>
+    </section>
+
+    <section class="mb-3 p-3 text-white rounded-3">
+      <app-crear-gastos-generales></app-crear-gastos-generales>
+    </section>
+  </div>
+  <div class="position-sticky top-50 translate-middle-y align-self-start z-3" style="width: 60px">
+    <a
+      class="btn btn-primary d-flex align-items-center justify-content-center p-0"
+      (click)="navigateToHome()"
+      style="width: 60px; height: 60px"
+    >
+      <i class="bi bi-arrow-right-circle fs-5"></i>
+    </a>
+  </div>
+</div>

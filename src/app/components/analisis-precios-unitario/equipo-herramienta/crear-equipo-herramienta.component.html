@@ -1,0 +1,195 @@
+<!-- ========== EQUIPOS Y HERRAMIENTAS ========== -->
+<form [formGroup]="formulario" *ngIf="formulario">
+  <div class="card border-warning mb-4">
+    <div class="card-header bg-warning text-dark">
+      <h5 class="mb-0">
+        <i class="bi bi-tools me-2"></i>3. Equipos y Herramientas
+      </h5>
+    </div>
+    <div class="card-body" formArrayName="equipos">
+       <div class="d-flex justify-content-end">
+        <button
+          type="button"
+          class="btn btn-outline-warning mt-2 mb-3"
+          (click)="agregarEquipo()"
+        >
+          <i class="bi bi-plus-circle me-1"></i> Añadir Equipo
+        </button>
+      </div>
+      
+      <table class="table table-bordered table-hover align-middle mb-3">
+        <thead class="table-light text-center">
+          <tr>
+            <th>Descripción</th>
+            <th>Unidad</th>
+            <th>Cantidad</th>
+            <th>P. Unitario</th>
+            <th>Precio parcial</th>
+            <th>Acción</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr
+            *ngFor="let eq of equipos.controls; let i = index"
+            [formGroupName]="i"
+          >
+            <!-- Descripción -->
+            <td>
+              <input
+                class="form-control"
+                formControlName="descripcion"
+                placeholder="Ej. Martillo eléctrico"
+              />
+              <div
+                *ngIf="eq.get('descripcion')?.errors?.['required']"
+                class="text-danger small"
+              >
+                Campo requerido.
+              </div>
+            </td>
+
+            <!-- Unidad -->
+            <td>
+              <select
+                class="form-select"
+                formControlName="unidad"
+                (change)="onUnidadChange(eq)"
+              >
+                <option value="" selected>Seleccione unidad</option>
+                <option value="h">h – hora</option>
+                <option value="día">día</option>
+                <option value="sem">sem – semana</option>
+                <option value="mes">mes</option>
+              </select>
+
+              <div
+                *ngIf="eq.get('unidad')?.errors?.['required']"
+                class="text-danger small"
+              >
+                Campo requerido.
+              </div>
+            </td>
+
+            <!-- Cantidad -->
+            <td>
+              <input
+                type="number"
+                class="form-control"
+                min="0"
+                formControlName="cantidad"
+                (keydown)="blockE($event)"
+                (change)="onCantidadChange(eq)"
+              />
+              <div
+                *ngIf="eq.get('cantidad')?.errors?.['required']"
+                class="text-danger small"
+              >
+                Campo requerido.
+              </div>
+              <div
+                *ngIf="
+                  eq.get('cantidad')?.hasError('min') &&
+                  eq.get('cantidad')?.touched
+                "
+                class="text-danger small"
+              >
+                No puede ser menor o igual a 0.
+              </div>
+            </td>
+
+            <!-- Precio Unitario -->
+            <td>
+              <input
+                type="number"
+                class="form-control"
+                min="0"
+                formControlName="precio_unitario"
+                (keydown)="blockE($event)"
+                (change)="onPrecioUniChange(eq)"
+              />
+              <div
+                *ngIf="eq.get('precio_unitario')?.errors?.['required']"
+                class="text-danger small"
+              >
+                Campo requerido.
+              </div>
+              <div
+                *ngIf="
+                  eq.get('precio_unitario')?.hasError('min') &&
+                  eq.get('precio_unitario')?.touched
+                "
+                class="text-danger small"
+              >
+                No puede ser menor o igual a 0.
+              </div>
+            </td>
+
+            <!-- Precio parcial (readonly) -->
+            <td>
+              <input
+                class="form-control bg-white"
+                type="number"
+                [value]="eq.get('total')?.value"
+                readonly
+              />
+            </td>
+            <!-- Acción -->
+            <td class="text-center">
+              <div class="d-flex justify-content-center gap-2">
+                <ng-container *ngIf="eq.get('esNuevo')?.value; else accionesExistente">
+                  <button
+                    class="btn btn-success btn-sm"
+                    (click)="registrarItem(i)"
+                  >
+                    <i class="bi bi-check2-circle me-1"></i> Registrar
+                  </button>
+                  <button class="btn btn-danger btn-sm" (click)="eliminarItem(i)">
+                    <i class="bi bi-trash"></i> Eliminar
+                  </button>
+                </ng-container>
+
+                <ng-template #accionesExistente>
+                  <button
+                    class="btn btn-primary btn-sm"
+                    (click)="actualizarItem(i)"
+                  >
+                    <i class="bi bi-pencil"></i> Actualizar
+                  </button>
+                  <button class="btn btn-danger btn-sm" (click)="eliminarItem(i)">
+                    <i class="bi bi-trash"></i> Eliminar
+                  </button>
+                </ng-template>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+     
+    </div>
+    <div class="card-footer">
+      <table class="table table-bordered table-hover mb-0">
+        <tbody>
+          <tr>
+            <td>Subtotal Equipo Herramienta</td>
+            <td class="text-end">
+              {{ subtotalEquipos | number : "1.2-2" }}
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <p>Herramientas ({{herramientas | number : "1.2-2"}} %) * Total Mano de Obra: {{ totalManoObra | number : "1.2-2" }} </p>
+            </td>
+            <td class="text-end">
+              {{ herramientasPorcentaje | number : "1.2-2" }}
+            </td>
+          </tr>
+          <tr class="table-warning fw-bold">
+            <td>Total Equipos y Herramientas</td>
+            <td class="text-end">{{ totalEquipos | number : "1.2-2" }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</form>

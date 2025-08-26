@@ -5,7 +5,6 @@ import { OkComponent } from '../../../mensajes/ok/ok.component';
 import { ErrorComponent } from '../../../mensajes/error/error.component';
 import { ServiciosService } from '../../../../services/servicios.service';
 import { Router } from '@angular/router';
-import { CustomValidatorsService } from '../../../../shared/custom-validators.service';
 
 @Component({
   selector: 'app-crear-rol',
@@ -23,7 +22,6 @@ export class CrearRolComponent {
     private fb: FormBuilder,
     private rolService: ServiciosService,
     private router: Router,
-    private customValidators: CustomValidatorsService,
   ) {}
 
   ngOnInit(): void {
@@ -35,7 +33,6 @@ export class CrearRolComponent {
           Validators.required,
           Validators.minLength(3),
           Validators.maxLength(20),
-          this.customValidators.soloTexto(),
         ],
       ],
     });

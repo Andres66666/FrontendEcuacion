@@ -90,17 +90,19 @@
 }
 
 .toggle-button {
-    background-color: transparent; /* Fondo transparente */
-    color: black; /* Color del ícono */
-    border: 2px solid black; /* Solo borde negro */
-    padding: 8px 10px; /* Espaciado interno */
-    border-radius: 5px; /* Bordes redondeados */
-    cursor: pointer; /* Cambia el cursor al pasar */
-    transition: all 0.3s ease; /* Transición suave */
+    background-color: transparent;
+    color: rgb(1, 148, 4);
+    padding: 10px 10px; /* Aumenta el tamaño del botón */
+    border-radius: 10px; /* Más redondeado */
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 1rem; /* Aumenta el tamaño base del ícono */
+}
+
+.toggle-button i {
+    font-size: 1.5em; /* Escala 3 veces más grande el ícono */
 }
 
 .toggle-button:hover {
-    background-color: rgba(0, 0, 0, 0.1); /* Ligero fondo al pasar el mouse */
+    background-color: rgb(255, 255, 255);
 }
-
-

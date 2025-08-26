@@ -5,7 +5,6 @@ import { OkComponent } from '../../../mensajes/ok/ok.component';
 import { ErrorComponent } from '../../../mensajes/error/error.component';
 import { ServiciosService } from '../../../../services/servicios.service';
 import { Router } from '@angular/router';
-import { CustomValidatorsService } from '../../../../shared/custom-validators.service';
 
 @Component({
   selector: 'app-crear-permiso',
@@ -22,7 +21,6 @@ export class CrearPermisoComponent {
     private fb: FormBuilder,
     private permisoService: ServiciosService,
     private router: Router,
-    private customValidators: CustomValidatorsService,
   ) { }
   ngOnInit(): void {
     this.form = this.fb.group({
@@ -33,7 +31,6 @@ export class CrearPermisoComponent {
           Validators.required,
           Validators.minLength(3),
           Validators.maxLength(20),
-          this.customValidators.soloTexto(),
         ],
       ],
       estado: [true],
