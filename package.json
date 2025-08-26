@@ -21,6 +21,7 @@
     "@angular/router": "^19.2.0",
     "@angular/ssr": "^19.2.7",
     "@fortawesome/fontawesome-free": "^7.0.0",
+    "@netlify/angular-runtime": "^2.4.0",
     "@popperjs/core": "^2.11.8",
     "bootstrap": "^5.3.7",
     "bootstrap-icons": "^1.13.1",
