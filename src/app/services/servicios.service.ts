@@ -29,10 +29,15 @@ export class ServiciosService {
   //  ================  seccion 1    ======================
   //  =====================================================
     /* servicio de login */
-  login(correo: string, password: string): Observable<any> {
+/*   login(correo: string, password: string): Observable<any> {
     const loginData = { correo: correo, password: password };
     return this.http.post<any>(`${this.apiUrl}login/`, loginData);
+  } */
+  login(correo: string, password: string): Observable<any> {
+    const loginData = { username: correo, password: password }; // 👈 cambiar a username
+    return this.http.post<any>(`${this.apiUrl}login/`, loginData);
   }
+
   getRoles(): Observable<Rol[]> {
     return this.http.get<Rol[]>(`${this.apiUrl}rol/`);
   }
