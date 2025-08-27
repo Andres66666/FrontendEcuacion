@@ -42,6 +42,22 @@ export class CrearMaterialesComponent {
       if (this.id_gasto_operaciones) this.cargarMaterialesExistentes();
     });
   }
+  unidadTexto(value: string): string {
+    const map: { [key: string]: string } = {
+      kg: 'kg – kilogramo',
+      g: 'g – gramo',
+      m: 'm – metro',
+      'm²': 'm² – metro cuadrado',
+      'm³': 'm³ – metro cúbico',
+      l: 'l – litro',
+      h: 'h – hora',
+      ud: 'ud – unidad',
+      mm: 'mm – milímetro',
+      cm: 'cm – centímetro',
+    };
+    return map[value] || 'Seleccione unidad';
+  }
+
 
   get materiales(): FormArray {
     return this.formulario.get('materiales') as FormArray;
@@ -67,6 +83,7 @@ export class CrearMaterialesComponent {
         precio_unitario: [1, [Validators.required, Validators.min(1)]],
         total: [{ value: 1, disabled: true }],
         esNuevo: [true],
+        editarUnidad: [true],
       })
     );
   }
@@ -84,6 +101,7 @@ export class CrearMaterialesComponent {
             precio_unitario: [mat.precio_unitario, [Validators.required, Validators.min(1)]],
             total: [{ value: mat.total, disabled: true }],
             esNuevo: [false],
+            editarUnidad: [false],
           })
         );
       });

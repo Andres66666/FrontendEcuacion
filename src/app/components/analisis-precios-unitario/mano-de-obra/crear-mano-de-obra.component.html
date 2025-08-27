@@ -6,7 +6,7 @@
       </h5>
     </div>
     <div class="card-body" formArrayName="manoObra">
-      <div class="d-flex justify-content-end">
+      <div class="d-flex justify-content-end no-export">
         <button
           type="button"
           class="btn btn-outline-success mt-2 mb-3"
@@ -23,7 +23,7 @@
             <th>Cantidad</th>
             <th>P. Unitario</th>
             <th>Precio parcial</th>
-            <th>Acción</th>
+            <th class="no-export">Acción</th>
           </tr>
         </thead>
         <tbody>
@@ -48,24 +48,40 @@
 
             <!-- Unidad -->
             <td>
-              <select
-                class="form-select"
-                formControlName="unidad"
-                (change)="onUnidadChange(trabajo)"
-              >
-                <option value="">Seleccione unidad</option>
-                <option value="h">h – hora</option>
-                <option value="día">día</option>
-                <option value="sem">sem – semana</option>
-                <option value="mes">mes</option>
-              </select>
+              <ng-container *ngIf="trabajo.get('esNuevo')?.value || trabajo.get('editarUnidad')?.value; else verUnidad">
+                <select
+                  class="form-select"
+                  formControlName="unidad"
+                  (blur)="trabajo.get('editarUnidad')?.setValue(false); trabajo.get('unidad')?.markAsTouched()"
+                >
+                  <option value="">Seleccione unidad</option>
+                  <option value="h">h – hora</option>
+                  <option value="día">día – día</option>
+                  <option value="sem">sem – semana</option>
+                  <option value="mes">mes – mes</option>
+                </select>
+              </ng-container>
+
+              <!-- Modo solo lectura -->
+              <ng-template #verUnidad>
+                <p
+                  (click)="trabajo.get('editarUnidad')?.setValue(true)"
+                  class="mb-0"
+                  style="cursor: pointer;"
+                >
+                  {{ unidadTexto(trabajo.get('unidad')?.value) }}
+                </p>
+              </ng-template>
+
+              <!-- Error de validación -->
               <div
-                *ngIf="trabajo.get('unidad')?.errors?.['required']"
+                *ngIf="trabajo.get('unidad')?.errors?.['required'] && trabajo.get('unidad')?.touched"
                 class="text-danger small"
               >
                 Campo requerido.
               </div>
             </td>
+
 
             <!-- Cantidad -->
             <td>
@@ -132,7 +148,7 @@
             </td>
 
             <!-- Acción -->
-            <td class="text-center">
+            <td class="text-center no-export">
               <div class="d-flex justify-content-center gap-2">
                 <ng-container *ngIf="trabajo.get('esNuevo')?.value; else accionesExistente">
                   <button

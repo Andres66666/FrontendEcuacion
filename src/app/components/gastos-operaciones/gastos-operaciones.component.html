@@ -1,8 +1,9 @@
 
-  <h2 class="mb-4 text-primary text-center text-uppercase">
+  <div id="contentToExport">
+  <h2 class="mb-4 text-primary text-center text-uppercase" >
     PRESUPUESTO POR ACTIVIDAD Y GENERAL DEL PROYECTO
   </h2>
-  <div class="mb-3 text-center">
+  <div class="mb-3 text-center no-export">
     <ng-container *ngIf="identificadorGeneral === 0; else proyectoFijo">
       <input
         [(ngModel)]="nombreProyecto"
@@ -17,7 +18,7 @@
     </ng-template>
     <P>IDENTIFICADOR : {{ identificadorGeneral }}</P>
   </div>
-  <div class="container">
+  <div class="container no-export">
     <!-- 📌 Fila 1 -->
     <div class="row mb-3">
       <div class="col-12 col-md-3">
@@ -39,7 +40,7 @@
     </div>
 
     <!-- 📌 Fila 2 -->
-    <div class="row mb-3">
+    <div class="row mb-3 no-export">
       <div class="col-12 col-md-3">
         <label class="form-label fw-bold">IVA Efectiva (13%)</label>
         <input type="number" class="form-control text-center" [(ngModel)]="iva_efectiva" placeholder="13%"/>
@@ -58,7 +59,7 @@
       </div>
     </div>
     <!-- 📌 Fila 3 -->
-    <div class="row mb-3">
+    <div class="row mb-3 no-export">
       <div class="col-12 col-md-4">
         <label class="form-label fw-bold">A Costo Venta (77%)</label>
         <input type="number" class="form-control text-center" [(ngModel)]="a_costo_venta" placeholder="77%"/>
@@ -74,7 +75,7 @@
     </div>
 
     <!-- 📌 Selección Proyecto + Botones -->
-    <div class="row mb-3">
+    <div class="row mb-3 no-export">
       <div class="col-12">
         <label class="form-label fw-bold">Seleccione un Proyecto</label>
         <div class="input-group">
@@ -99,20 +100,33 @@
           <button class="btn btn-success" [disabled]="identificadorGeneral === 0" (click)="agregarItem()">
             Agregar Ítem Gastos Operación
           </button>
+           <!-- Botón PDF -->
+          <button
+            class="btn btn-danger d-flex align-items-center justify-content-center"
+            (click)="exportPDF()"
+            title="Exportar a PDF"
+          >
+            <i class="bi bi-file-earmark-pdf fs-4"></i>
+          </button>
+
+          <!-- Botón Word -->
+          <button
+            class="btn btn-primary d-flex align-items-center justify-content-center"
+            (click)="exportWORD()"
+            title="Exportar a Word"
+          >
+            <i class="bi bi-file-earmark-word fs-4"></i>
+          </button>
+
         </div>
       </div>
     </div>
   </div>
-
-
-
-
   <div
     class="table-responsive border rounded shadow-sm"
     style="max-height: 500px; overflow-y: auto"
   >
     <table class="table table-bordered table-hover align-middle text-center mb-0">
-
       <thead class="table-primary">
         <tr>
           <th>Item</th>
@@ -124,9 +138,10 @@
           <th>Precio Unitario Actividad</th>
           <th>Precio Unitario Literal</th>
           <th>Precio Factura Parcial</th>
-          <th>Acciones</th>
+          <th class="no-export">Acciones</th> <!-- 👈 no se exporta -->
         </tr>
       </thead>
+
       <tbody>
         <tr *ngFor="let item of items; let i = index">
           <td>{{ i + 1 }}</td>
@@ -138,8 +153,10 @@
             />
           </td>
           <td>
-            <select [(ngModel)]="item.unidad" class="form-select">
-              <option selected value="">Seleccione unidad</option>
+          <!-- Si el item es nuevo o está en modo editar, mostramos el select -->
+          <ng-container *ngIf="item.esNuevo || item.editarUnidad; else verUnidad">
+            <select [(ngModel)]="item.unidad" class="form-select" (blur)="item.editarUnidad = false">
+              <option value="">Seleccione unidad</option>
               <option value="kg">kg – kilogramo</option>
               <option value="g">g – gramo</option>
               <option value="m">m – metro</option>
@@ -151,13 +168,22 @@
               <option value="mm">mm – milímetro</option>
               <option value="cm">cm – centímetro</option>
             </select>
-          </td>
+          </ng-container>
+
+          <!-- Modo solo lectura -->
+          <ng-template #verUnidad>
+            <p (click)="item.editarUnidad = true" class="mb-0" style="cursor: pointer;">
+              {{ item.unidad ? unidadTexto(item.unidad) : 'Seleccione unidad' }}
+            </p>
+          </ng-template>
+        </td>
+
+
           <td class="input-cell">
             <input
               type="number"
-              
               [(ngModel)]="item.cantidad"
-              class="full-width-input text-end"
+              class="full-width-input text-center"
               placeholder="Cantidad"
               (ngModelChange)="item.cantidad = item.cantidad ?? 0"
             />
@@ -166,7 +192,7 @@
           <td class="input-cell">
             <ng-container *ngIf="item.id !== undefined; else normalPrecio">
               <span class="fw-bold text-success">
-                {{ item.precio_unitario | number:'1.2-2' }}
+                {{ item.precio_unitario | number : '1.2-2' }}
               </span>
             </ng-container>
 
@@ -184,11 +210,13 @@
           </td>
 
           <td class="input-cell">
-              <p>{{ getValorAgregado(item) | number:'1.2-2' }}</p>
+            <p>{{ getValorAgregado(item) | number : '1.2-2' }}</p>
           </td>
+
           <td class="input-cell">
-            <p>{{ SumaPrecioUnitarioActividad(item) | number:'1.2-2' }}</p>
+            <p>{{ SumaPrecioUnitarioActividad(item) | number : '1.2-2' }}</p>
           </td>
+
           <td class="input-cell col-md-3">
             <textarea
               readonly
@@ -199,12 +227,16 @@
               style="resize: none; white-space: pre-line"
             ></textarea>
           </td>
+
           <td>
             {{
-              (MultiplicacionPrecioUnitarioActividadPORcantidad(item)) | number : "1.2-2"
+              MultiplicacionPrecioUnitarioActividadPORcantidad(item)
+                | number : '1.2-2'
             }}
           </td>
-          <td>
+
+          <!-- 👇 columna de acciones (solo en pantalla) -->
+          <td class="no-export">
             <div class="d-flex justify-content-center gap-2">
               <ng-container *ngIf="item.esNuevo; else accionesExistente">
                 <button
@@ -216,7 +248,6 @@
                 <button class="btn btn-danger btn-sm" (click)="eliminarItem(i)">
                   <i class="bi bi-trash"></i> Eliminar
                 </button>
-                <!-- 🚀 Nuevo botón para ir a la vista de ecuaciones -->
                 <button
                   class="btn btn-warning btn-sm"
                   (click)="enviarAEcuacion(item)"
@@ -235,26 +266,26 @@
                 <button class="btn btn-danger btn-sm" (click)="eliminarItem(i)">
                   <i class="bi bi-trash"></i> Eliminar
                 </button>
-                <!-- 🚀 Nuevo botón para ir a la vista de ecuaciones -->
                 <button
                   class="btn btn-warning btn-sm"
                   (click)="enviarAEcuacion(item)"
                 >
-                  <i class="bi bi-send"></i>Precio Unitario
+                  <i class="bi bi-send"></i> Precio Unitario
                 </button>
                 <button
                   class="btn btn-success btn-sm"
                   (click)="enviarTotalGastosGenerales(item)"
                 >
-                  <i class="bi bi-receipt"></i>Precio Factura
+                  <i class="bi bi-receipt"></i> Precio Factura
                 </button>
               </ng-template>
             </div>
           </td>
         </tr>
 
-        <tr *ngIf="items.length === 0">
-          <td colspan="8" class="text-center text-muted py-4">
+        <!-- 👇 fila vacía también no se exporta -->
+        <tr *ngIf="items.length === 0" class="no-export">
+          <td colspan="10" class="text-center text-muted py-4">
             No hay ítems registrados.
           </td>
         </tr>
@@ -265,13 +296,15 @@
           <td colspan="8" class="text-end fw-bold">
             TOTAL PRECIO FACTURA (Numeral)
           </td>
-          <td class="fw-bold">{{ total | number : "1.2-2" }}</td>
-          <td></td>
+          <td class="fw-bold">{{ total | number : '1.2-2' }}</td>
+          <td class="no-export"></td>
         </tr>
       </tfoot>
     </table>
   </div>
 
+
 <p class="text-center text-muted mt-3 fw-bold">
   Son: {{ totalLiteral }}
 </p>
+</div>

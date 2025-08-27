@@ -5,6 +5,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { CrearMaterialesComponent } from '../materiales/crear-materiales.component';
 import { CrearEquipoHerramientaComponent } from '../equipo-herramienta/crear-equipo-herramienta.component';
 import { CrearGastosGeneralesComponent } from '../gastos-generales/crear-gastos-generales.component';
+import { ExportService } from '../../../services/export.service';
 
 @Component({
   selector: 'app-crear-ecuacion',
@@ -28,7 +29,7 @@ export class CrearEcuacionComponent {
   cantidad: number = 0;
   identificadorGeneral: number = 0;
 
-  constructor( private route: ActivatedRoute,    public router: Router,){}
+  constructor( private route: ActivatedRoute,    public router: Router,  private exportService: ExportService ){}
 
   ngOnInit(): void {
     this.route.queryParams.subscribe((params) => {
@@ -52,5 +53,11 @@ export class CrearEcuacionComponent {
   }
   navigateToHome(): void {
     this.router.navigate(['/panel-control/gastos-operaciones']);
+  }
+  exportPDF() {
+    this.exportService.generatePDF('contentToExport', 'factura.pdf');
+  }
+  exportWORD() {
+    this.exportService.generateWord('contentToExport', 'factura.docx');
   }
 }

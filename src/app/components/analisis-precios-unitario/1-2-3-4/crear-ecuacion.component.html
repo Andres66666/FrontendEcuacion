@@ -1,10 +1,9 @@
 <div class="d-flex gap-0">
-  <div class="flex-grow-1">
-    <!-- Cabecera -->
+  <div id="contentToExport" class="flex-grow-1">
     <section class="mb-3 p-3 text-white rounded-3 ">
       <div class="card bg-transparent border-0">
         <div class="card-body p-2">
-          <h1 class="mb-2 fs-4 text-center">ANÁLISIS DE PRECIOS UNITARIOS</h1>
+          <h1 class="mb-2 fs-1 text-center">ANÁLISIS DE PRECIOS UNITARIOS</h1>
           <div class="row g-1">
             <div class="row justify-content-center">
               <div class="col-12 col-md-9">
@@ -13,11 +12,8 @@
                 <p class="mb-1"><strong>Cantidad:</strong> {{ cantidad }}</p>
                 <p class="mb-1"><strong>Unidad:</strong> {{ unidad }}</p>
                 <p class="mb-1"><strong>Moneda:</strong> Bolivianos</p>
-                <p class="mb-1"><strong>Codigo ID:</strong> {{ identificadorGeneral }}</p>
-                <p class="mb-1"><strong>ID Item:</strong> {{ id_gasto_operaciones }}</p>
               </div>
             </div>
-
           </div>
         </div>
       </div>
@@ -42,11 +38,27 @@
   </div>
   <div class="position-sticky top-50 translate-middle-y align-self-start z-3" style="width: 60px">
     <a
-      class="btn btn-primary d-flex align-items-center justify-content-center p-0"
+      class="btn btn-success d-flex align-items-center justify-content-center p-0 mb-3 "
       (click)="navigateToHome()"
       style="width: 60px; height: 60px"
     >
       <i class="bi bi-arrow-right-circle fs-5"></i>
     </a>
+    <!-- Botón PDF -->
+      <a
+        class="btn btn-danger d-flex align-items-center justify-content-center p-0 mb-3"
+         (click)="exportPDF()"
+        style="width: 60px; height: 60px"
+      >
+        <i class="bi bi-file-earmark-pdf fs-3"></i>
+      </a>
+      <a
+        class="btn btn-primary d-flex align-items-center justify-content-center p-0"
+        (click)="exportWORD()"
+        style="width: 60px; height: 60px"
+      >
+        <i class="bi bi-file-earmark-word fs-3"></i>
+
+      </a>
   </div>
 </div>

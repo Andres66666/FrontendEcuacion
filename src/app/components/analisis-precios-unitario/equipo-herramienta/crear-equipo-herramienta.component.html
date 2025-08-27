@@ -7,7 +7,7 @@
       </h5>
     </div>
     <div class="card-body" formArrayName="equipos">
-       <div class="d-flex justify-content-end">
+       <div class="d-flex justify-content-end no-export">
         <button
           type="button"
           class="btn btn-outline-warning mt-2 mb-3"
@@ -25,7 +25,7 @@
             <th>Cantidad</th>
             <th>P. Unitario</th>
             <th>Precio parcial</th>
-            <th>Acción</th>
+            <th class="no-export">Acción</th>
           </tr>
         </thead>
         <tbody>
@@ -49,21 +49,36 @@
             </td>
 
             <!-- Unidad -->
+            <!-- Unidad -->
             <td>
-              <select
-                class="form-select"
-                formControlName="unidad"
-                (change)="onUnidadChange(eq)"
-              >
-                <option value="" selected>Seleccione unidad</option>
-                <option value="h">h – hora</option>
-                <option value="día">día</option>
-                <option value="sem">sem – semana</option>
-                <option value="mes">mes</option>
-              </select>
+              <ng-container *ngIf="eq.get('esNuevo')?.value || eq.get('editarUnidad')?.value; else verUnidad">
+                <select
+                  class="form-select"
+                  formControlName="unidad"
+                  (blur)="eq.get('editarUnidad')?.setValue(false); eq.get('unidad')?.markAsTouched()"
+                >
+                  <option value="" selected>Seleccione unidad</option>
+                  <option value="h">h – hora</option>
+                  <option value="día">día – día</option>
+                  <option value="sem">sem – semana</option>
+                  <option value="mes">mes – mes</option>
+                </select>
+              </ng-container>
 
+              <!-- Modo solo lectura -->
+              <ng-template #verUnidad>
+                <p
+                  (click)="eq.get('editarUnidad')?.setValue(true)"
+                  class="mb-0"
+                  style="cursor: pointer;"
+                >
+                  {{ unidadTexto(eq.get('unidad')?.value) }}
+                </p>
+              </ng-template>
+
+              <!-- Error de validación -->
               <div
-                *ngIf="eq.get('unidad')?.errors?.['required']"
+                *ngIf="eq.get('unidad')?.errors?.['required'] && eq.get('unidad')?.touched"
                 class="text-danger small"
               >
                 Campo requerido.
@@ -134,7 +149,7 @@
               />
             </td>
             <!-- Acción -->
-            <td class="text-center">
+            <td class="text-center no-export">
               <div class="d-flex justify-content-center gap-2">
                 <ng-container *ngIf="eq.get('esNuevo')?.value; else accionesExistente">
                   <button

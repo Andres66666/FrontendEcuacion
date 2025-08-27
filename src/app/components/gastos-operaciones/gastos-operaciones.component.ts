@@ -6,9 +6,11 @@ import { GastoOperacion, GastosGenerales, IdentificadorGeneral } from '../../mod
 import { ServiciosService } from '../../services/servicios.service';
 import { NumeroALetras } from '../../utils/numeroALetras';
 import {  map } from 'rxjs';
+import { ExportService } from '../../services/export.service';
 
 interface GastoOperacionExtendido extends Partial<GastoOperacion> {
   esNuevo?: boolean;
+  editarUnidad?: boolean; 
 }
 
 @Component({
@@ -45,7 +47,7 @@ export class GastosOperacionesComponent implements OnInit {
   totalOperacionPorGasto: { [id: number]: number } = {};
 
 
-  constructor(private router: Router, private servicios: ServiciosService) {}
+  constructor(private router: Router, private servicios: ServiciosService, private exportService: ExportService) {}
 
   ngOnInit(): void {
     this.identificadorGeneral = 0;
@@ -53,6 +55,22 @@ export class GastosOperacionesComponent implements OnInit {
     
     this.cargarProyectos();
   }
+  unidadTexto(value: string): string {
+    const map: { [key: string]: string } = {
+      kg: 'kg – kilogramo',
+      g: 'g – gramo',
+      m: 'm – metro',
+      'm²': 'm² – metro cuadrado',
+      'm³': 'm³ – metro cúbico',
+      l: 'l – litro',
+      h: 'h – hora',
+      ud: 'ud – unidad',
+      mm: 'mm – milímetro',
+      cm: 'cm – centímetro',
+    };
+    return map[value] || 'Seleccione unidad';
+  }
+
   cargarProyectos(): void {
     this.servicios.getIdentificadorGeneral().subscribe({
       next: (res) => (this.listaProyectos = res),
@@ -85,7 +103,6 @@ export class GastosOperacionesComponent implements OnInit {
   }
   crearIdentificadorSiEsNecesario(): void {
       if (this.identificadorGeneral === 0) {
-      // Validar que todos los campos estén presentes
       if (
         !this.nombreProyecto.trim() ||
         this.carga_social == null ||
@@ -103,7 +120,6 @@ export class GastosOperacionesComponent implements OnInit {
         alert('Completa todos los campos');
         return;
       }
-
       const identificador: Partial<IdentificadorGeneral> = {
         NombreProyecto: this.nombreProyecto.trim(),
         carga_social: this.carga_social,
@@ -118,7 +134,6 @@ export class GastosOperacionesComponent implements OnInit {
         b_margen_utilidad: this.b_margen_utilidad,
         porcentaje_global_100: this.porcentaje_global_100
       };
-
       this.servicios.createIdentificadorGeneral(identificador).subscribe({
         next: (resp) => {
           this.identificadorGeneral = resp.id_general;
@@ -382,6 +397,9 @@ export class GastosOperacionesComponent implements OnInit {
   }
   // operaciones para el calulo del Valor Agregado
 
+  private twoDecimals(value: number): number {
+    return Number(value.toFixed(2)); // mantiene solo 2 decimales
+  }
 
 
 
@@ -408,9 +426,21 @@ export class GastosOperacionesComponent implements OnInit {
     return this.getPrecioFactura(item) - this.toNum(item.precio_unitario);
   }
   SumaPrecioUnitarioActividad(item: GastoOperacionExtendido): number {
-    return this.toNum(item.precio_unitario) + this.getValorAgregado(item);
+    const result = this.toNum(item.precio_unitario) + this.getValorAgregado(item);
+    return this.twoDecimals(result);  // ✅ redondear aquí
   }
+
   MultiplicacionPrecioUnitarioActividadPORcantidad(item: GastoOperacionExtendido): number {
-    return this.SumaPrecioUnitarioActividad(item) * this.toNum(item.cantidad);
+    const unitario = this.SumaPrecioUnitarioActividad(item); // ya con 2 decimales
+    const result = unitario * this.toNum(item.cantidad);
+    return this.twoDecimals(result);  // ✅ y aquí también
   }
+  
+  exportPDF() {
+    this.exportService.generatePDF('contentToExport', 'factura.pdf');
+  }
+  exportWORD() {
+    this.exportService.generateWord('contentToExport', 'factura.docx');
+  }
+
 }

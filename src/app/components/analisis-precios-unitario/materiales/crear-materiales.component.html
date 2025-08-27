@@ -5,7 +5,7 @@
     </div>
     
     <div class="card-body" formArrayName="materiales">
-     <div class="d-flex justify-content-end">
+     <div class="d-flex justify-content-end no-export">
        <button
         type="button"
         class="btn btn-outline-primary mt-2 mb-3 "
@@ -22,7 +22,7 @@
             <th>Cantidad</th>
             <th>P. Unitario</th>
             <th>Precio parcial</th>
-            <th>Acción</th>
+            <th class="no-export">Acción</th>
           </tr>
         </thead>
         <tbody>
@@ -47,32 +47,41 @@
             </td>
 
             <!-- Unidad -->
-            <td>
-              <select
-                class="form-select"
-                formControlName="unidad"
-                (change)="onUnidadChange(mat)"
-              >
-                <option value="">Seleccione unidad</option>
-                <option value="kg">kg – kilogramo</option>
-                <option value="g">g – gramo</option>
-                <option value="m">m – metro</option>
-                <option value="m²">m² – metro cuadrado</option>
-                <option value="m³">m³ – metro cúbico</option>
-                <option value="l">l – litro</option>
-                <option value="h">h – hora</option>
-                <option value="ud">ud – unidad</option>
-                <option value="mm">mm – milímetro</option>
-                <option value="cm">cm – centímetro</option>
-              </select>
+           <td>
+              <!-- Mostrar select si es nuevo o está en modo editar -->
+              <ng-container *ngIf="mat.get('esNuevo')?.value || mat.get('editarUnidad')?.value; else verUnidad">
+                <select
+                  class="form-select"
+                  formControlName="unidad"
+                  (blur)="mat.get('editarUnidad')?.setValue(false)"
+                >
+                  <option value="">Seleccione unidad</option>
+                  <option value="kg">kg – kilogramo</option>
+                  <option value="g">g – gramo</option>
+                  <option value="m">m – metro</option>
+                  <option value="m²">m² – metro cuadrado</option>
+                  <option value="m³">m³ – metro cúbico</option>
+                  <option value="l">l – litro</option>
+                  <option value="h">h – hora</option>
+                  <option value="ud">ud – unidad</option>
+                  <option value="mm">mm – milímetro</option>
+                  <option value="cm">cm – centímetro</option>
+                </select>
+              </ng-container>
 
-              <div
-                *ngIf="mat.get('unidad')?.errors?.['required']"
-                class="text-danger small"
-              >
-                Campo requerido.
-              </div>
+              <!-- Modo solo lectura -->
+              <ng-template #verUnidad>
+                <p
+                  (click)="mat.get('editarUnidad')?.setValue(true)"
+                  class="mb-0"
+                  style="cursor: pointer;"
+                >
+                  {{ unidadTexto(mat.get('unidad')?.value) }}
+                </p>
+              </ng-template>
             </td>
+
+
 
             <!-- Cantidad -->
             <td>
@@ -139,7 +148,7 @@
             </td>
 
             <!-- Acción -->
-            <td class="text-center">
+            <td class="text-center no-export">
               <div class="d-flex justify-content-center gap-2">
                 <ng-container *ngIf="mat.get('esNuevo')?.value; else accionesExistente">
 

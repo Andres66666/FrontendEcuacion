@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+import { ExportService } from '../../../services/export.service';
 
 @Component({
   selector: 'app-precio-factura',
@@ -24,7 +25,7 @@ export class PrecioFacturaComponent {
   b_margen_utilidad: number = 0;     // % B ingresado (ej: 10)
   porcentaje_global_100: number = 0; // Porcentaje de ganancia
 
-  constructor(private route: ActivatedRoute, public router: Router) {}
+  constructor(private route: ActivatedRoute, public router: Router,  private exportService: ExportService ) {}
 
   ngOnInit(): void {
     this.route.queryParams.subscribe((params) => {
@@ -40,74 +41,68 @@ export class PrecioFacturaComponent {
       this.porcentaje_global_100 = Number(params['porcentaje_global_100']) || 0;
     });
   }
-  // Seccion 1
-  // ✅ Crédito fiscal
+  // ========================
+  // 🔹 SECCIÓN 1
+  // ========================
   get creditoFiscal(): number {
     return this.precio_unitario * (this.iva_efectiva / this.porcentaje_global_100);
   }
-  // ✅ Costo de venta
   get costoVenta(): number {
     return this.precio_unitario - this.creditoFiscal;
   }
-
-  //Seccion 2
-  // ✅ Suma A+B debe ser 87
+  // ========================
+  // 🔹 SECCIÓN 2
+  // ========================
   get SumaAB(): number {
-    return this.a_costo_venta + this.b_margen_utilidad; //87%
+    return this.a_costo_venta + this.b_margen_utilidad;
   }
-  // ✅ Validación: A + B debe ser 87
   get mensajeErrorAB(): string | null {
     return this.SumaAB !== 87 ? "PORCENTAJE INCORRECTO" : null;
   }
-  // ✅ Suma IVA + (A+B) debe dar porcentaje_global_100
   get SumaIva_SumaAB(): number {
-    return this.SumaAB + this.iva_efectiva; //porcentaje_global_100%
+    return this.SumaAB + this.iva_efectiva;
   }
-  // ✅ Validación: IVA + (A+B) debe ser porcentaje_global_100
   get mensajeErrorIva(): string | null {
     return this.SumaIva_SumaAB !== this.porcentaje_global_100 ? "DATOS INCORRECTOS" : null;
   }
-  // ✅ Margen de utilidad = (B% / A%) * costoVenta
   get margenUtilidad(): number {
-    if (this.a_costo_venta === 0) return 0;
-    return ((this.b_margen_utilidad / this.porcentaje_global_100) / (this.a_costo_venta / this.porcentaje_global_100)) * this.costoVenta;
+    return (this.b_margen_utilidad / this.a_costo_venta) * this.costoVenta;
   }
-  // ✅ IVA efectiva (iva/sumaAB)= 0.1494
   get ivaEfectivaCalculo(): number {
-    return (this.iva_efectiva) / (this.SumaAB); // 13/87 = 0.1494
+    return this.iva_efectiva / this.SumaAB;
   }
-  // ✅ IVA efectivo (14.94%)
   get ivaEfectiva(): number {
-    return (this.costoVenta + this.margenUtilidad) * (this.ivaEfectivaCalculo);
+    return (this.costoVenta + this.margenUtilidad) * this.ivaEfectivaCalculo;
   }
-  // ✅ Precio factura = costoVenta + margenUtilidad + IVAefectivo
-  get precioFactura(): number {
+  get precioFacturaS2(): number {
     return this.costoVenta + this.margenUtilidad + this.ivaEfectiva;
   }
-
-  //Seccion 3 
+  // ========================
+  // 🔹 SECCIÓN 3
+  // ========================
   get costoVentaT3 (): number{
-    return (this.a_costo_venta / this.porcentaje_global_100) * this.precioFactura;
+    return (this.a_costo_venta / this.porcentaje_global_100) * this.precioFacturaS2;
   }
   get MargenDeUtilidad (): number{
-    return (this.b_margen_utilidad / this.porcentaje_global_100) * this.precioFactura;
+    return (this.b_margen_utilidad / this.porcentaje_global_100) * this.precioFacturaS2;
   }
-  get PrecioFactura (): number{
-    return (this.iva_efectiva / this.porcentaje_global_100) * this.precioFactura;
+  get IVAenFactura (): number{
+    return (this.iva_efectiva / this.porcentaje_global_100) * this.precioFacturaS2;
   }
   get SumaFactura (): number{
-    return this.costoVentaT3 + this.MargenDeUtilidad + this.PrecioFactura;
+    return this.costoVentaT3 + this.MargenDeUtilidad + this.IVAenFactura;
   }
-
-  //Seccion 4
+  // ========================
+  // 🔹 SECCIÓN 4
+  // ========================
   get ValorAgregado (): number{
-    return this.precioFactura - this.precio_unitario;
+    return this.precioFacturaS2 - this.precio_unitario;
   }
   get ImpuestoIva (): number{
     return (this.iva_efectiva / this.porcentaje_global_100)*this.ValorAgregado
   }
   get itFactura (): number{
-    return (this.it / this.porcentaje_global_100) * this.precioFactura;
+    return (this.it / this.porcentaje_global_100) * this.precioFacturaS2;
   }
   get iueUtilidad (): number{
     return (this.ValorAgregado - this.ImpuestoIva - this.itFactura) * (this.iue / this.porcentaje_global_100);
@@ -118,8 +113,9 @@ export class PrecioFacturaComponent {
   get SumaTotalNeta (): number{
     return this.ValorAgregado - this.SumaImpuestos;
   }
-
-  //Seccion 5
+  // ========================
+  // 🔹 SECCIÓN 5
+  // ========================
   get gananciaPrimero (): number{
     return this.SumaTotalNeta * (this.ganancia / this.porcentaje_global_100);
   }
@@ -143,10 +139,11 @@ export class PrecioFacturaComponent {
     return (this.precio_unitario / this.PrecioFacturaPrimero) * this.porcentaje_global_100 ;
   }
   get PorcentajeTotalGananciaPrimero (): number{
-    return this.gananciaPrimeroPorcentage+this.CompensacionDuenoPorcentage+this.ImpuestoPorcentage+this.gastoOperacionPorcentage;
+    return this.gananciaPrimeroPorcentage + this.CompensacionDuenoPorcentage + this.ImpuestoPorcentage + this.gastoOperacionPorcentage;
   }
-
-  //Seccion 6 
+  // ========================
+  // 🔹 SECCIÓN 6
+  // ========================
   get RentabilidadProyecto(): number{
     return (this.ValorAgregado/ this.precio_unitario) * this.porcentaje_global_100;
   }
@@ -159,11 +156,20 @@ export class PrecioFacturaComponent {
   get RentabilidadImpuestos(): number{
     return (this.SumaImpuestos/ this.precio_unitario) * this.porcentaje_global_100;
   } 
-  // Seccion 7
+  // ========================
+  // 🔹 SECCIÓN 7
+  // ========================
   get Retorno():number{
     return this.precio_unitario/ this.gananciaPrimero
   }
   navigateToHome(): void {
     this.router.navigate(['/panel-control/gastos-operaciones']);
+  }
+
+  exportPDF() {
+    this.exportService.generatePDF('contentToExport', 'factura.pdf');
+  }
+  exportWORD() {
+    this.exportService.generateWord('contentToExport', 'factura.docx');
   }
 }

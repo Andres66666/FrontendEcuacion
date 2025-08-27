@@ -49,6 +49,15 @@ export class CrearEquipoHerramientaComponent {
     });
     this.servicio.totalManoObra$.subscribe((total) => (this.totalManoObra = total));
   }
+    unidadTexto(value: string): string {
+    const map: { [key: string]: string } = {
+      h: 'h – hora',
+      dia: 'día – día',
+      sem: 'sem – semana',
+      mes: 'mes – mes',
+    };
+    return map[value] || 'Seleccione unidad';
+  }
 
   get equipos(): FormArray {
     return this.formulario.get('equipos') as FormArray;
@@ -66,6 +75,7 @@ export class CrearEquipoHerramientaComponent {
         precio_unitario: [1, [Validators.required, Validators.min(1)]],
         total: [{ value: 1, disabled: true }],
         esNuevo: [true],
+        editarUnidad: [true],
       })
     );
   }
@@ -83,6 +93,7 @@ export class CrearEquipoHerramientaComponent {
             precio_unitario: [equipo.precio_unitario, [Validators.required, Validators.min(1)]],
             total: [{ value: equipo.total, disabled: true }],
             esNuevo: [false],
+            editarUnidad: [false],
           })
         );
       });
