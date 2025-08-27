@@ -50,7 +50,6 @@ export class LoginComponent {
       next: (response) => {
         localStorage.setItem('access_token', JSON.stringify(response.access_token));
 
-
         const usuario = {
           id: response.usuario_id,
           nombre: response.nombre_usuario,

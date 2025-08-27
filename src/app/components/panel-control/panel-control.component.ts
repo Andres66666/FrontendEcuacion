@@ -1,15 +1,16 @@
 import { CommonModule, isPlatformBrowser } from '@angular/common';
-import { Component, HostListener, Inject, OnInit, PLATFORM_ID } from '@angular/core';
+import { Component, HostListener, Inject, OnInit, PLATFORM_ID, OnDestroy } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { StorageService } from '../../services/Storage.service';
 
 @Component({
   selector: 'app-panel-control',
+  standalone: true,
   imports: [CommonModule, RouterModule],
   templateUrl: './panel-control.component.html',
-  styleUrl: './panel-control.component.css'
+  styleUrls: ['./panel-control.component.css']
 })
-export class PanelControlComponent implements OnInit {
+export class PanelControlComponent implements OnInit, OnDestroy {
   activeSection: string | null = null;
   isMobileView = false;
   isSidebarVisibleOnSmallScreens = true;
@@ -22,16 +23,7 @@ export class PanelControlComponent implements OnInit {
   userRole: string = '';
   userName: string = '';
   userPermissions: string[] = [];
-
-  nombre_usuario: string = '';
-  apellido: string | null = '';
   imagenUrl: string | null = '';
-  usuario_id: number = 0;
-
-  idParaEditar: number = 0;
-
-  permisos: string[] = [];
-  roles: string[] = [];
 
   constructor(
     private router: Router,
@@ -46,14 +38,20 @@ export class PanelControlComponent implements OnInit {
     this.userRole = datosUsuario.roles || '';
     this.userName = `${datosUsuario.nombre || ''} ${datosUsuario.apellido || ''}`.trim();
     this.userPermissions = datosUsuario.permisos || [];
-    this.imagenUrl = datosUsuario.imagen_url;
+    this.imagenUrl = datosUsuario.imagen_url || null;
 
     this.checkScreenSize();
     this.resetInactivityTimer();
   }
 
+  ngOnDestroy(): void {
+    if (this.timeoutInactivity) {
+      clearTimeout(this.timeoutInactivity);
+    }
+  }
+
   puedeVer(permiso: string): boolean {
-    return this.userPermissions.includes(permiso);
+    return this.userPermissions?.includes(permiso) ?? false;
   }
 
   @HostListener('window:resize')
@@ -110,7 +108,6 @@ export class PanelControlComponent implements OnInit {
     if (this.timeoutInactivity) {
       clearTimeout(this.timeoutInactivity);
     }
-
     this.timeoutInactivity = setTimeout(() => {
       this.handleSessionTimeout();
     }, this.inactiveTime);
@@ -126,11 +123,6 @@ export class PanelControlComponent implements OnInit {
     this.router.navigate(['panel-control/perfil']);
   }
 
-  private getUsuarioLocalStorage() {
-    const usuarioStr = this.storageService.getItem('usuario');
-    return usuarioStr ? JSON.parse(usuarioStr) : null;
-  }
-
   onSelectChange(action: string) {
     if (action === 'cerrarSesion') {
       this.confirmarCerrarSesion();
@@ -138,12 +130,9 @@ export class PanelControlComponent implements OnInit {
   }
 
   confirmarCerrarSesion() {
-    console.log('Intentando cerrar sesión...');
     const confirmar = window.confirm('¿Está seguro de que desea cerrar sesión?');
     if (confirmar) {
       this.logout();
-    } else {
-      console.log('Cierre de sesión cancelado.');
     }
   }
 
