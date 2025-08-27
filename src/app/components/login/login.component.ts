@@ -48,7 +48,8 @@ export class LoginComponent {
 
     this.service.login(this.correo, this.password).subscribe({
       next: (response) => {
-        localStorage.setItem('access_token', response.access_token);
+        localStorage.setItem('access_token', JSON.stringify(response.access_token));
+
 
         const usuario = {
           id: response.usuario_id,
