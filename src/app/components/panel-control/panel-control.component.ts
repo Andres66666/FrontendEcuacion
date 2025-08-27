@@ -33,16 +33,25 @@ export class PanelControlComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     const usuarioStr = this.storageService.getItem('usuarioLogueado');
-    const datosUsuario = usuarioStr ? JSON.parse(usuarioStr) : {};
 
-    this.userRole = datosUsuario.roles || '';
-    this.userName = `${datosUsuario.nombre || ''} ${datosUsuario.apellido || ''}`.trim();
-    this.userPermissions = datosUsuario.permisos || [];
-    this.imagenUrl = datosUsuario.imagen_url || null;
+    let datosUsuario: any = {};
+    try {
+      datosUsuario = usuarioStr ? JSON.parse(usuarioStr) : {};
+    } catch (error) {
+      console.error('Error al parsear usuario desde localStorage', error);
+      datosUsuario = {};
+    }
+
+    // Adaptamos claves posibles para evitar undefined
+    this.userRole = datosUsuario.rol ?? datosUsuario.roles ?? '';
+    this.userName = `${datosUsuario.nombre ?? ''} ${datosUsuario.apellido ?? ''}`.trim();
+    this.userPermissions = datosUsuario.permisos ?? [];
+    this.imagenUrl = datosUsuario.imagen_url ?? null;
 
     this.checkScreenSize();
     this.resetInactivityTimer();
   }
+
 
   ngOnDestroy(): void {
     if (this.timeoutInactivity) {

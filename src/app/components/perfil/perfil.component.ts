@@ -61,29 +61,31 @@ export class PerfilComponent implements OnInit {
   private getUsuarioLocalStorage() {
     if (typeof window !== 'undefined') {
       try {
-        const usuario = localStorage.getItem('usuarioLogueado'); // Cambia 'usuario' a 'usuarioLogueado'
+        const usuario = localStorage.getItem('usuarioLogueado'); 
+        // Aseguramos que siempre sea string JSON
         return usuario ? JSON.parse(usuario) : null;
       } catch (error) {
         console.error('Error al recuperar usuario de localStorage', error);
         return null;
       }
     }
-    return null; // Devuelve null si localStorage no está disponible
+    return null; 
   }
 
   recuperarUsuario() {
     const usuario = this.getUsuarioLocalStorage();
     if (usuario) {
-      this.usuario_id = usuario.usuario_id || usuario.id || 0;
-      this.rolUsuario = usuario.rol || '';
+      // Aquí estandarizamos las claves (id / usuario_id)
+      this.usuario_id = usuario.usuario_id ?? usuario.id ?? 0;
+      this.rolUsuario = usuario.rol ?? usuario.roles ?? '';
 
       this.perfilService.getUsuarioID(this.usuario_id).subscribe(
-        (usuarioExistente) => {
-          console.log('Usuario existente:', usuarioExistente); // Verifica la respuesta
+        (usuarioExistente: Usuario) => {
+          console.log('Usuario existente:', usuarioExistente);
           if (usuarioExistente) {
-            this.usuarioSeleccionado = usuarioExistente; // Asigna directamente el usuario existente
+            this.usuarioSeleccionado = usuarioExistente;
             this.cargarDatosEnFormulario(usuarioExistente);
-            this.controlarPermisosDeEdicion(); // <<<< Agregado aquí
+            this.controlarPermisosDeEdicion();
           } else {
             console.error('Usuario no encontrado');
           }
