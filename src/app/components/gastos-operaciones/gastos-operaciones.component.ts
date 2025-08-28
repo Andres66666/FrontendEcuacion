@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, HostListener, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { GastoOperacion, GastosGenerales, IdentificadorGeneral } from '../../models/models';
@@ -26,18 +26,19 @@ export class GastosOperacionesComponent implements OnInit {
   identificadorGeneral: number = 0;
 
   nombreProyecto: string = '';
-  carga_social: number = 0;
-  impuestos_iva: number = 0;
-  herramientas: number = 0;
-  gastos_generales: number = 0;
-  iva_efectiva: number = 0;
-  it: number = 0;
-  iue: number = 0;
-  ganancia: number = 0;
-  a_costo_venta: number = 0;
-  b_margen_utilidad: number = 0;
-  porcentaje_global_100: number = 0;
-  precio_unitario: number = 0;
+  carga_social: number | null = null;
+  impuestos_iva: number | null = null;
+  herramientas: number | null = null;
+  gastos_generales: number | null = null;
+  iva_efectiva: number | null = null;
+  it: number | null = null;
+  iue: number | null = null;
+  ganancia: number | null = null;
+  a_costo_venta: number | null = null;
+  b_margen_utilidad: number | null = null;
+  porcentaje_global_100: number | null = null;
+  precio_unitario: number | null = null;
+
 
   listaProyectos: IdentificadorGeneral[] = [];
   proyectoSeleccionado: IdentificadorGeneral | null = null;
@@ -46,6 +47,9 @@ export class GastosOperacionesComponent implements OnInit {
   id_gasto_operaciones: number = 0;
   totalOperacionPorGasto: { [id: number]: number } = {};
 
+  mostrarParametros: boolean = false;
+  mostrarLista: boolean = false;
+  proyectosFiltrados: IdentificadorGeneral[] = [];
 
   constructor(private router: Router, private servicios: ServiciosService, private exportService: ExportService) {}
 
@@ -57,16 +61,45 @@ export class GastosOperacionesComponent implements OnInit {
   }
   unidadTexto(value: string): string {
     const map: { [key: string]: string } = {
-      kg: 'kg – kilogramo',
-      g: 'g – gramo',
-      m: 'm – metro',
-      'm²': 'm² – metro cuadrado',
-      'm³': 'm³ – metro cúbico',
-      l: 'l – litro',
-      h: 'h – hora',
-      ud: 'ud – unidad',
-      mm: 'mm – milímetro',
-      cm: 'cm – centímetro',
+      BLS: 'BLS – BOLSA',
+      BRR: 'BRR – BARRA',
+      CD: 'CD – CUADRILLA DIA.',
+      CJA: 'CJA – CAJA',
+      CNX: 'CNX – CONEXION',
+      EVE: 'EVE – EVENTO',
+      GL: 'GL – GALON',
+      GLB: 'GLB – GLOBAL',
+      HA: 'HA – HECTAREA',
+      HDR: 'HDR – HOMBRES POR DIA',
+      HH: 'HH – HOMBRES HORA',
+      HR: 'HR – HORA',
+      HRS: 'HRS – HORAS',
+      'HY.': 'HY. – HOYO',
+      JGO: 'JGO – JUEGO',
+      KG: 'KG – KILOGRAMOS',
+      KIT: 'KIT – KITS',
+      KM: 'KM – KILOMETRO',
+      KMB: 'KMB – KILOMETROS BERMA',
+      LT: 'LT – LITROS',
+      M: 'M – METRO',
+      M2: 'M2 – METROS CUADRADOS',
+      M3: 'M3 – METROS CUBICOS',
+      M3K: 'M3K – METRO CUBICO POR KILOMETRO',
+      MED: 'MED – MEDICION',
+      MK: 'MK – MOTO KILOMETRO',
+      ML: 'ML – METROS LINEALES',
+      P2: 'P2 – PIE CUADRADO',
+      PAR: 'PAR – UN PAR',
+      PER: 'PER – PERSONAS',
+      PIE: 'PIE – PIE LINEAL',
+      PLA: 'PLA – PLANTIN',
+      PTO: 'PTO – PUNTO',
+      PZA: 'PZA – PIEZA',
+      RLL: 'RLL – ROLLO',
+      TLL: 'TLL – TALLER',
+      TN: 'TN – TONELADA',
+      TON: 'TON – TONELADAS',
+      UND: 'UND – UNIDAD',
     };
     return map[value] || 'Seleccione unidad';
   }
@@ -85,6 +118,44 @@ export class GastosOperacionesComponent implements OnInit {
   }
   
   onProyectoSeleccionado(): void {
+    if (!this.nombreProyecto) return;
+    // Buscar proyecto en lista por el nombre
+    const proyecto = this.listaProyectos.find(
+      (p) => p.NombreProyecto.toLowerCase() === this.nombreProyecto.toLowerCase()
+    );
+    if (proyecto) {
+        // Proyecto existente → cargar datos
+        this.proyectoSeleccionado = proyecto;
+        this.identificadorGeneral = proyecto.id_general;
+        this.carga_social = proyecto.carga_social;
+        this.impuestos_iva = proyecto.impuestos_iva;
+        this.herramientas = proyecto.herramientas;
+        this.gastos_generales = proyecto.gastos_generales;
+        this.iva_efectiva = proyecto.iva_efectiva;
+        this.it = proyecto.it;
+        this.iue = proyecto.iue;
+        this.ganancia = proyecto.ganancia;
+        this.a_costo_venta = proyecto.a_costo_venta;
+        this.b_margen_utilidad = proyecto.b_margen_utilidad;
+        this.porcentaje_global_100 = proyecto.porcentaje_global_100;
+        this.cargarGastos(this.identificadorGeneral);
+      } else {
+        // Proyecto nuevo → limpiar datos para registrar
+        this.proyectoSeleccionado = null;
+        this.identificadorGeneral = 0;
+        this.carga_social = null;
+        this.impuestos_iva = null;
+        this.herramientas = null;
+        this.gastos_generales = null;
+        this.iva_efectiva = null;
+        this.it = null;
+        this.iue = null;
+        this.ganancia = null;
+        this.a_costo_venta = null;
+        this.b_margen_utilidad = null;
+        this.porcentaje_global_100 = null;
+        this.items = [];
+      }
     if (!this.proyectoSeleccionado) return;
     this.identificadorGeneral = this.proyectoSeleccionado.id_general;
     this.nombreProyecto = this.proyectoSeleccionado.NombreProyecto;
@@ -122,17 +193,17 @@ export class GastosOperacionesComponent implements OnInit {
       }
       const identificador: Partial<IdentificadorGeneral> = {
         NombreProyecto: this.nombreProyecto.trim(),
-        carga_social: this.carga_social,
-        impuestos_iva: this.impuestos_iva,
-        herramientas: this.herramientas,
-        gastos_generales: this.gastos_generales,
-        iva_efectiva: this.iva_efectiva,
-        it: this.it,
-        iue: this.iue,
-        ganancia: this.ganancia,
-        a_costo_venta: this.a_costo_venta,
-        b_margen_utilidad: this.b_margen_utilidad,
-        porcentaje_global_100: this.porcentaje_global_100
+        carga_social: this.toNum(this.carga_social),
+        impuestos_iva: this.toNum(this.impuestos_iva),
+        herramientas: this.toNum(this.herramientas),
+        gastos_generales: this.toNum(this.gastos_generales),
+        iva_efectiva: this.toNum(this.iva_efectiva),
+        it: this.toNum(this.it),
+        iue: this.toNum(this.iue),
+        ganancia: this.toNum(this.ganancia),
+        a_costo_venta: this.toNum(this.a_costo_venta),
+        b_margen_utilidad: this.toNum(this.b_margen_utilidad),
+        porcentaje_global_100: this.toNum(this.porcentaje_global_100)
       };
       this.servicios.createIdentificadorGeneral(identificador).subscribe({
         next: (resp) => {
@@ -161,6 +232,57 @@ export class GastosOperacionesComponent implements OnInit {
       this.agregarItem();
     }
   }
+  focusInput() {
+    this.proyectosFiltrados = [...this.listaProyectos]; // Mostrar todos los proyectos
+    this.mostrarLista = true;
+  }
+
+  filtrarProyectos(): void {
+    const valor = this.nombreProyecto.toLowerCase();
+    this.proyectosFiltrados = this.listaProyectos.filter(p =>
+      p.NombreProyecto.toLowerCase().includes(valor)
+    );
+  }
+    
+  seleccionarProyecto(proyecto: IdentificadorGeneral): void {
+    this.nombreProyecto = proyecto.NombreProyecto;
+    this.proyectoSeleccionado = proyecto;
+    this.mostrarLista = false;
+    this.onProyectoSeleccionado(); // Carga los porcentajes
+  }
+  @HostListener('document:click', ['$event'])
+  clickFuera(event: Event) {
+    const target = event.target as HTMLElement;
+    if (!target.closest('.mb-3')) {
+      this.mostrarLista = false;
+    }
+  }
+  eliminarProyecto(): void {
+    if (!this.identificadorGeneral) {
+      alert('Selecciona un proyecto para eliminar.');
+      return;
+    }
+
+    if (confirm('¿Seguro que deseas eliminar este proyecto y todos sus registros asociados?')) {
+      this.servicios.deleteIdentificadorGeneral(this.identificadorGeneral).subscribe({
+        next: () => {
+          alert('Proyecto eliminado correctamente.');
+          this.identificadorGeneral = 0;
+          this.nombreProyecto = '';
+          this.items = [];
+          this.listaProyectos = this.listaProyectos.filter(
+            p => p.id_general !== this.proyectoSeleccionado?.id_general
+          );
+          this.proyectoSeleccionado = null;
+        },
+        error: (err) => {
+          console.error('Error al eliminar proyecto:', err);
+          alert('Error al eliminar el proyecto.');
+        }
+      });
+    }
+  }
+
   actualizarProyecto(): void {
     if (
       !this.nombreProyecto.trim() ||
@@ -182,18 +304,19 @@ export class GastosOperacionesComponent implements OnInit {
 
     const identificador: IdentificadorGeneral = {
       id_general: this.identificadorGeneral,
+      
       NombreProyecto: this.nombreProyecto.trim(),
-      carga_social: this.carga_social,
-      impuestos_iva: this.impuestos_iva,
-      herramientas: this.herramientas,
-      gastos_generales: this.gastos_generales,
-      iva_efectiva: this.iva_efectiva,
-      it: this.it,
-      iue: this.iue,
-      ganancia: this.ganancia,
-      a_costo_venta: this.a_costo_venta,
-      b_margen_utilidad: this.b_margen_utilidad,
-      porcentaje_global_100: this.porcentaje_global_100
+      carga_social: this.toNum(this.carga_social),
+      impuestos_iva: this.toNum(this.impuestos_iva),
+      herramientas: this.toNum(this.herramientas),
+      gastos_generales: this.toNum(this.gastos_generales),
+      iva_efectiva: this.toNum(this.iva_efectiva),
+      it: this.toNum(this.it),
+      iue: this.toNum(this.iue),
+      ganancia: this.toNum(this.ganancia),
+      a_costo_venta: this.toNum(this.a_costo_venta),
+      b_margen_utilidad: this.toNum(this.b_margen_utilidad),
+      porcentaje_global_100: this.toNum(this.porcentaje_global_100)
     };
 
     this.servicios.updateIdentificadorGeneral(identificador).subscribe({
@@ -275,18 +398,19 @@ export class GastosOperacionesComponent implements OnInit {
       identificador: { 
         id_general: this.identificadorGeneral, 
         NombreProyecto: this.nombreProyecto,
-        carga_social: this.carga_social,
-        impuestos_iva: this.impuestos_iva,
-        herramientas: this.herramientas,
-        gastos_generales: this.gastos_generales,
-        iva_efectiva: this.iva_efectiva,
-        it: this.it,
-        iue: this.iue,
-        ganancia: this.ganancia,
-        a_costo_venta: this.a_costo_venta,
-        b_margen_utilidad: this.b_margen_utilidad,
-        porcentaje_global_100: this.porcentaje_global_100
+        carga_social: this.toNum(this.carga_social),
+        impuestos_iva: this.toNum(this.impuestos_iva),
+        herramientas: this.toNum(this.herramientas),
+        gastos_generales: this.toNum(this.gastos_generales),
+        iva_efectiva: this.toNum(this.iva_efectiva),
+        it: this.toNum(this.it),
+        iue: this.toNum(this.iue),
+        ganancia: this.toNum(this.ganancia),
+        a_costo_venta: this.toNum(this.a_costo_venta),
+        b_margen_utilidad: this.toNum(this.b_margen_utilidad),
+        porcentaje_global_100: this.toNum(this.porcentaje_global_100)
       },
+
     };
 
     this.servicios.createGastoOperacion([payload]).subscribe({
@@ -390,8 +514,12 @@ export class GastosOperacionesComponent implements OnInit {
     });
   }
   get total(): number {
-    return this.items.reduce((acc, item) => acc + (item.cantidad ?? 0) * (item.precio_unitario ?? 0), 0);
+    return this.items.reduce(
+      (acc, item) => acc + this.MultiplicacionPrecioUnitarioActividadPORcantidad(item),
+      0
+    );
   }
+
   get totalLiteral(): string {
     return NumeroALetras.convertirConDecimal(this.total);
   }
@@ -404,17 +532,17 @@ export class GastosOperacionesComponent implements OnInit {
 
 
   getCostoVenta(item: GastoOperacionExtendido): number {
-    return (this.toNum(item.precio_unitario)) - ((this.toNum(item.precio_unitario)) * (this.iva_efectiva / this.porcentaje_global_100));
+    return (this.toNum(item.precio_unitario)) - ((this.toNum(item.precio_unitario)) * (this.toNum(this.iva_efectiva) / this.toNum(this.porcentaje_global_100)));
   }
   getMargenUtilidad(item: GastoOperacionExtendido): number {
     if (this.a_costo_venta === 0) return 0;
     return (
-      (this.b_margen_utilidad / this.porcentaje_global_100) /
-      (this.a_costo_venta / this.porcentaje_global_100)
+      (this.toNum(this.b_margen_utilidad) / this.toNum(this.porcentaje_global_100)) /
+      (this.toNum(this.a_costo_venta) / this.toNum(this.porcentaje_global_100))
     ) * this.getCostoVenta(item);
   }
   getIvaEfectivaCalculo(): number {
-    return this.iva_efectiva / (this.toNum(this.a_costo_venta) + this.toNum(this.b_margen_utilidad)) ;
+    return this.toNum(this.iva_efectiva) / (this.toNum(this.a_costo_venta) + this.toNum(this.b_margen_utilidad));
   }
   getIvaEfectiva(item: GastoOperacionExtendido): number {
     return (this.getCostoVenta(item) + this.getMargenUtilidad(item)) * this.getIvaEfectivaCalculo();

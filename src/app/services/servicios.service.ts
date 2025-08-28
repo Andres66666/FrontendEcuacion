@@ -133,6 +133,10 @@ export class ServiciosService {
       identificador
     );
   }
+  deleteIdentificadorGeneral(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}IdGeneral/${id}/`);
+  }
+
   // === Gasto de Operación ===
   getGastosOperacion(): Observable<GastoOperacion[]> {
     return this.http.get<GastoOperacion[]>(`${this.apiUrl}GastosOperaciones/`);

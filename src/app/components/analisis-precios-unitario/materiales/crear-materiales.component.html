@@ -55,17 +55,46 @@
                   formControlName="unidad"
                   (blur)="mat.get('editarUnidad')?.setValue(false)"
                 >
-                  <option value="">Seleccione unidad</option>
-                  <option value="kg">kg – kilogramo</option>
-                  <option value="g">g – gramo</option>
-                  <option value="m">m – metro</option>
-                  <option value="m²">m² – metro cuadrado</option>
-                  <option value="m³">m³ – metro cúbico</option>
-                  <option value="l">l – litro</option>
-                  <option value="h">h – hora</option>
-                  <option value="ud">ud – unidad</option>
-                  <option value="mm">mm – milímetro</option>
-                  <option value="cm">cm – centímetro</option>
+                  <option value="" selected>Seleccione unidad</option>
+                  <option value="BLS">BLS – BOLSA</option>
+                  <option value="BRR">BRR – BARRA</option>
+                  <option value="CD">CD – CUADRILLA DIA.</option>
+                  <option value="CJA">CJA – CAJA</option>
+                  <option value="CNX">CNX – CONEXION</option>
+                  <option value="EVE">EVE – EVENTO</option>
+                  <option value="GL">GL – GALON</option>
+                  <option value="GLB">GLB – GLOBAL</option>
+                  <option value="HA">HA – HECTAREA</option>
+                  <option value="HDR">HDR – HOMBRES POR DIA</option>
+                  <option value="HH">HH – HOMBRES HORA</option>
+                  <option value="HR">HR – HORA</option>
+                  <option value="HRS">HRS – HORAS</option>
+                  <option value="HY.">HY. – HOYO</option>
+                  <option value="JGO">JGO – JUEGO</option>
+                  <option value="KG">KG – KILOGRAMOS</option>
+                  <option value="KIT">KIT – KITS</option>
+                  <option value="KM">KM – KILOMETRO</option>
+                  <option value="KMB">KMB – KILOMETROS BERMA</option>
+                  <option value="LT">LT – LITROS</option>
+                  <option value="M">M – METRO</option>
+                  <option value="M2">M2 – METROS CUADRADOS</option>
+                  <option value="M3">M3 – METROS CUBICOS</option>
+                  <option value="M3K">M3K – METRO CUBICO POR KILOMETRO</option>
+                  <option value="MED">MED – MEDICION</option>
+                  <option value="MK">MK – MOTO KILOMETRO</option>
+                  <option value="ML">ML – METROS LINEALES</option>
+                  <option value="P2">P2 – PIE CUADRADO</option>
+                  <option value="PAR">PAR – UN PAR</option>
+                  <option value="PER">PER – PERSONAS</option>
+                  <option value="PIE">PIE – PIE LINEAL</option>
+                  <option value="PLA">PLA – PLANTIN</option>
+                  <option value="PTO">PTO – PUNTO</option>
+                  <option value="PZA">PZA – PIEZA</option>
+                  <option value="RLL">RLL – ROLLO</option>
+                  <option value="TLL">TLL – TALLER</option>
+                  <option value="TN">TN – TONELADA</option>
+                  <option value="TON">TON – TONELADAS</option>
+                  <option value="UND">UND – UNIDAD</option>
                 </select>
               </ng-container>
 
@@ -89,25 +118,9 @@
                 type="number"
                 class="form-control"
                 formControlName="cantidad"
-                min="0"
                 (keydown)="blockE($event)"
                 (change)="onCantidadChange(mat)"
               />
-              <div
-                *ngIf="mat.get('cantidad')?.errors?.['required']"
-                class="text-danger small"
-              >
-                Campo requerido.
-              </div>
-              <div
-                *ngIf="
-                  mat.get('cantidad')?.hasError('min') &&
-                  mat.get('cantidad')?.touched
-                "
-                class="text-danger small"
-              >
-                No puede ser menor o igual a 0.
-              </div>
             </td>
 
             <!-- Precio Unitario -->
@@ -116,25 +129,9 @@
                 type="number"
                 class="form-control"
                 formControlName="precio_unitario"
-                min="0"
                 (keydown)="blockE($event)"
                 (change)="onPrecioUniChange(mat)"
               />
-              <div
-                *ngIf="mat.get('precio_unitario')?.errors?.['required']"
-                class="text-danger small"
-              >
-                Campo requerido.
-              </div>
-              <div
-                *ngIf="
-                  mat.get('precio_unitario')?.hasError('min') &&
-                  mat.get('precio_unitario')?.touched
-                "
-                class="text-danger small"
-              >
-                No puede ser menor o igual a 0.
-              </div>
             </td>
 
             <!-- Precio Parcial (readonly) -->
