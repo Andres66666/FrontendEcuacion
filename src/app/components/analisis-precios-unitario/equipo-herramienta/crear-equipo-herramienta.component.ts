@@ -214,9 +214,8 @@ export class CrearEquipoHerramientaComponent {
   }
   get totalEquipos(): number {
     const total = this.subtotalEquipos + this.herramientasPorcentaje;
-    const decimal = total % 1;
-    const finalTotal = decimal >= 0.5 ? Math.round(total) : total;
-    this.servicio.setTotalEquipos(finalTotal);
-    return finalTotal;
+    this.servicio.setTotalEquipos(total); // guardas el total exacto
+    return total;
   }
+
 }
