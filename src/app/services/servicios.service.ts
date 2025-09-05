@@ -13,15 +13,16 @@ import {
   EquipoHerramienta,
   GastosGenerales,
   GastoOperacion,
-  IdentificadorGeneral,
+  Proyecto,
 } from '../models/models';
 
 @Injectable({
   providedIn: 'root',
 })
 export class ServiciosService {
-/*   private apiUrl = 'http://localhost:8000/api/'; */
-  private apiUrl = 'https://backendecuacion.onrender.com/api/';
+  private apiUrl = 'http://localhost:8000/api/';
+
+ /*  private apiUrl = 'https://backendecuacion.onrender.com/api/'; */
   
 
   constructor(private http: HttpClient) {}
@@ -32,7 +33,13 @@ export class ServiciosService {
     const loginData = { correo: correo, password: password }; // 👈 debe coincidir con el serializer
     return this.http.post<any>(`${this.apiUrl}login/`, loginData);
   }
-
+  getRolesFromLocalStorage(): string[] {
+    const roles = localStorage.getItem('rol');
+    return roles ? JSON.parse(roles) : [];
+  }
+  verificarUsuario(usuario_id: number): Observable<Usuario> {
+    return this.http.get<Usuario>(`${this.apiUrl}usuario/${usuario_id}`);
+  }
   getRoles(): Observable<Rol[]> {
     return this.http.get<Rol[]>(`${this.apiUrl}rol/`);
   }
@@ -107,28 +114,28 @@ export class ServiciosService {
   //  =====================================================
   //  ================  seccion 2    ======================
   //  =====================================================
-  getIdentificadorGeneral(): Observable<IdentificadorGeneral[]> {
-    return this.http.get<IdentificadorGeneral[]>(`${this.apiUrl}IdGeneral/`);
+  getIdentificadorGeneral(): Observable<Proyecto[]> {
+    return this.http.get<Proyecto[]>(`${this.apiUrl}IdGeneral/`);
   }
 
-  getIdentificadorGeneralID(id: number): Observable<IdentificadorGeneral> {
-    return this.http.get<IdentificadorGeneral>(
+  getIdentificadorGeneralID(id: number): Observable<Proyecto> {
+    return this.http.get<Proyecto>(
       `${this.apiUrl}IdGeneral/${id}/`
     );
   }
 
   createIdentificadorGeneral(
-    gasto: Partial<IdentificadorGeneral>
-  ): Observable<IdentificadorGeneral> {
-    return this.http.post<IdentificadorGeneral>(
+    gasto: Partial<Proyecto>
+  ): Observable<Proyecto> {
+    return this.http.post<Proyecto>(
       `${this.apiUrl}IdGeneral/`,
       gasto
     );
   }
   updateIdentificadorGeneral(
-    identificador: IdentificadorGeneral
-  ): Observable<IdentificadorGeneral> {
-    return this.http.put<IdentificadorGeneral>(
+    identificador: Proyecto
+  ): Observable<Proyecto> {
+    return this.http.put<Proyecto>(
       `${this.apiUrl}IdGeneral/${identificador.id_general}/`,
       identificador
     );

@@ -151,6 +151,8 @@ export class CrearMaterialesComponent {
       cantidad: mat.get('cantidad')?.value,
       precio_unitario: mat.get('precio_unitario')?.value,
       total: mat.get('total')?.value,
+      fecha_creacion: new Date(),
+      fecha_actualizacion: new Date(),
     };
     this.servicio.createMaterial(nuevoMaterial).subscribe((res) => {
       mat.patchValue({ id: res.id, esNuevo: false });
@@ -168,6 +170,8 @@ export class CrearMaterialesComponent {
       cantidad: mat.get('cantidad')?.value,
       precio_unitario: mat.get('precio_unitario')?.value,
       total: mat.get('total')?.value,
+      fecha_creacion: new Date(),
+      fecha_actualizacion: new Date(),
     };
     this.servicio.updateMaterial(materialActualizado).subscribe();
   }

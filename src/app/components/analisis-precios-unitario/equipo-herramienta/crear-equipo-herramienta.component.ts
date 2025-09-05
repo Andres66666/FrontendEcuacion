@@ -149,6 +149,8 @@ export class CrearEquipoHerramientaComponent {
       cantidad: trabajo.get('cantidad')?.value,
       precio_unitario: trabajo.get('precio_unitario')?.value,
       total: trabajo.get('total')?.value,
+      fecha_creacion: new Date(),
+      fecha_actualizacion: new Date(),
     };
     this.servicio.createEquipoHerramienta(nuevoTrabajo).subscribe((res) => {
       trabajo.patchValue({ id: res.id, esNuevo: false });
@@ -166,6 +168,8 @@ export class CrearEquipoHerramientaComponent {
       cantidad: trabajo.get('cantidad')?.value,
       precio_unitario: trabajo.get('precio_unitario')?.value,
       total: trabajo.get('total')?.value,
+      fecha_creacion: new Date(),
+      fecha_actualizacion: new Date(),
     };
     this.servicio.updateEquipoHerramienta(trabajoActualizado).subscribe();
   }

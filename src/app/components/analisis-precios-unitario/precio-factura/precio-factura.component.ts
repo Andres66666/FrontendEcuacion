@@ -16,7 +16,7 @@ export class PrecioFacturaComponent {
   precio_unitario: number = 0; // De cada Item
 
 
-  iva_efectiva: number = 0;   // IVA % mostrado Variable Principal
+  iva_tasa_nominal: number = 0;   // IVA % mostrado Variable Principal
   it: number = 0;      // IT % mostrado Variable Principal
   iue: number = 0;    // IUE % mostrado Variable Principal
   ganancia: number = 0; // Ganancia mostrada Variable Principal
@@ -32,7 +32,7 @@ export class PrecioFacturaComponent {
       this.id_gasto_operaciones = Number(params['id_gasto_operaciones']) || 0;
       this.identificadorGeneral = Number(params['identificadorGeneral']) || 0;
       this.precio_unitario = Number(params['precio_unitario']) || 0;
-      this.iva_efectiva = Number(params['iva_efectiva']) || 0;
+      this.iva_tasa_nominal = Number(params['iva_tasa_nominal']) || 0;
       this.it = Number(params['it']) || 0;
       this.iue = Number(params['iue']) || 0;
       this.ganancia = Number(params['ganancia']) || 0;
@@ -45,7 +45,7 @@ export class PrecioFacturaComponent {
   // 🔹 SECCIÓN 1
   // ========================
   get creditoFiscal(): number {
-    return this.precio_unitario * (this.iva_efectiva / this.porcentaje_global_100);
+    return this.precio_unitario * (this.iva_tasa_nominal / this.porcentaje_global_100);
   }
   get costoVenta(): number {
     return this.precio_unitario - this.creditoFiscal;
@@ -60,7 +60,7 @@ export class PrecioFacturaComponent {
     return this.SumaAB !== 87 ? "PORCENTAJE INCORRECTO" : null;
   }
   get SumaIva_SumaAB(): number {
-    return this.SumaAB + this.iva_efectiva;
+    return this.SumaAB + this.iva_tasa_nominal;
   }
   get mensajeErrorIva(): string | null {
     return this.SumaIva_SumaAB !== this.porcentaje_global_100 ? "DATOS INCORRECTOS" : null;
@@ -69,7 +69,7 @@ export class PrecioFacturaComponent {
     return (this.b_margen_utilidad / this.a_costo_venta) * this.costoVenta;
   }
   get ivaEfectivaCalculo(): number {
-    return this.iva_efectiva / this.SumaAB;
+    return this.iva_tasa_nominal / this.SumaAB;
   }
   get ivaEfectiva(): number {
     return (this.costoVenta + this.margenUtilidad) * this.ivaEfectivaCalculo;
@@ -87,7 +87,7 @@ export class PrecioFacturaComponent {
     return (this.b_margen_utilidad / this.porcentaje_global_100) * this.precioFacturaS2;
   }
   get IVAenFactura (): number{
-    return (this.iva_efectiva / this.porcentaje_global_100) * this.precioFacturaS2;
+    return (this.iva_tasa_nominal / this.porcentaje_global_100) * this.precioFacturaS2;
   }
   get SumaFactura (): number{
     return this.costoVentaT3 + this.MargenDeUtilidad + this.IVAenFactura;
@@ -99,7 +99,7 @@ export class PrecioFacturaComponent {
     return this.precioFacturaS2 - this.precio_unitario;
   }
   get ImpuestoIva (): number{
-    return (this.iva_efectiva / this.porcentaje_global_100)*this.ValorAgregado
+    return (this.iva_tasa_nominal / this.porcentaje_global_100)*this.ValorAgregado
   }
   get itFactura (): number{
     return (this.it / this.porcentaje_global_100) * this.precioFacturaS2;

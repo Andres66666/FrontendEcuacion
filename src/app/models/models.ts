@@ -1,6 +1,5 @@
-  //  =====================================================
   //  ================  seccion 1    ======================
-  //  =====================================================
+  
 export interface Rol {
   id: number;
   nombre: string;
@@ -36,40 +35,40 @@ export interface RolPermiso {
   permiso: Permiso;
 }
 
-  //  =====================================================
   //  ================  seccion 2    ======================
-  //  =====================================================
-export interface IdentificadorGeneral {
+
+  export interface Proyecto {
   id_general: number;
   NombreProyecto: string;
   carga_social: number;
-  impuestos_iva: number;
+  iva_efectiva: number;
   herramientas: number;
   gastos_generales: number;
-  iva_efectiva: number;
+  iva_tasa_nominal: number;
   it: number;
   iue: number;
   ganancia: number;
   a_costo_venta: number;
   b_margen_utilidad: number;
   porcentaje_global_100: number;
+  fecha_creacion: Date;
+  fecha_actualizacion: Date;  
 }
 
 export interface GastoOperacion {
   id: number;
-  identificador: IdentificadorGeneral; // objeto completo
+  identificador: Proyecto; // objeto completo
   descripcion: string;
   unidad: string;
   cantidad: number;
   precio_unitario: number;
   precio_literal: string;
   costo_parcial: number;
-  fecha_creacion: string;
-  ultima_modificacion: string;
+  fecha_creacion: Date;
+  fecha_actualizacion: Date;  
 }
-  //  =====================================================
   //  ================  seccion 3    ======================
-  //  =====================================================
+  
 export interface Materiales {
   id: number;
   id_gasto_operacion: number;
@@ -78,6 +77,8 @@ export interface Materiales {
   cantidad: number;
   precio_unitario: number;
   total: number;
+  fecha_creacion: Date;
+  fecha_actualizacion: Date;  
 }
 export interface ManoDeObra {
   id: number;
@@ -87,6 +88,8 @@ export interface ManoDeObra {
   cantidad: number;
   precio_unitario: number;
   total: number;
+  fecha_creacion: Date;
+  fecha_actualizacion: Date;  
 }
 export interface EquipoHerramienta {
   id: number;
@@ -96,13 +99,15 @@ export interface EquipoHerramienta {
   cantidad: number;
   precio_unitario: number;
   total: number;
+  fecha_creacion: Date;
+  fecha_actualizacion: Date;  
 }
 export interface GastosGenerales {
   id: number;
   id_gasto_operacion: number;
   total: number;
+  fecha_creacion: Date;
+  fecha_actualizacion: Date;
+  creado_por: Usuario;
 }
-  //  =====================================================
-  //  ================  seccion 4    ======================
-  //  =====================================================
 

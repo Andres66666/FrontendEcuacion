@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, HostListener, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { GastoOperacion, GastosGenerales, IdentificadorGeneral } from '../../models/models';
+import { GastoOperacion, GastosGenerales, Proyecto } from '../../models/models';
 import { ServiciosService } from '../../services/servicios.service';
 import { NumeroALetras } from '../../utils/numeroALetras';
 import {  map } from 'rxjs';
@@ -27,10 +27,10 @@ export class GastosOperacionesComponent implements OnInit {
 
   nombreProyecto: string = '';
   carga_social: number | null = null;
-  impuestos_iva: number | null = null;
+  iva_efectiva: number | null = null;
   herramientas: number | null = null;
   gastos_generales: number | null = null;
-  iva_efectiva: number | null = null;
+  iva_tasa_nominal: number | null = null;
   it: number | null = null;
   iue: number | null = null;
   ganancia: number | null = null;
@@ -40,8 +40,8 @@ export class GastosOperacionesComponent implements OnInit {
   precio_unitario: number | null = null;
 
 
-  listaProyectos: IdentificadorGeneral[] = [];
-  proyectoSeleccionado: IdentificadorGeneral | null = null;
+  listaProyectos: Proyecto[] = [];
+  proyectoSeleccionado: Proyecto | null = null;
   itemsGastosGenerales: GastosGenerales[] = [];
 
   id_gasto_operaciones: number = 0;
@@ -49,7 +49,7 @@ export class GastosOperacionesComponent implements OnInit {
 
   mostrarParametros: boolean = false;
   mostrarLista: boolean = false;
-  proyectosFiltrados: IdentificadorGeneral[] = [];
+  proyectosFiltrados: Proyecto[] = [];
 
   constructor(private router: Router, private servicios: ServiciosService, private exportService: ExportService) {}
 
@@ -128,10 +128,10 @@ export class GastosOperacionesComponent implements OnInit {
         this.proyectoSeleccionado = proyecto;
         this.identificadorGeneral = proyecto.id_general;
         this.carga_social = proyecto.carga_social;
-        this.impuestos_iva = proyecto.impuestos_iva;
+        this.iva_efectiva = proyecto.iva_efectiva;
         this.herramientas = proyecto.herramientas;
         this.gastos_generales = proyecto.gastos_generales;
-        this.iva_efectiva = proyecto.iva_efectiva;
+        this.iva_tasa_nominal = proyecto.iva_tasa_nominal;
         this.it = proyecto.it;
         this.iue = proyecto.iue;
         this.ganancia = proyecto.ganancia;
@@ -144,10 +144,10 @@ export class GastosOperacionesComponent implements OnInit {
         this.proyectoSeleccionado = null;
         this.identificadorGeneral = 0;
         this.carga_social = null;
-        this.impuestos_iva = null;
+        this.iva_efectiva = null;
         this.herramientas = null;
         this.gastos_generales = null;
-        this.iva_efectiva = null;
+        this.iva_tasa_nominal = null;
         this.it = null;
         this.iue = null;
         this.ganancia = null;
@@ -160,10 +160,10 @@ export class GastosOperacionesComponent implements OnInit {
     this.identificadorGeneral = this.proyectoSeleccionado.id_general;
     this.nombreProyecto = this.proyectoSeleccionado.NombreProyecto;
     this.carga_social = this.proyectoSeleccionado.carga_social;
-    this.impuestos_iva = this.proyectoSeleccionado.impuestos_iva;
+    this.iva_efectiva = this.proyectoSeleccionado.iva_efectiva;
     this.herramientas = this.proyectoSeleccionado.herramientas;
     this.gastos_generales = this.proyectoSeleccionado.gastos_generales;
-    this.iva_efectiva = this.proyectoSeleccionado.iva_efectiva;
+    this.iva_tasa_nominal = this.proyectoSeleccionado.iva_tasa_nominal;
     this.it = this.proyectoSeleccionado.it;
     this.iue = this.proyectoSeleccionado.iue;
     this.ganancia = this.proyectoSeleccionado.ganancia;
@@ -177,10 +177,10 @@ export class GastosOperacionesComponent implements OnInit {
       if (
         !this.nombreProyecto.trim() ||
         this.carga_social == null ||
-        this.impuestos_iva == null ||
+        this.iva_efectiva == null ||
         this.herramientas == null ||
         this.gastos_generales == null ||
-        this.iva_efectiva == null ||
+        this.iva_tasa_nominal == null ||
         this.it == null ||
         this.iue == null ||
         this.ganancia == null ||
@@ -191,13 +191,13 @@ export class GastosOperacionesComponent implements OnInit {
         alert('Completa todos los campos');
         return;
       }
-      const identificador: Partial<IdentificadorGeneral> = {
+      const proyecto: Partial<Proyecto> = {
         NombreProyecto: this.nombreProyecto.trim(),
         carga_social: this.toNum(this.carga_social),
-        impuestos_iva: this.toNum(this.impuestos_iva),
+        iva_efectiva: this.toNum(this.iva_efectiva),
         herramientas: this.toNum(this.herramientas),
         gastos_generales: this.toNum(this.gastos_generales),
-        iva_efectiva: this.toNum(this.iva_efectiva),
+        iva_tasa_nominal: this.toNum(this.iva_tasa_nominal),
         it: this.toNum(this.it),
         iue: this.toNum(this.iue),
         ganancia: this.toNum(this.ganancia),
@@ -205,15 +205,15 @@ export class GastosOperacionesComponent implements OnInit {
         b_margen_utilidad: this.toNum(this.b_margen_utilidad),
         porcentaje_global_100: this.toNum(this.porcentaje_global_100)
       };
-      this.servicios.createIdentificadorGeneral(identificador).subscribe({
+      this.servicios.createIdentificadorGeneral(proyecto).subscribe({
         next: (resp) => {
           this.identificadorGeneral = resp.id_general;
           this.nombreProyecto = resp.NombreProyecto;
           this.carga_social = resp.carga_social || 0;
-          this.impuestos_iva = resp.impuestos_iva || 0;
+          this.iva_efectiva = resp.iva_efectiva || 0;
           this.herramientas = resp.herramientas || 0;
           this.gastos_generales = resp.gastos_generales || 0;
-          this.iva_efectiva = resp.iva_efectiva || 0;
+          this.iva_tasa_nominal = resp.iva_tasa_nominal || 0;
           this.it = resp.it || 0;
           this.iue = resp.iue || 0;
           this.ganancia = resp.ganancia || 0;
@@ -244,7 +244,7 @@ export class GastosOperacionesComponent implements OnInit {
     );
   }
     
-  seleccionarProyecto(proyecto: IdentificadorGeneral): void {
+  seleccionarProyecto(proyecto: Proyecto): void {
     this.nombreProyecto = proyecto.NombreProyecto;
     this.proyectoSeleccionado = proyecto;
     this.mostrarLista = false;
@@ -287,10 +287,10 @@ export class GastosOperacionesComponent implements OnInit {
     if (
       !this.nombreProyecto.trim() ||
       this.carga_social == null ||
-      this.impuestos_iva == null ||
+      this.iva_efectiva == null ||
       this.herramientas == null ||
       this.gastos_generales == null ||
-      this.iva_efectiva == null ||
+      this.iva_tasa_nominal == null ||
       this.it == null ||
       this.iue == null ||
       this.ganancia == null ||
@@ -302,24 +302,26 @@ export class GastosOperacionesComponent implements OnInit {
       return;
     }
 
-    const identificador: IdentificadorGeneral = {
+    const proyecto: Proyecto = {
       id_general: this.identificadorGeneral,
-      
+
       NombreProyecto: this.nombreProyecto.trim(),
       carga_social: this.toNum(this.carga_social),
-      impuestos_iva: this.toNum(this.impuestos_iva),
+      iva_efectiva: this.toNum(this.iva_efectiva),
       herramientas: this.toNum(this.herramientas),
       gastos_generales: this.toNum(this.gastos_generales),
-      iva_efectiva: this.toNum(this.iva_efectiva),
+      iva_tasa_nominal: this.toNum(this.iva_tasa_nominal),
       it: this.toNum(this.it),
       iue: this.toNum(this.iue),
       ganancia: this.toNum(this.ganancia),
       a_costo_venta: this.toNum(this.a_costo_venta),
       b_margen_utilidad: this.toNum(this.b_margen_utilidad),
-      porcentaje_global_100: this.toNum(this.porcentaje_global_100)
+      porcentaje_global_100: this.toNum(this.porcentaje_global_100),
+      fecha_creacion: new Date(),
+      fecha_actualizacion: new Date()
     };
 
-    this.servicios.updateIdentificadorGeneral(identificador).subscribe({
+    this.servicios.updateIdentificadorGeneral(proyecto).subscribe({
       next: (resp) => {
         alert('Proyecto actualizado correctamente.');
         // Si quieres, puedes recargar la lista de proyectos aquí
@@ -399,16 +401,18 @@ export class GastosOperacionesComponent implements OnInit {
         id_general: this.identificadorGeneral, 
         NombreProyecto: this.nombreProyecto,
         carga_social: this.toNum(this.carga_social),
-        impuestos_iva: this.toNum(this.impuestos_iva),
+        iva_efectiva: this.toNum(this.iva_efectiva),
         herramientas: this.toNum(this.herramientas),
         gastos_generales: this.toNum(this.gastos_generales),
-        iva_efectiva: this.toNum(this.iva_efectiva),
+        iva_tasa_nominal: this.toNum(this.iva_tasa_nominal),
         it: this.toNum(this.it),
         iue: this.toNum(this.iue),
         ganancia: this.toNum(this.ganancia),
         a_costo_venta: this.toNum(this.a_costo_venta),
         b_margen_utilidad: this.toNum(this.b_margen_utilidad),
-        porcentaje_global_100: this.toNum(this.porcentaje_global_100)
+        porcentaje_global_100: this.toNum(this.porcentaje_global_100),
+        fecha_creacion: new Date(),
+        fecha_actualizacion: new Date(),
       },
 
     };
@@ -490,7 +494,7 @@ export class GastosOperacionesComponent implements OnInit {
         precio_literal: item.precio_literal || '',
         identificadorGeneral: this.identificadorGeneral,
         carga_social: this.carga_social,
-        impuestos_iva: this.impuestos_iva,
+        iva_efectiva: this.iva_efectiva,
         herramientas: this.herramientas,
         gastos_generales: this.gastos_generales,
         porcentaje_global_100: this.porcentaje_global_100
@@ -503,7 +507,7 @@ export class GastosOperacionesComponent implements OnInit {
         id_gasto_operaciones: item.id,
         precio_unitario: item.precio_unitario || 0,
         identificadorGeneral: this.identificadorGeneral,
-        iva_efectiva: this.iva_efectiva,
+        iva_tasa_nominal: this.iva_tasa_nominal,
         it: this.it,
         iue: this.iue,
         ganancia: this.ganancia,
@@ -532,7 +536,7 @@ export class GastosOperacionesComponent implements OnInit {
 
 
   getCostoVenta(item: GastoOperacionExtendido): number {
-    return (this.toNum(item.precio_unitario)) - ((this.toNum(item.precio_unitario)) * (this.toNum(this.iva_efectiva) / this.toNum(this.porcentaje_global_100)));
+    return (this.toNum(item.precio_unitario)) - ((this.toNum(item.precio_unitario)) * (this.toNum(this.iva_tasa_nominal) / this.toNum(this.porcentaje_global_100)));
   }
   getMargenUtilidad(item: GastoOperacionExtendido): number {
     if (this.a_costo_venta === 0) return 0;
@@ -542,7 +546,7 @@ export class GastosOperacionesComponent implements OnInit {
     ) * this.getCostoVenta(item);
   }
   getIvaEfectivaCalculo(): number {
-    return this.toNum(this.iva_efectiva) / (this.toNum(this.a_costo_venta) + this.toNum(this.b_margen_utilidad));
+    return this.toNum(this.iva_tasa_nominal) / (this.toNum(this.a_costo_venta) + this.toNum(this.b_margen_utilidad));
   }
   getIvaEfectiva(item: GastoOperacionExtendido): number {
     return (this.getCostoVenta(item) + this.getMargenUtilidad(item)) * this.getIvaEfectivaCalculo();

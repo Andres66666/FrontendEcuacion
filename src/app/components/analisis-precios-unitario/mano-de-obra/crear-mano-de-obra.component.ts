@@ -23,7 +23,7 @@ export class CrearManoDeObraComponent {
   formulario: FormGroup;
   id_gasto_operaciones = 0;
   carga_social = 0;
-  impuestos_iva = 0;
+  iva_efectiva = 0;
   porcentaje_global_100 = 0;
 
   constructor(
@@ -43,10 +43,10 @@ export class CrearManoDeObraComponent {
     this.route.queryParams.subscribe((params) => {
       this.id_gasto_operaciones = Number(params['id_gasto_operaciones']) || 0;
       this.carga_social = Number(params['carga_social']) || 0;
-      this.impuestos_iva = Number(params['impuestos_iva']) || 0;
+      this.iva_efectiva = Number(params['iva_efectiva']) || 0;
       this.porcentaje_global_100 = Number(params['porcentaje_global_100']) || 0;
       this.formulario.get('cargasSociales')?.setValue(this.carga_social);
-      this.formulario.get('iva')?.setValue(this.impuestos_iva);
+      this.formulario.get('iva')?.setValue(this.iva_efectiva);
       this.formulario.get('porcentaje_global_100')?.setValue(this.porcentaje_global_100);
       if (this.id_gasto_operaciones) this.cargarManoDeObraExistente();
     });
@@ -155,6 +155,8 @@ export class CrearManoDeObraComponent {
       cantidad: trabajo.get('cantidad')?.value,
       precio_unitario: trabajo.get('precio_unitario')?.value,
       total: trabajo.get('total')?.value,
+      fecha_creacion: new Date(),
+      fecha_actualizacion: new Date(),
     };
     this.servicio.createManoDeObra(nuevoTrabajo).subscribe((res) => {
       trabajo.patchValue({ id: res.id, esNuevo: false });
@@ -172,6 +174,8 @@ export class CrearManoDeObraComponent {
       cantidad: trabajo.get('cantidad')?.value,
       precio_unitario: trabajo.get('precio_unitario')?.value,
       total: trabajo.get('total')?.value,
+      fecha_creacion: new Date(),
+      fecha_actualizacion: new Date(),
     };
     this.servicio.updateManoDeObra(trabajoActualizado).subscribe();
   }
@@ -218,7 +222,7 @@ export class CrearManoDeObraComponent {
     return this.subtotalManoObra * (this.carga_social / this.porcentaje_global_100);
   }
   get ivaManoObra(): number {
-    return (this.subtotalManoObra + this.cargasManoObra) * (this.impuestos_iva / this.porcentaje_global_100);
+    return (this.subtotalManoObra + this.cargasManoObra) * (this.iva_efectiva / this.porcentaje_global_100);
   }
   get totalManoObra(): number {
     const total = this.subtotalManoObra + this.cargasManoObra + this.ivaManoObra;
