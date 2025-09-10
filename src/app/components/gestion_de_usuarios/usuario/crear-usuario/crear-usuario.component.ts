@@ -24,6 +24,7 @@ export class CrearUsuarioComponent implements OnInit {
   mensajeExito: string = '';
   mensajeError: string = '';
 
+  roles: any[] = []; 
   constructor(
     private fb: FormBuilder,
     private usuarioService: ServiciosService,
@@ -31,50 +32,31 @@ export class CrearUsuarioComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    this.loadRoles();
     this.form = this.fb.group({
-      nombre: [
-        '',
-        [
-          Validators.required,
-          Validators.minLength(3),
-          Validators.maxLength(20),
-        ],
-      ],
-      apellido: [
-        '',
-        [
-          Validators.required,
-          Validators.minLength(3),
-          Validators.maxLength(20),
-        ],
-      ],
-      correo: [
-        '',
-        [Validators.required, Validators.email],
-      ],
-      telefono: [
-        '',
-        [Validators.required],
-      ],
+      nombre: ['',[Validators.required,Validators.minLength(3),Validators.maxLength(20),]],
+      apellido: ['',[Validators.required,Validators.minLength(3),Validators.maxLength(20),]],
+      correo: ['',[Validators.required, Validators.email]],
+      telefono: ['',[Validators.required]],
       ci: ['', [Validators.required]],
-      fecha_nacimiento: [
-        '',
-        [Validators.required],
-      ],
-      password: [
-        '',
-        [Validators.required],
-      ],
-
+      fecha_nacimiento: ['',[Validators.required]],
+      password: ['',[Validators.required]],
       imagen_url: [''],
       estado: [true],
+      rol: ['', [Validators.required]], 
     });
   }
+  
+  loadRoles(): void {
+    this.usuarioService.getRoles().subscribe((data) => {
+      this.roles = data.filter((r) => r.estado); // Solo roles activos
+    });
+  }
+
 
   onSubmit(): void {
     if (this.form.valid) {
       const formData = new FormData();
-
       // Agregamos cada campo manualmente
       formData.append('nombre', this.form.get('nombre')?.value);
       formData.append('apellido', this.form.get('apellido')?.value);
@@ -87,6 +69,8 @@ export class CrearUsuarioComponent implements OnInit {
       );
       formData.append('password', this.form.get('password')?.value);
       formData.append('estado', this.form.get('estado')?.value);
+      formData.append('rol', this.form.get('rol')?.value);
+
 
       // Adjuntamos la imagen si existe
       const inputElement = document.getElementById(

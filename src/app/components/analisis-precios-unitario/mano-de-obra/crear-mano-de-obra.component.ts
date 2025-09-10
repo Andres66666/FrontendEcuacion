@@ -26,6 +26,12 @@ export class CrearManoDeObraComponent {
   iva_efectiva = 0;
   porcentaje_global_100 = 0;
 
+  usuario_id: number = 0;
+  nombre_usuario: string = '';
+  apellido: string = '';
+  roles: string[] = [];
+  permisos: string[] = [];
+
   constructor(
     private fb: FormBuilder,
     private servicio: ServiciosService,
@@ -40,6 +46,7 @@ export class CrearManoDeObraComponent {
   }
 
   ngOnInit(): void {
+    this.recuperarUsuarioLocalStorage();
     this.route.queryParams.subscribe((params) => {
       this.id_gasto_operaciones = Number(params['id_gasto_operaciones']) || 0;
       this.carga_social = Number(params['carga_social']) || 0;
@@ -106,6 +113,23 @@ export class CrearManoDeObraComponent {
   get iva(): number {
     return this.formulario.get('iva')?.value;
   }
+  recuperarUsuarioLocalStorage() {
+    const usuarioStr = localStorage.getItem('usuarioLogueado');
+    if (!usuarioStr) return;
+
+    let datosUsuario: any = {};
+    try {
+      datosUsuario = JSON.parse(usuarioStr);
+    } catch (error) {
+      console.error('Error al parsear usuario desde localStorage', error);
+      return;
+    }
+    this.usuario_id = datosUsuario.id ?? 0;
+    this.nombre_usuario = datosUsuario.nombre ?? '';
+    this.apellido = datosUsuario.apellido ?? '';
+    this.roles = datosUsuario.rol ?? [];
+    this.permisos = datosUsuario.permiso ?? [];
+  }
 
   agregarManoObra(): void {
     this.manoObra.push(
@@ -155,8 +179,8 @@ export class CrearManoDeObraComponent {
       cantidad: trabajo.get('cantidad')?.value,
       precio_unitario: trabajo.get('precio_unitario')?.value,
       total: trabajo.get('total')?.value,
-      fecha_creacion: new Date(),
-      fecha_actualizacion: new Date(),
+      creado_por: this.usuario_id,
+      modificado_por: this.usuario_id,
     };
     this.servicio.createManoDeObra(nuevoTrabajo).subscribe((res) => {
       trabajo.patchValue({ id: res.id, esNuevo: false });
@@ -174,8 +198,8 @@ export class CrearManoDeObraComponent {
       cantidad: trabajo.get('cantidad')?.value,
       precio_unitario: trabajo.get('precio_unitario')?.value,
       total: trabajo.get('total')?.value,
-      fecha_creacion: new Date(),
-      fecha_actualizacion: new Date(),
+      creado_por: this.usuario_id, // mantener el creador original
+      modificado_por: this.usuario_id, // actualizar el modificador
     };
     this.servicio.updateManoDeObra(trabajoActualizado).subscribe();
   }

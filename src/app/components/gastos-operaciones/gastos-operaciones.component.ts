@@ -51,9 +51,17 @@ export class GastosOperacionesComponent implements OnInit {
   mostrarLista: boolean = false;
   proyectosFiltrados: Proyecto[] = [];
 
+
+  usuario_id: number = 0;
+  nombre_usuario: string = '';
+  apellido: string = '';
+  roles: string[] = [];
+  permisos: string[] = [];
+
   constructor(private router: Router, private servicios: ServiciosService, private exportService: ExportService) {}
 
   ngOnInit(): void {
+    this.recuperarUsuarioLocalStorage();
     this.identificadorGeneral = 0;
     this.items = [];
     
@@ -103,7 +111,23 @@ export class GastosOperacionesComponent implements OnInit {
     };
     return map[value] || 'Seleccione unidad';
   }
+  recuperarUsuarioLocalStorage() {
+      const usuarioStr = localStorage.getItem('usuarioLogueado');
+      if (!usuarioStr) return;
 
+      let datosUsuario: any = {};
+      try {
+        datosUsuario = JSON.parse(usuarioStr);
+      } catch (error) {
+        console.error('Error al parsear usuario desde localStorage', error);
+        return;
+      }
+      this.usuario_id = datosUsuario.id ?? 0;
+      this.nombre_usuario = datosUsuario.nombre ?? '';
+      this.apellido = datosUsuario.apellido ?? '';
+      this.roles = datosUsuario.rol ?? [];
+      this.permisos = datosUsuario.permiso ?? [];
+    }
   cargarProyectos(): void {
     this.servicios.getIdentificadorGeneral().subscribe({
       next: (res) => (this.listaProyectos = res),
@@ -203,8 +227,11 @@ export class GastosOperacionesComponent implements OnInit {
         ganancia: this.toNum(this.ganancia),
         a_costo_venta: this.toNum(this.a_costo_venta),
         b_margen_utilidad: this.toNum(this.b_margen_utilidad),
-        porcentaje_global_100: this.toNum(this.porcentaje_global_100)
+        porcentaje_global_100: this.toNum(this.porcentaje_global_100),
+        creado_por: this.usuario_id,          // 🔥 agregar
+        modificado_por: this.usuario_id       // 🔥 agregar
       };
+
       this.servicios.createIdentificadorGeneral(proyecto).subscribe({
         next: (resp) => {
           this.identificadorGeneral = resp.id_general;
@@ -297,29 +324,31 @@ export class GastosOperacionesComponent implements OnInit {
       this.a_costo_venta == null ||
       this.b_margen_utilidad == null ||
       this.porcentaje_global_100 == null
+
     ) {
       alert('Completa todos los campos');
       return;
     }
 
-    const proyecto: Proyecto = {
-      id_general: this.identificadorGeneral,
 
-      NombreProyecto: this.nombreProyecto.trim(),
-      carga_social: this.toNum(this.carga_social),
-      iva_efectiva: this.toNum(this.iva_efectiva),
-      herramientas: this.toNum(this.herramientas),
-      gastos_generales: this.toNum(this.gastos_generales),
-      iva_tasa_nominal: this.toNum(this.iva_tasa_nominal),
-      it: this.toNum(this.it),
-      iue: this.toNum(this.iue),
-      ganancia: this.toNum(this.ganancia),
-      a_costo_venta: this.toNum(this.a_costo_venta),
-      b_margen_utilidad: this.toNum(this.b_margen_utilidad),
-      porcentaje_global_100: this.toNum(this.porcentaje_global_100),
-      fecha_creacion: new Date(),
-      fecha_actualizacion: new Date()
-    };
+const proyecto: Proyecto = {
+  id_general: this.identificadorGeneral,
+  NombreProyecto: this.nombreProyecto.trim(),
+  carga_social: this.toNum(this.carga_social),
+  iva_efectiva: this.toNum(this.iva_efectiva),
+  herramientas: this.toNum(this.herramientas),
+  gastos_generales: this.toNum(this.gastos_generales),
+  iva_tasa_nominal: this.toNum(this.iva_tasa_nominal),
+  it: this.toNum(this.it),
+  iue: this.toNum(this.iue),
+  ganancia: this.toNum(this.ganancia),
+  a_costo_venta: this.toNum(this.a_costo_venta),
+  b_margen_utilidad: this.toNum(this.b_margen_utilidad),
+  porcentaje_global_100: this.toNum(this.porcentaje_global_100),
+  creado_por: this.usuario_id,
+  modificado_por: this.usuario_id
+};
+
 
     this.servicios.updateIdentificadorGeneral(proyecto).subscribe({
       next: (resp) => {
@@ -411,9 +440,11 @@ export class GastosOperacionesComponent implements OnInit {
         a_costo_venta: this.toNum(this.a_costo_venta),
         b_margen_utilidad: this.toNum(this.b_margen_utilidad),
         porcentaje_global_100: this.toNum(this.porcentaje_global_100),
-        fecha_creacion: new Date(),
-        fecha_actualizacion: new Date(),
+        creado_por: this.usuario_id,      // 🔥 al nivel raíz
+        modificado_por: this.usuario_id   // 🔥 al nivel raíz
       },
+      creado_por: this.usuario_id,
+      modificado_por: this.usuario_id
 
     };
 
@@ -431,8 +462,18 @@ export class GastosOperacionesComponent implements OnInit {
 
   actualizarItem(index: number): void {
     const item = this.items[index];
-    this.servicios.updateGastoOperacion(item).subscribe({
-      next: () => {
+    const payload: Partial<GastoOperacion> = {
+      ...item,
+      cantidad: Number(item.cantidad),          // 🔥 asegúrate que sean números
+      precio_unitario: Number(item.precio_unitario),
+      modificado_por: this.usuario_id
+    };
+
+    console.log("Payload enviado:", payload);
+
+    this.servicios.updateGastoOperacion(payload).subscribe({
+      next: (res) => {
+        console.log("Respuesta del backend:", res);
         alert('Ítem actualizado correctamente.');
         this.cargarGastos(this.identificadorGeneral);
       },
@@ -442,6 +483,8 @@ export class GastosOperacionesComponent implements OnInit {
       },
     });
   }
+
+
 
   eliminarItem(index: number): void {
     const item = this.items[index];
@@ -498,6 +541,7 @@ export class GastosOperacionesComponent implements OnInit {
         herramientas: this.herramientas,
         gastos_generales: this.gastos_generales,
         porcentaje_global_100: this.porcentaje_global_100
+
       },
     });
   }
@@ -514,6 +558,7 @@ export class GastosOperacionesComponent implements OnInit {
         a_costo_venta: this.a_costo_venta,
         b_margen_utilidad: this.b_margen_utilidad,
         porcentaje_global_100: this.porcentaje_global_100
+
       },
     });
   }

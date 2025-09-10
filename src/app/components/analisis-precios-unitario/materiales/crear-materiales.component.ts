@@ -25,6 +25,11 @@ export class CrearMaterialesComponent {
   formulario: FormGroup;
   id_gasto_operaciones = 0;
 
+  usuario_id: number = 0;
+  nombre_usuario: string = '';
+  apellido: string = '';
+  roles: string[] = [];
+  permisos: string[] = [];
   constructor(
     private fb: FormBuilder,
     private servicio: ServiciosService,
@@ -37,6 +42,7 @@ export class CrearMaterialesComponent {
   }
 
   ngOnInit(): void {
+    this.recuperarUsuarioLocalStorage();
     this.route.queryParams.subscribe((params) => {
       this.id_gasto_operaciones = Number(params['id_gasto_operaciones']) || 0;
       if (this.id_gasto_operaciones) this.cargarMaterialesExistentes();
@@ -86,7 +92,23 @@ export class CrearMaterialesComponent {
     };
     return map[value] || 'Seleccione unidad';
   }
+  recuperarUsuarioLocalStorage() {
+    const usuarioStr = localStorage.getItem('usuarioLogueado');
+    if (!usuarioStr) return;
 
+    let datosUsuario: any = {};
+    try {
+      datosUsuario = JSON.parse(usuarioStr);
+    } catch (error) {
+      console.error('Error al parsear usuario desde localStorage', error);
+      return;
+    }
+    this.usuario_id = datosUsuario.id ?? 0;
+    this.nombre_usuario = datosUsuario.nombre ?? '';
+    this.apellido = datosUsuario.apellido ?? '';
+    this.roles = datosUsuario.rol ?? [];
+    this.permisos = datosUsuario.permiso ?? [];
+  }
 
   get materiales(): FormArray {
     return this.formulario.get('materiales') as FormArray;
@@ -151,8 +173,8 @@ export class CrearMaterialesComponent {
       cantidad: mat.get('cantidad')?.value,
       precio_unitario: mat.get('precio_unitario')?.value,
       total: mat.get('total')?.value,
-      fecha_creacion: new Date(),
-      fecha_actualizacion: new Date(),
+      creado_por: this.usuario_id,
+      modificado_por: this.usuario_id,
     };
     this.servicio.createMaterial(nuevoMaterial).subscribe((res) => {
       mat.patchValue({ id: res.id, esNuevo: false });
@@ -170,8 +192,8 @@ export class CrearMaterialesComponent {
       cantidad: mat.get('cantidad')?.value,
       precio_unitario: mat.get('precio_unitario')?.value,
       total: mat.get('total')?.value,
-      fecha_creacion: new Date(),
-      fecha_actualizacion: new Date(),
+      creado_por: this.usuario_id, // mantener el creador original
+      modificado_por: this.usuario_id, // actualizar el modificador
     };
     this.servicio.updateMaterial(materialActualizado).subscribe();
   }
