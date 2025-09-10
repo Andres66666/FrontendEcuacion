@@ -51,8 +51,8 @@ export interface RolPermiso {
   a_costo_venta: number;
   b_margen_utilidad: number;
   porcentaje_global_100: number;
-  fecha_creacion: Date;
-  fecha_actualizacion: Date;  
+  creado_por: number;
+  modificado_por: number; 
 }
 
 export interface GastoOperacion {
@@ -64,11 +64,10 @@ export interface GastoOperacion {
   precio_unitario: number;
   precio_literal: string;
   costo_parcial: number;
-  fecha_creacion: Date;
-  fecha_actualizacion: Date;  
+  creado_por: number;
+  modificado_por: number;
 }
   //  ================  seccion 3    ======================
-  
 export interface Materiales {
   id: number;
   id_gasto_operacion: number;
@@ -77,8 +76,8 @@ export interface Materiales {
   cantidad: number;
   precio_unitario: number;
   total: number;
-  fecha_creacion: Date;
-  fecha_actualizacion: Date;  
+  creado_por: number;
+  modificado_por: number;
 }
 export interface ManoDeObra {
   id: number;
@@ -88,8 +87,8 @@ export interface ManoDeObra {
   cantidad: number;
   precio_unitario: number;
   total: number;
-  fecha_creacion: Date;
-  fecha_actualizacion: Date;  
+  creado_por: number;
+  modificado_por: number; 
 }
 export interface EquipoHerramienta {
   id: number;
@@ -99,15 +98,14 @@ export interface EquipoHerramienta {
   cantidad: number;
   precio_unitario: number;
   total: number;
-  fecha_creacion: Date;
-  fecha_actualizacion: Date;  
+  creado_por: number;
+  modificado_por: number;
 }
 export interface GastosGenerales {
   id: number;
   id_gasto_operacion: number;
   total: number;
-  fecha_creacion: Date;
-  fecha_actualizacion: Date;
-  creado_por: Usuario;
+  creado_por: number;
+  modificado_por: number;
 }
 

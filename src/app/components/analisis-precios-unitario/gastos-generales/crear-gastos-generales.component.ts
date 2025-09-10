@@ -30,10 +30,12 @@ export class CrearGastosGeneralesComponent {
 
 
   Form: FormGroup;
-  usuario_id: number = 0; // Agregar propiedad para el ID del usuario
+  usuario_id: number = 0;
   nombre_usuario: string = '';
   apellido: string = '';
-  mostrarPrecioMayor: boolean = true; 
+  roles: string[] = [];
+  permisos: string[] = [];
+
   constructor(
     private fb: FormBuilder,
     private servicio: ServiciosService,
@@ -45,7 +47,7 @@ export class CrearGastosGeneralesComponent {
   }
 
   ngOnInit(): void {
-    this.recuperarUsuario();
+    this.recuperarUsuarioLocalStorage();
     this.route.queryParams.subscribe((params) => {
       this.id_gasto_operaciones = Number(params['id_gasto_operaciones']) || 0;
       this.gastos_generales = Number(params['gastos_generales']) || 0;
@@ -66,64 +68,35 @@ export class CrearGastosGeneralesComponent {
       this.gastoExistente = gastos.length > 0 ? gastos[0] : null;
     });
   }
-  recuperarUsuario() {
-      const usuario = this.getUsuarioLocalStorage();
-      if (usuario) {
-        this.nombre_usuario = usuario.nombre || '';
-        this.apellido = usuario.apellido || '';
-        this.usuario_id = usuario.usuario_id || 0;
-        const roles = this.servicio.getRolesFromLocalStorage();
-        this.mostrarPrecioMayor = !this.tieneRolOcultarPrecio(roles);
 
-        // Verificar si el usuario existe en la base de datos
-        this.servicio
-          .verificarUsuario(this.usuario_id)
-          .subscribe((usuarioExistente) => {
-            if (usuarioExistente) {
-              const usuarioSeleccionado = this.usuarios.find(
-                (u) => u.id === this.usuario_id
-              );
-              if (usuarioSeleccionado) {
-                this.Form.patchValue({ usuario: usuarioSeleccionado });
-              }
-            }
-          });
-      }
+  recuperarUsuarioLocalStorage() {
+    const usuarioStr = localStorage.getItem('usuarioLogueado');
+    if (!usuarioStr) return;
+
+    let datosUsuario: any = {};
+    try {
+      datosUsuario = JSON.parse(usuarioStr);
+    } catch (error) {
+      console.error('Error al parsear usuario desde localStorage', error);
+      return;
     }
-  tieneRolOcultarPrecio(roles: string[]): boolean {
-      const rolesOcultarPrecio = ['Empleado', 'Cajero', 'JefeDeEmpleado'];
-      return roles.some((rol) => rolesOcultarPrecio.includes(rol));
-    }
-    private getUsuarioLocalStorage() {
-      if (typeof window !== 'undefined') {
-        try {
-          const usuario = localStorage.getItem('usuario');
-          return usuario ? JSON.parse(usuario) : null;
-        } catch (error) {
-          console.error('Error al recuperar usuario de localStorage', error);
-          return null;
-        }
-      }
-      return null;
-    }
-  getUsuarios() {
-    this.servicio.getUsuarios().subscribe((data) => {
-      this.usuarios = data;
-    });
+    this.usuario_id = datosUsuario.id ?? 0;
+    this.nombre_usuario = datosUsuario.nombre ?? '';
+    this.apellido = datosUsuario.apellido ?? '';
+    this.roles = datosUsuario.rol ?? [];
+    this.permisos = datosUsuario.permiso ?? [];
   }
-
   registrarGastosGenerales(): void {
-    if (!this.id_gasto_operaciones  && this.Form.valid) return;
-    const { usuario } = this.Form.value;
+    if (!this.id_gasto_operaciones) return;
+
     const nuevoGasto = {
       id: 0,
       id_gasto_operacion: this.id_gasto_operaciones,
       total: this.totalOperacion,
-      fecha_creacion: new Date(),
-      fecha_actualizacion: new Date(),
-      
-      creado_por: { ...usuario },
+      creado_por: this.usuario_id, // solo creado_por en creación
+      modificado_por: this.usuario_id, // inicializar modificado_por
     };
+
     this.servicio.createGasto(nuevoGasto).subscribe({
       next: (res) => {
         this.gastoExistente = res;
@@ -134,45 +107,46 @@ export class CrearGastosGeneralesComponent {
     });
   }
 
-  // ...en tu componente...
-    actualizarGastosGenerales(): void {
-      if (!this.gastoExistente) return;
-      const { usuario } = this.Form.value;
-      const gastoActualizado: GastosGenerales = {
-        id: this.gastoExistente.id,
-        id_gasto_operacion: this.id_gasto_operaciones,
-        total: this.totalOperacion,
-        fecha_creacion: new Date(),
-        fecha_actualizacion: new Date(),
-        creado_por: { ...usuario },
-        
-      };
-      this.servicio.updateGasto(gastoActualizado).subscribe({
-        next: (res) => {
-          this.cargarGastosGeneralesExistente();
-        },
-        error: (err) => {
-          console.error('Error al actualizar gasto:', err);
-        }
-      });
-    }
+    
+  actualizarGastosGenerales(): void {
+    if (!this.gastoExistente) return;
+
+    const gastoActualizado: GastosGenerales = {
+      id: this.gastoExistente.id,
+      id_gasto_operacion: this.id_gasto_operaciones,
+      total: this.totalOperacion,
+      creado_por: this.gastoExistente.creado_por, // 👈 mantener creado_por
+      modificado_por: this.usuario_id, // 👈 solo modificado_por
+    };
+
+    this.servicio.updateGasto(gastoActualizado).subscribe({
+      next: (res) => {
+        this.cargarGastosGeneralesExistente();
+      },
+      error: (err) => {
+        console.error('Error al actualizar gasto:', err);
+      }
+    });
+  }
 
   get gastosGeneralesPorcentaje(): number {
-    return this.Form.get('gastos_generales')?.value;
+    const val = this.Form.get('gastos_generales')?.value;
+    return val != null && !isNaN(val) ? Number(val) : 0;
   }
 
   get totalGastosGenerales(): number {
-    const suma = this.totalMateriales + this.totalManoObra + this.totalEquipos;
-    return suma * (this.gastosGeneralesPorcentaje / this.porcentaje_global_100);
+  const suma = this.sumaTotales;
+  return suma * (this.gastos_generales / this.porcentaje_global_100);
   }
 
   get sumaTotales(): number {
-    return this.totalMateriales + this.totalManoObra + this.totalEquipos;
+    return (this.totalMateriales || 0) + (this.totalManoObra || 0) + (this.totalEquipos || 0);
   }
 
   get totalOperacion(): number {
     return this.sumaTotales + this.totalGastosGenerales;
   }
+
 
   blockE(event: KeyboardEvent): void {
     if (['e', 'E', '+', '-'].includes(event.key)) event.preventDefault();

@@ -185,6 +185,14 @@
                             {{ errorMensaje }}
                         </div>
                     </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Rol</label>
+                        <select class="form-select" formControlName="rol" required>
+                            <option value="">Seleccione un rol</option>
+                            <option *ngFor="let r of roles" [value]="r.id">{{ r.nombre }}</option>
+                        </select>
+                    </div>
+                    
                 </div>
 
                 <div class="d-flex flex-column flex-md-row justify-content-between gap-2 mt-4">
@@ -204,6 +212,9 @@
         </div>
     </div>
 </div>
+<!-- Rol -->
+
+
 <!-- Modal de Éxito -->
 <app-ok *ngIf="mensajeExito" [mensaje]="mensajeExito" (close)="manejarOk()"></app-ok>
 

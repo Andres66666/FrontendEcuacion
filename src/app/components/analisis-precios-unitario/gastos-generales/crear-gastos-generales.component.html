@@ -1,9 +1,10 @@
 <!-- ========== GASTOS GENERALES ========== -->
-<div class="card border-info mb-4" [formGroup]="formulario">
+<div class="card border-info mb-4" [formGroup]="Form">
   <div class="card-header bg-info ">
     <h5 class="mb-0">
       <i class="bi bi-cash-stack me-2"></i>4. Gastos Generales y Administrativos
     </h5>
+    <p><strong>ID de usuario recuperado:</strong> {{ usuario_id}}</p>
   </div>
 
   <div class="card-body">
@@ -13,6 +14,8 @@
           <td><p>Suma Total (1+2+3) :</p></td>
           <td class="text-end align-middle">{{ sumaTotales | number:"1.2-2" }}</td>
         </tr>
+<p>suma{{ sumaTotales | number:"1.2-2" }}</p>
+<p>suma{{ gastosGeneralesPorcentaje | number:"1.2-2" }}</p>
 
         <tr>
           <td>Total Gastos Generales ((1+2+3) * {{gastos_generales | number : "1.2-2"}} %)</td>

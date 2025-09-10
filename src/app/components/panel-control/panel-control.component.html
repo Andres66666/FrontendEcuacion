@@ -197,75 +197,167 @@
         </li>
       </ul>
       <!-- Gestión de Productos de la ecuación (Operaciones Económicas) -->
-      <li
-        class="d-flex align-items-center"
-        *ngIf="puedeVer('Operaciones')"
-        (click)="toggleSection('Operacion')"
-        style="cursor: pointer"
-      >
-        <div class="col-auto pe-2">
-          <i class="bi bi-calculator fs-2 text-dark"></i>
-          <!-- icono actualizado -->
-        </div>
-        <div class="col text-start">
-          <span class="text-dark">Operaciones</span>
-        </div>
-        <div class="col-auto pe-2">
-          <i
-            class="bi"
-            [ngClass]="
-              isActive('Operacion') ? 'bi-chevron-down' : 'bi-chevron-right'
-            "
-            class="text-dark"
-          ></i>
-        </div>
-      </li>
+<!-- Operaciones -->
+<li
+  class="d-flex align-items-center"
+  *ngIf="puedeVer('Operaciones')"
+  (click)="toggleSection('Operaciones')"
+  style="cursor: pointer"
+>
+  <div class="col-auto pe-2">
+    <i class="bi bi-calculator fs-2 text-dark"></i>
+  </div>
+  <div class="col text-start">
+    <span class="text-dark">Operaciones</span>
+  </div>
+  <div class="col-auto pe-2">
+    <i
+      class="bi text-dark"
+      [ngClass]="isActive('Operaciones') ? 'bi-chevron-down' : 'bi-chevron-right'"
+    ></i>
+  </div>
+</li>
 
-      <ul class="list-group ps-3" *ngIf="isActive('Operacion')">
-         <li class="d-flex align-items-center">
-          <div class="col-auto pe-2">
-            <i class="bi bi-bar-chart fs-2 text-dark"></i>
-            <!-- Icono de gráfico para Gastos Operaciones -->
-          </div>
-          <div class="col text-start">
-            <a
-              routerLink="/panel-control/gastos-operaciones"
-              class="text-dark text-decoration-none"
-              (click)="closeSidebarOnMobile()"
-              >Gastos Operaciones</a
-            >
-          </div>
-        </li>
-        <li class="d-flex align-items-center" *ngIf="puedeVer('Ecuacion')">
-          <div class="col-auto pe-2">
-            <i class="bi bi-file-earmark-text fs-2 text-dark"></i>
-            <!-- Icono de documento para Ecuación -->
-          </div>
-          <div class="col text-start">
-            <a
-              routerLink="/panel-control/CrearEcuacion"
-              class="text-dark text-decoration-none"
-              (click)="closeSidebarOnMobile()"
-              >Analisis De Precios Unitarios</a
-            >
-          </div>
-        </li>
-        <li class="d-flex align-items-center">
-          <div class="col-auto pe-2">
-            <i class="bi bi-cash fs-2 text-dark"></i>
-            <!-- Icono de dinero para Precio Factura -->
-          </div>
-          <div class="col text-start">
-            <a
-              routerLink="/panel-control/PrecioFactura"
-              class="text-dark text-decoration-none"
-              (click)="closeSidebarOnMobile()"
-              >Precio Factura</a
-            >
-          </div>
-        </li>
-       
-      </ul>
+<ul class="list-group ps-3" *ngIf="isActive('Operaciones')">
+  <li class="d-flex align-items-center">
+    <div class="col-auto pe-2">
+      <i class="bi bi-bar-chart fs-2 text-dark"></i>
+    </div>
+    <div class="col text-start">
+      <a
+        routerLink="/panel-control/gastos-operaciones"
+        class="text-dark text-decoration-none"
+        (click)="closeSidebarOnMobile()"
+        >Gastos Operaciones</a
+      >
+    </div>
+  </li>
+</ul>
+
+<!-- Reportes -->
+<li
+  class="d-flex align-items-center"
+  *ngIf="puedeVer('Operaciones')"
+  (click)="toggleSection('Reportes')"
+  style="cursor: pointer"
+>
+  <div class="col-auto pe-2">
+    <i class="bi bi-file-earmark-text fs-2 text-dark"></i>
+  </div>
+  <div class="col text-start">
+    <span class="text-dark">Reportes</span>
+  </div>
+  <div class="col-auto pe-2">
+    <i
+      class="bi text-dark"
+      [ngClass]="isActive('Reportes') ? 'bi-chevron-down' : 'bi-chevron-right'"
+    ></i>
+  </div>
+</li>
+
+<ul class="list-group ps-3" *ngIf="isActive('Reportes')">
+  <li class="d-flex align-items-center">
+    <div class="col-auto pe-2">
+      <i class="bi bi-shield-lock fs-2 text-dark"></i>
+    </div>
+    <div class="col text-start">
+      <a
+        routerLink="/panel-control/reporte-sql-inyeccion"
+        class="text-dark text-decoration-none"
+        (click)="closeSidebarOnMobile()"
+        >Reporte SQL Inyección</a
+      >
+    </div>
+  </li>
+
+  <li class="d-flex align-items-center">
+    <div class="col-auto pe-2">
+      <i class="bi bi-bug fs-2 text-dark"></i>
+    </div>
+    <div class="col text-start">
+      <a
+        routerLink="/panel-control/reporte-xss"
+        class="text-dark text-decoration-none"
+        (click)="closeSidebarOnMobile()"
+        >Reporte XSS</a
+      >
+    </div>
+  </li>
+
+  <li class="d-flex align-items-center">
+    <div class="col-auto pe-2">
+      <i class="bi bi-shield-check fs-2 text-dark"></i>
+    </div>
+    <div class="col text-start">
+      <a
+        routerLink="/panel-control/reporte-csrf"
+        class="text-dark text-decoration-none"
+        (click)="closeSidebarOnMobile()"
+        >Reporte CSRF</a
+      >
+    </div>
+  </li>
+  <!-- Denegación de Servicio -->
+<li class="d-flex align-items-center">
+  <div class="col-auto pe-2">
+    <i class="bi bi-slash-circle fs-2 text-dark"></i>
+  </div>
+  <div class="col text-start">
+    <a
+      routerLink="/panel-control/reporte-dos"
+      class="text-dark text-decoration-none"
+      (click)="closeSidebarOnMobile()"
+      >Reporte DoS</a
+    >
+  </div>
+</li>
+
+<!-- Keylogger -->
+<li class="d-flex align-items-center">
+  <div class="col-auto pe-2">
+    <i class="bi bi-key fs-2 text-dark"></i>
+  </div>
+  <div class="col text-start">
+    <a
+      routerLink="/panel-control/reporte-keylogger"
+      class="text-dark text-decoration-none"
+      (click)="closeSidebarOnMobile()"
+      >Reporte Keylogger</a
+    >
+  </div>
+</li>
+
+<!-- Auditoría -->
+<li class="d-flex align-items-center">
+  <div class="col-auto pe-2">
+    <i class="bi bi-journal-text fs-2 text-dark"></i>
+  </div>
+  <div class="col text-start">
+    <a
+      routerLink="/panel-control/reporte-auditoria"
+      class="text-dark text-decoration-none"
+      (click)="closeSidebarOnMobile()"
+      >Reporte Auditoría</a
+    >
+  </div>
+</li>
+
+<!-- Reporte IA General -->
+<li class="d-flex align-items-center">
+  <div class="col-auto pe-2">
+    <i class="bi bi-robot fs-2 text-dark"></i>
+  </div>
+  <div class="col text-start">
+    <a
+      routerLink="/panel-control/reporte-ia-general"
+      class="text-dark text-decoration-none"
+      (click)="closeSidebarOnMobile()"
+      >Reporte IA General</a
+    >
+  </div>
+</li>
+</ul>
+
     </ul>
   </aside>
   <!-- Overlay para móvil -->
