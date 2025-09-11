@@ -7,7 +7,7 @@
       </h5>
     </div>
     <div class="card-body" formArrayName="equipos">
-       <div class="d-flex justify-content-end no-export">
+      <div class="d-flex justify-content-end no-export">
         <button
           type="button"
           class="btn btn-outline-warning mt-2 mb-3"
@@ -16,7 +16,7 @@
           <i class="bi bi-plus-circle me-1"></i> Añadir Equipo
         </button>
       </div>
-      
+
       <table class="table table-bordered table-hover align-middle mb-3">
         <thead class="table-light text-center">
           <tr>
@@ -49,58 +49,22 @@
             </td>
 
             <!-- Unidad -->
-            <!-- Unidad -->
             <td>
-              <ng-container *ngIf="eq.get('esNuevo')?.value || eq.get('editarUnidad')?.value; else verUnidad">
+              <ng-container
+                *ngIf="eq.get('esNuevo')?.value || eq.get('editarUnidad')?.value; else verUnidad"
+              >
                 <select
                   class="form-select"
                   formControlName="unidad"
-                  (blur)="eq.get('editarUnidad')?.setValue(false); eq.get('unidad')?.markAsTouched()"
+                  (blur)="eq.get('editarUnidad')?.setValue(false)"
                 >
-                  <option value="" selected>Seleccione unidad</option>
-                  <option value="BLS">BLS – BOLSA</option>
-                  <option value="BRR">BRR – BARRA</option>
-                  <option value="CD">CD – CUADRILLA DIA.</option>
-                  <option value="CJA">CJA – CAJA</option>
-                  <option value="CNX">CNX – CONEXION</option>
-                  <option value="EVE">EVE – EVENTO</option>
-                  <option value="GL">GL – GALON</option>
-                  <option value="GLB">GLB – GLOBAL</option>
-                  <option value="HA">HA – HECTAREA</option>
-                  <option value="HDR">HDR – HOMBRES POR DIA</option>
-                  <option value="HH">HH – HOMBRES HORA</option>
-                  <option value="HR">HR – HORA</option>
-                  <option value="HRS">HRS – HORAS</option>
-                  <option value="HY.">HY. – HOYO</option>
-                  <option value="JGO">JGO – JUEGO</option>
-                  <option value="KG">KG – KILOGRAMOS</option>
-                  <option value="KIT">KIT – KITS</option>
-                  <option value="KM">KM – KILOMETRO</option>
-                  <option value="KMB">KMB – KILOMETROS BERMA</option>
-                  <option value="LT">LT – LITROS</option>
-                  <option value="M">M – METRO</option>
-                  <option value="M2">M2 – METROS CUADRADOS</option>
-                  <option value="M3">M3 – METROS CUBICOS</option>
-                  <option value="M3K">M3K – METRO CUBICO POR KILOMETRO</option>
-                  <option value="MED">MED – MEDICION</option>
-                  <option value="MK">MK – MOTO KILOMETRO</option>
-                  <option value="ML">ML – METROS LINEALES</option>
-                  <option value="P2">P2 – PIE CUADRADO</option>
-                  <option value="PAR">PAR – UN PAR</option>
-                  <option value="PER">PER – PERSONAS</option>
-                  <option value="PIE">PIE – PIE LINEAL</option>
-                  <option value="PLA">PLA – PLANTIN</option>
-                  <option value="PTO">PTO – PUNTO</option>
-                  <option value="PZA">PZA – PIEZA</option>
-                  <option value="RLL">RLL – ROLLO</option>
-                  <option value="TLL">TLL – TALLER</option>
-                  <option value="TN">TN – TONELADA</option>
-                  <option value="TON">TON – TONELADAS</option>
-                  <option value="UND">UND – UNIDAD</option>
+                  <option value="">Seleccione unidad</option>
+                  <option *ngFor="let unidad of unidades" [value]="unidad">
+                    {{ unidadTexto(unidad) }}
+                  </option>
                 </select>
               </ng-container>
 
-              <!-- Modo solo lectura -->
               <ng-template #verUnidad>
                 <p
                   (click)="eq.get('editarUnidad')?.setValue(true)"
@@ -110,14 +74,6 @@
                   {{ unidadTexto(eq.get('unidad')?.value) }}
                 </p>
               </ng-template>
-
-              <!-- Error de validación -->
-              <div
-                *ngIf="eq.get('unidad')?.errors?.['required'] && eq.get('unidad')?.touched"
-                class="text-danger small"
-              >
-                Campo requerido.
-              </div>
             </td>
 
             <!-- Cantidad -->
@@ -153,6 +109,7 @@
                 readonly
               />
             </td>
+
             <!-- Acción -->
             <td class="text-center no-export">
               <div class="d-flex justify-content-center gap-2">
@@ -184,32 +141,40 @@
           </tr>
         </tbody>
       </table>
-
-     
     </div>
+
     <div class="card-footer">
       <table class="table table-bordered table-hover mb-0">
         <tbody>
           <tr>
             <td>Subtotal Equipo Herramienta</td>
-            <td class="text-end">
-              {{ subtotalEquipos | number : "1.2-2" }}
-            </td>
+            <td class="text-end">{{ formatearNumero(subtotalEquipos) }}</td>
           </tr>
           <tr>
             <td>
-              <p>Herramientas ({{herramientas | number : "1.2-2"}} %) * Total Mano de Obra: {{ totalManoObra | number : "1.2-2" }} </p>
+              <p>
+                Herramientas ({{ formatearNumero(herramientas) }} %) *
+                Total Mano de Obra: {{ formatearNumero(totalManoObra) }}
+              </p>
             </td>
-            <td class="text-end">
-              {{ herramientasPorcentaje | number : "1.2-2" }}
-            </td>
+            <td class="text-end">{{ formatearNumero(herramientasPorcentaje) }}</td>
           </tr>
           <tr class="table-warning fw-bold">
             <td>Total Equipos y Herramientas</td>
-            <td class="text-end">{{ totalEquipos | number : "1.2-2" }}</td>
+            <td class="text-end">{{ totalEquiposFormateado }}</td>
           </tr>
         </tbody>
       </table>
     </div>
   </div>
 </form>
+
+<app-confirmacion
+  *ngIf="mostrarConfirmacion"
+  [mensaje]="mensajeConfirmacion"
+  (aceptar)="manejarAceptar()"
+  (cancelar)="manejarCancelar()"
+></app-confirmacion>
+
+<app-ok *ngIf="mensajeExito" [mensaje]="mensajeExito" (close)="manejarOk()"></app-ok>
+<app-error *ngIf="mensajeError" [mensaje]="mensajeError" (close)="manejarError()"></app-error>

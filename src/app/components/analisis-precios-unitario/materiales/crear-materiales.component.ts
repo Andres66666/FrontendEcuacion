@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import {
   FormArray,
   FormBuilder,
@@ -9,27 +9,42 @@ import {
   FormsModule,
 } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-
 import { ActivatedRoute } from '@angular/router';
+
 import { ServiciosService } from '../../../services/servicios.service';
 import { Materiales } from '../../../models/models';
+import { UNIDADES, unidadTexto } from '../../../models/unidades';
+import { ConfirmacionComponent } from '../../mensajes/confirmacion/confirmacion/confirmacion.component';
+import { OkComponent } from '../../mensajes/ok/ok.component';
+import { ErrorComponent } from '../../mensajes/error/error.component';
 
 @Component({
   selector: 'app-crear-materiales',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FormsModule],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule,ConfirmacionComponent, OkComponent, ErrorComponent],
   templateUrl: './crear-materiales.component.html',
   styleUrl: './crear-materiales.component.css',
 })
-export class CrearMaterialesComponent {
+export class CrearMaterialesComponent implements OnInit {
   formulario: FormGroup;
   id_gasto_operaciones = 0;
 
-  usuario_id: number = 0;
-  nombre_usuario: string = '';
-  apellido: string = '';
+  usuario_id = 0;
+  nombre_usuario = '';
+  apellido = '';
   roles: string[] = [];
   permisos: string[] = [];
+
+  unidades = UNIDADES; // importadas del archivo externo
+  
+  // ✅ Mensajes y estado UI
+  formatoInvalido = false;
+  mostrarConfirmacion = false;
+  tipoConfirmacion: 'proyecto' | 'item' | null = null;
+  itemIndexAEliminar: number | null = null;
+  mensajeConfirmacion = '';
+  mensajeExito = '';
+  mensajeError = '';
   constructor(
     private fb: FormBuilder,
     private servicio: ServiciosService,
@@ -43,73 +58,18 @@ export class CrearMaterialesComponent {
 
   ngOnInit(): void {
     this.recuperarUsuarioLocalStorage();
+
     this.route.queryParams.subscribe((params) => {
       this.id_gasto_operaciones = Number(params['id_gasto_operaciones']) || 0;
       if (this.id_gasto_operaciones) this.cargarMaterialesExistentes();
     });
   }
-  unidadTexto(value: string): string {
-    const map: { [key: string]: string } = {
-      BLS: 'BLS – BOLSA',
-      BRR: 'BRR – BARRA',
-      CD: 'CD – CUADRILLA DIA.',
-      CJA: 'CJA – CAJA',
-      CNX: 'CNX – CONEXION',
-      EVE: 'EVE – EVENTO',
-      GL: 'GL – GALON',
-      GLB: 'GLB – GLOBAL',
-      HA: 'HA – HECTAREA',
-      HDR: 'HDR – HOMBRES POR DIA',
-      HH: 'HH – HOMBRES HORA',
-      HR: 'HR – HORA',
-      HRS: 'HRS – HORAS',
-      'HY.': 'HY. – HOYO',
-      JGO: 'JGO – JUEGO',
-      KG: 'KG – KILOGRAMOS',
-      KIT: 'KIT – KITS',
-      KM: 'KM – KILOMETRO',
-      KMB: 'KMB – KILOMETROS BERMA',
-      LT: 'LT – LITROS',
-      M: 'M – METRO',
-      M2: 'M2 – METROS CUADRADOS',
-      M3: 'M3 – METROS CUBICOS',
-      M3K: 'M3K – METRO CUBICO POR KILOMETRO',
-      MED: 'MED – MEDICION',
-      MK: 'MK – MOTO KILOMETRO',
-      ML: 'ML – METROS LINEALES',
-      P2: 'P2 – PIE CUADRADO',
-      PAR: 'PAR – UN PAR',
-      PER: 'PER – PERSONAS',
-      PIE: 'PIE – PIE LINEAL',
-      PLA: 'PLA – PLANTIN',
-      PTO: 'PTO – PUNTO',
-      PZA: 'PZA – PIEZA',
-      RLL: 'RLL – ROLLO',
-      TLL: 'TLL – TALLER',
-      TN: 'TN – TONELADA',
-      TON: 'TON – TONELADAS',
-      UND: 'UND – UNIDAD',
-    };
-    return map[value] || 'Seleccione unidad';
-  }
-  recuperarUsuarioLocalStorage() {
-    const usuarioStr = localStorage.getItem('usuarioLogueado');
-    if (!usuarioStr) return;
-
-    let datosUsuario: any = {};
-    try {
-      datosUsuario = JSON.parse(usuarioStr);
-    } catch (error) {
-      console.error('Error al parsear usuario desde localStorage', error);
-      return;
-    }
-    this.usuario_id = datosUsuario.id ?? 0;
-    this.nombre_usuario = datosUsuario.nombre ?? '';
-    this.apellido = datosUsuario.apellido ?? '';
-    this.roles = datosUsuario.rol ?? [];
-    this.permisos = datosUsuario.permiso ?? [];
+  formatearNumero(valor: number): string {
+    return new Intl.NumberFormat('es-BO', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(valor);
   }
 
+
+  // 🔹 Helpers
   get materiales(): FormArray {
     return this.formulario.get('materiales') as FormArray;
   }
@@ -118,114 +78,187 @@ export class CrearMaterialesComponent {
     const total = this.materiales.controls.reduce((acc, mat) => {
       const cantidad = mat.get('cantidad')?.value || 0;
       const precio = mat.get('precio_unitario')?.value || 0;
-      return acc + cantidad * precio;
+      return acc + cantidad * precio; // operaciones con todos los decimales
     }, 0);
-    this.servicio.setTotalMateriales(total);
+    this.servicio.setTotalMateriales(total); // guardamos el total sin formatear
     return total;
   }
 
+
+  unidadTexto = unidadTexto; // usamos la función importada
+
+  // 🔹 Métodos de usuario
+  private recuperarUsuarioLocalStorage() {
+    const usuarioStr = localStorage.getItem('usuarioLogueado');
+    if (!usuarioStr) return;
+
+    try {
+      const datosUsuario = JSON.parse(usuarioStr);
+      this.usuario_id = datosUsuario.id ?? 0;
+      this.nombre_usuario = datosUsuario.nombre ?? '';
+      this.apellido = datosUsuario.apellido ?? '';
+      this.roles = datosUsuario.rol ?? [];
+      this.permisos = datosUsuario.permiso ?? [];
+    } catch (error) {
+      console.error('Error al parsear usuario desde localStorage', error);
+    }
+  }
+
+  // 🔹 Formulario
+  private crearMaterialForm(mat?: Materiales, esNuevo = true): FormGroup {
+    return this.fb.group({
+      id: [mat?.id ?? null],
+      descripcion: [mat?.descripcion ?? '', Validators.required],
+      unidad: [mat?.unidad ?? '', Validators.required],
+      cantidad: [mat?.cantidad ?? 0, [Validators.required, Validators.min(0)]],
+      precio_unitario: [mat?.precio_unitario ?? 0, [Validators.required, Validators.min(0)]],
+      total: [{ value: mat?.total ?? 0, disabled: true }],
+      esNuevo: [esNuevo],
+      editarUnidad: [esNuevo],
+    });
+  }
+
   agregarMaterial(): void {
-    this.materiales.push(
-      this.fb.group({
-        id: [null],
-        descripcion: ['', Validators.required],
-        unidad: ['', [Validators.required, Validators.pattern(/^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/)]],
-        cantidad: [0, [Validators.required, Validators.min(0)]],
-        precio_unitario: [0, [Validators.required, Validators.min(0)]],
-        total: [{ value: 1, disabled: true }],
-        esNuevo: [true],
-        editarUnidad: [true],
-      })
-    );
+    this.materiales.push(this.crearMaterialForm());
   }
 
   cargarMaterialesExistentes(): void {
     this.servicio.getMaterialesIDGasto(this.id_gasto_operaciones).subscribe((materiales) => {
       this.materiales.clear();
       materiales.forEach((mat) => {
-        this.materiales.push(
-          this.fb.group({
-            id: [mat.id],
-            descripcion: [mat.descripcion, Validators.required],
-            unidad: [mat.unidad, [Validators.required, Validators.pattern(/^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/)]],
-            cantidad: [mat.cantidad, [Validators.required, Validators.min(0)]],
-            precio_unitario: [mat.precio_unitario, [Validators.required, Validators.min(0)]],
-            total: [{ value: mat.total, disabled: true }],
-            esNuevo: [false],
-            editarUnidad: [false],
-          })
-        );
+        this.materiales.push(this.crearMaterialForm(mat, false));
       });
     });
   }
 
+  // 🔹 CRUD
   registrarItem(index: number): void {
     const mat = this.materiales.at(index);
     if (mat.invalid) {
       mat.markAllAsTouched();
       return;
     }
-    const nuevoMaterial: Materiales = {
-      id: 0,
-      id_gasto_operacion: this.id_gasto_operaciones,
-      descripcion: mat.get('descripcion')?.value,
-      unidad: mat.get('unidad')?.value,
-      cantidad: mat.get('cantidad')?.value,
-      precio_unitario: mat.get('precio_unitario')?.value,
-      total: mat.get('total')?.value,
-      creado_por: this.usuario_id,
-      modificado_por: this.usuario_id,
-    };
-    this.servicio.createMaterial(nuevoMaterial).subscribe((res) => {
-      mat.patchValue({ id: res.id, esNuevo: false });
+
+    const nuevoMaterial: Materiales = this.crearMaterialDesdeForm(mat);
+    this.servicio.createMaterial(nuevoMaterial).subscribe({
+      next: (res: Materiales) => {
+        mat.patchValue({ id: res.id, esNuevo: false, total: res.total });
+        this.actualizarTotalGlobal();
+        this.mensajeExito = 'Material registrado exitosamente.'; // ✅ modal OK
+      },
+      error: () => {
+        this.mensajeError = 'Error al registrar material.'; // ✅ modal Error
+      },
     });
   }
 
   actualizarItem(index: number): void {
     const mat = this.materiales.at(index);
     if (mat.invalid || !mat.get('id')?.value) return;
-    const materialActualizado: Materiales = {
-      id: mat.get('id')?.value,
-      id_gasto_operacion: this.id_gasto_operaciones,
-      descripcion: mat.get('descripcion')?.value,
-      unidad: mat.get('unidad')?.value,
-      cantidad: mat.get('cantidad')?.value,
-      precio_unitario: mat.get('precio_unitario')?.value,
-      total: mat.get('total')?.value,
-      creado_por: this.usuario_id, // mantener el creador original
-      modificado_por: this.usuario_id, // actualizar el modificador
-    };
-    this.servicio.updateMaterial(materialActualizado).subscribe();
+
+    const materialActualizado: Materiales = this.crearMaterialDesdeForm(mat);
+    this.servicio.updateMaterial(materialActualizado).subscribe({
+      next: () => {
+        mat.patchValue({ total: materialActualizado.total });
+        this.actualizarTotalGlobal();
+        this.mensajeExito = 'Material actualizado correctamente.'; // ✅ modal OK
+      },
+      error: () => {
+        this.mensajeError = 'Error al actualizar material.'; // ✅ modal Error
+      },
+    });
   }
+
 
   eliminarItem(index: number): void {
     const mat = this.materiales.at(index);
-    if (mat.get('esNuevo')?.value) {
-      this.materiales.removeAt(index);
-    } else {
-      this.servicio.deleteMaterial(mat.get('id')?.value).subscribe(() => {
-        this.materiales.removeAt(index);
-      });
-    }
+
+    // 🔹 Mostrar confirmación antes de eliminar
+    this.mostrarConfirmacion = true;
+    this.tipoConfirmacion = 'item';
+    this.itemIndexAEliminar = index;
+    this.mensajeConfirmacion = '¿Estás seguro de eliminar este material?';
   }
 
+
+  // 🔹 Helpers para cálculos
+  private crearMaterialDesdeForm(control: AbstractControl): Materiales {
+    return {
+      id: control.get('id')?.value ?? 0,
+      id_gasto_operacion: this.id_gasto_operaciones,
+      descripcion: control.get('descripcion')?.value || '',
+      unidad: control.get('unidad')?.value || '',
+      cantidad: control.get('cantidad')?.value || 0,
+      precio_unitario: control.get('precio_unitario')?.value || 0,
+      total: (control.get('cantidad')?.value || 0) * (control.get('precio_unitario')?.value || 0),
+      creado_por: this.usuario_id,
+      modificado_por: this.usuario_id,
+    };
+  }
+
+  private actualizarTotalGlobal() {
+    const total = this.totalMateriales;
+    this.servicio.setTotalMateriales(total);
+  }
+
+  /* mensajes */
+  manejarAceptar() {
+    if (this.tipoConfirmacion === 'item' && this.itemIndexAEliminar !== null) {
+      const mat = this.materiales.at(this.itemIndexAEliminar);
+      if (mat.get('esNuevo')?.value) {
+        this.materiales.removeAt(this.itemIndexAEliminar);
+        this.mensajeExito = 'Ítem eliminado exitosamente.';
+      } else {
+        this.servicio.deleteMaterial(mat.get('id')?.value).subscribe({
+          next: () => {
+            this.materiales.removeAt(this.itemIndexAEliminar!);
+            this.mensajeExito = 'Ítem eliminado exitosamente.';
+          },
+          error: () => {
+            this.mensajeError = 'Error al eliminar el material.';
+          },
+        });
+      }
+    }
+    this.mostrarConfirmacion = false;
+    this.tipoConfirmacion = null;
+    this.itemIndexAEliminar = null;
+  }
+
+
+  manejarCancelar() {
+    this.mostrarConfirmacion = false;
+    this.tipoConfirmacion = null;
+    this.itemIndexAEliminar = null;
+    this.mensajeConfirmacion = '';
+    
+  }
+  manejarOk() {
+    this.mensajeExito = '';
+  }
+
+  manejarError() {
+    this.mensajeError = '';
+  }
+
+
+  // 🔹 Eventos UI
   actualizarPrecioParcial(control: AbstractControl): void {
     const cantidad = control.get('cantidad')?.value || 0;
     const precio_unitario = control.get('precio_unitario')?.value || 0;
     control.get('total')?.setValue(cantidad * precio_unitario, { emitEvent: false });
   }
 
-  onUnidadChange(control: AbstractControl): void {
-    control.get('unidad')?.markAsTouched();
-  }
   onCantidadChange(control: AbstractControl): void {
     control.get('cantidad')?.markAsTouched();
     this.actualizarPrecioParcial(control);
   }
+
   onPrecioUniChange(control: AbstractControl): void {
     control.get('precio_unitario')?.markAsTouched();
     this.actualizarPrecioParcial(control);
   }
+
   blockE(event: KeyboardEvent): void {
     if (['e', 'E', '+', '-'].includes(event.key)) event.preventDefault();
   }

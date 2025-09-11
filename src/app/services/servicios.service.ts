@@ -33,10 +33,19 @@ export class ServiciosService {
     const loginData = { correo: correo, password: password }; // 👈 debe coincidir con el serializer
     return this.http.post<any>(`${this.apiUrl}login/`, loginData);
   }
-  getRolesFromLocalStorage(): string[] {
+/*   getRolesFromLocalStorage(): string[] {
     const roles = localStorage.getItem('rol');
     return roles ? JSON.parse(roles) : [];
+  } */
+  getRolesFromLocalStorage(): string[] {
+    const usuario = localStorage.getItem('usuarioLogueado');
+    if (usuario) {
+      const userObj = JSON.parse(usuario);
+      return userObj.roles || [];
+    }
+    return [];
   }
+
   verificarUsuario(usuario_id: number): Observable<Usuario> {
     return this.http.get<Usuario>(`${this.apiUrl}usuario/${usuario_id}`);
   }

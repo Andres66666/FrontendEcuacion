@@ -41,6 +41,9 @@ export class PrecioFacturaComponent {
       this.porcentaje_global_100 = Number(params['porcentaje_global_100']) || 0;
     });
   }
+  formatearNumero(valor: number): string {
+    return new Intl.NumberFormat('es-BO', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(valor);
+  }
   // ========================
   // 🔹 SECCIÓN 1
   // ========================

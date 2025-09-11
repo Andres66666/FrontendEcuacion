@@ -9,16 +9,14 @@
           (click)="manejarCerrar()"
         ></button>
       </div>
-      <div class="modal-body d-flex align-items-center p-3">
+      <div class="modal-body d-flex flex-column align-items-center text-center gap-3">
         <img
-          src="
-          https://res.cloudinary.com/dtqv5ejlr/image/upload/v1748614841/Error_wtu6db.png"
-          class="img-fluid custom-img"
-          style="max-width: 100px; height: auto"
+          src="https://cdn-icons-png.flaticon.com/128/190/190406.png"
+          class="img-fluid" 
+          style="max-width: 80px;" 
+          alt="error"
         />
-        <div class="flex-grow-1 text-center d-flex align-items-center">
-          <p class="mb-0">{{ mensaje }}</p>
-        </div>
+        <p class="mb-0">{{ mensaje }}</p>
       </div>
       <div
         class="modal-footer d-grid gap-2 d-md-flex justify-content-md-center"

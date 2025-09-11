@@ -4,7 +4,6 @@
     <h5 class="mb-0">
       <i class="bi bi-cash-stack me-2"></i>4. Gastos Generales y Administrativos
     </h5>
-    <p><strong>ID de usuario recuperado:</strong> {{ usuario_id}}</p>
   </div>
 
   <div class="card-body">
@@ -12,21 +11,18 @@
       <tbody>
         <tr>
           <td><p>Suma Total (1+2+3) :</p></td>
-          <td class="text-end align-middle">{{ sumaTotales | number:"1.2-2" }}</td>
+          <td class="text-end align-middle">{{ formatearNumero(sumaTotales) }}</td>
         </tr>
-<p>suma{{ sumaTotales | number:"1.2-2" }}</p>
-<p>suma{{ gastosGeneralesPorcentaje | number:"1.2-2" }}</p>
-
         <tr>
-          <td>Total Gastos Generales ((1+2+3) * {{gastos_generales | number : "1.2-2"}} %)</td>
+          <td>Total Gastos Generales ((1+2+3) * {{formatearNumero(gastos_generales)}} %)</td>
           <td class="text-end">
-            {{ totalGastosGenerales | number:"1.2-2" }}
+            {{ formatearNumero(totalGastosGenerales) }}
           </td>
         </tr>
         <tr class="table-info fw-bold">
           <td>Total Gastos de Operación (1+2+3+4)</td>
           <td class="text-end">
-            {{ totalOperacion | number:"1.2-2" }}
+            {{ formatearNumero(totalOperacion) }}
           </td>
         </tr>
       </tbody>
@@ -51,3 +47,5 @@
     </div>
   </div>
 </div>
+<app-ok *ngIf="mensajeExito" [mensaje]="mensajeExito" (close)="manejarOk()"></app-ok>
+<app-error *ngIf="mensajeError" [mensaje]="mensajeError" (close)="manejarError()"></app-error>

@@ -57,15 +57,30 @@ export class LoginComponent {
           imagen_url: response.imagen_url,
           roles: response.roles,
           permisos: response.permisos,
+          dias_transcurridos: response.dias_transcurridos
         };
         localStorage.setItem('usuarioLogueado', JSON.stringify(usuario));
         
-        this.mensajeExito = '¡Inicio de sesión exitoso!';
-        this.router.navigate(['/panel-control']);
+        this.mensajeExito = response.mensaje || '¡Inicio de sesión exitoso!';
+        if (response.mensaje_adicional) {
+          this.mensajeExito += '\n"' + response.mensaje_adicional + '"';
+        }
+        // ⚠️ Solo redirige si no está en días 88 o 89
+        if (response.dias_transcurridos < 88) {
+          setTimeout(() => {
+            this.router.navigate(['/panel-control']);
+          }, 3000);
+        }
+
+
+        // ⚠️ Espera unos segundos antes de redirigir
+        setTimeout(() => {
+          this.router.navigate(['/panel-control']);
+        }, 10000);
       },
       error: (error) => {
         console.error('Error al iniciar sesión:', error);
-        this.mensajeError = 'Correo electrónico o contraseña incorrectos. Por favor, inténtelo nuevamente.';
+        this.mensajeError = error.error.error || 'Correo electrónico o contraseña incorrectos.';
         this.isLoading = false;
       },
       complete: () => {
@@ -73,6 +88,7 @@ export class LoginComponent {
       },
     });
   }
+
 
   navigateToHome(): void {
     this.router.navigate(['/index']);

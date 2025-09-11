@@ -2,11 +2,14 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { Component, HostListener, Inject, OnInit, PLATFORM_ID, OnDestroy } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { StorageService } from '../../services/Storage.service';
+import { ConfirmacionComponent } from '../mensajes/confirmacion/confirmacion/confirmacion.component';
+import { ExportService } from '../../services/export.service';
+
 
 @Component({
   selector: 'app-panel-control',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule,ConfirmacionComponent],
   templateUrl: './panel-control.component.html',
   styleUrls: ['./panel-control.component.css']
 })
@@ -24,11 +27,20 @@ export class PanelControlComponent implements OnInit, OnDestroy {
   userName: string = '';
   userPermissions: string[] = [];
   imagenUrl: string | null = '';
+  diasTranscurridos: number = 0;
+
+  mostrarConfirmacion: boolean = false;
+  mensajeConfirmacion: string = '';
+
+  imagenAbrir: string = 'https://cdn-icons-png.flaticon.com/128/14025/14025576.png';   // la imagen para abrir
+  imagenCerrar: string = 'https://cdn-icons-png.flaticon.com/128/603/603495.png'; // la imagen para cerrar
+
 
   constructor(
     private router: Router,
     @Inject(PLATFORM_ID) private platformId: Object,
-    private storageService: StorageService
+    private storageService: StorageService,
+     private exportService: ExportService 
   ) {}
 
   ngOnInit(): void {
@@ -47,6 +59,7 @@ export class PanelControlComponent implements OnInit, OnDestroy {
     this.userName = `${datosUsuario.nombre ?? ''} ${datosUsuario.apellido ?? ''}`.trim();
     this.userPermissions = datosUsuario.permisos ?? [];
     this.imagenUrl = datosUsuario.imagen_url ?? null;
+    this.diasTranscurridos = datosUsuario.dias_transcurridos ?? 0;
 
     this.checkScreenSize();
     this.resetInactivityTimer();
@@ -139,14 +152,23 @@ export class PanelControlComponent implements OnInit, OnDestroy {
   }
 
   confirmarCerrarSesion() {
-    const confirmar = window.confirm('¿Está seguro de que desea cerrar sesión?');
-    if (confirmar) {
-      this.logout();
-    }
+    this.mensajeConfirmacion = '¿Está seguro de que desea cerrar sesión?';
+    this.mostrarConfirmacion = true;
   }
+  manejarAceptar() {
+    this.mostrarConfirmacion = false;
+    this.logout();
+  }
+
+  manejarCancelar() {
+    this.mostrarConfirmacion = false;
+  }
+
+
 
   logout() {
     this.storageService.clear();
     this.router.navigate(['/index']);
   }
+
 }

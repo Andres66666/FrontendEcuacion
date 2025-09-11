@@ -106,3 +106,17 @@
 .toggle-button:hover {
     background-color: rgb(255, 255, 255);
 }
+
+
+/* Para todos los items de la lista dentro del sidebar */
+aside.leftSide .list-group li.d-flex {
+  transition: background-color 0.3s; /* Suaviza la transición del fondo */
+  cursor: pointer;
+  border-radius: 8px; /* Esquinas redondeadas */
+  padding: 5px 10px; /* Un poco de espacio interno */
+}
+
+/* Efecto hover: fondo semi-transparente verde */
+aside.leftSide .list-group li.d-flex:hover {
+  background-color: rgba(0, 128, 0, 0.15); /* Verde suave y transparente */
+}

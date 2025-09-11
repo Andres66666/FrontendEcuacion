@@ -5,16 +5,18 @@
         <i class="bi bi-person-workspace me-2"></i>2. Mano de Obra
       </h5>
     </div>
+
     <div class="card-body" formArrayName="manoObra">
       <div class="d-flex justify-content-end no-export">
         <button
           type="button"
           class="btn btn-outline-success mt-2 mb-3"
-          (click)="agregarManoObra()"
+          (click)="agregarManoDeObra()"
         >
           <i class="bi bi-plus-circle me-1"></i> Añadir Mano de Obra
         </button>
       </div>
+
       <table class="table table-bordered table-hover align-middle mb-3">
         <thead class="table-light text-center">
           <tr>
@@ -22,15 +24,13 @@
             <th>Unidad</th>
             <th>Cantidad</th>
             <th>P. Unitario</th>
-            <th>Precio parcial</th>
+            <th>Precio Parcial</th>
             <th class="no-export">Acción</th>
           </tr>
         </thead>
         <tbody>
-          <tr
-            *ngFor="let trabajo of manoObra.controls; let i = index"
-            [formGroupName]="i"
-          >
+          <tr *ngFor="let trabajo of manoObra.controls; let i = index" [formGroupName]="i">
+            
             <!-- Descripción -->
             <td>
               <input
@@ -38,10 +38,7 @@
                 formControlName="descripcion"
                 placeholder="Ej. Albañil"
               />
-              <div
-                *ngIf="trabajo.get('descripcion')?.errors?.['required']"
-                class="text-danger small"
-              >
+              <div *ngIf="trabajo.get('descripcion')?.errors?.['required']" class="text-danger small">
                 Campo requerido.
               </div>
             </td>
@@ -52,52 +49,15 @@
                 <select
                   class="form-select"
                   formControlName="unidad"
-                  (blur)="trabajo.get('editarUnidad')?.setValue(false); trabajo.get('unidad')?.markAsTouched()"
+                  (blur)="trabajo.get('editarUnidad')?.setValue(false)"
                 >
-                  <option value="" selected>Seleccione unidad</option>
-                  <option value="BLS">BLS – BOLSA</option>
-                  <option value="BRR">BRR – BARRA</option>
-                  <option value="CD">CD – CUADRILLA DIA.</option>
-                  <option value="CJA">CJA – CAJA</option>
-                  <option value="CNX">CNX – CONEXION</option>
-                  <option value="EVE">EVE – EVENTO</option>
-                  <option value="GL">GL – GALON</option>
-                  <option value="GLB">GLB – GLOBAL</option>
-                  <option value="HA">HA – HECTAREA</option>
-                  <option value="HDR">HDR – HOMBRES POR DIA</option>
-                  <option value="HH">HH – HOMBRES HORA</option>
-                  <option value="HR">HR – HORA</option>
-                  <option value="HRS">HRS – HORAS</option>
-                  <option value="HY.">HY. – HOYO</option>
-                  <option value="JGO">JGO – JUEGO</option>
-                  <option value="KG">KG – KILOGRAMOS</option>
-                  <option value="KIT">KIT – KITS</option>
-                  <option value="KM">KM – KILOMETRO</option>
-                  <option value="KMB">KMB – KILOMETROS BERMA</option>
-                  <option value="LT">LT – LITROS</option>
-                  <option value="M">M – METRO</option>
-                  <option value="M2">M2 – METROS CUADRADOS</option>
-                  <option value="M3">M3 – METROS CUBICOS</option>
-                  <option value="M3K">M3K – METRO CUBICO POR KILOMETRO</option>
-                  <option value="MED">MED – MEDICION</option>
-                  <option value="MK">MK – MOTO KILOMETRO</option>
-                  <option value="ML">ML – METROS LINEALES</option>
-                  <option value="P2">P2 – PIE CUADRADO</option>
-                  <option value="PAR">PAR – UN PAR</option>
-                  <option value="PER">PER – PERSONAS</option>
-                  <option value="PIE">PIE – PIE LINEAL</option>
-                  <option value="PLA">PLA – PLANTIN</option>
-                  <option value="PTO">PTO – PUNTO</option>
-                  <option value="PZA">PZA – PIEZA</option>
-                  <option value="RLL">RLL – ROLLO</option>
-                  <option value="TLL">TLL – TALLER</option>
-                  <option value="TN">TN – TONELADA</option>
-                  <option value="TON">TON – TONELADAS</option>
-                  <option value="UND">UND – UNIDAD</option>
+                  <option value="">Seleccione unidad</option>
+                  <option *ngFor="let unidad of unidades" [value]="unidad">
+                    {{ unidadTexto(unidad) }}
+                  </option>
                 </select>
               </ng-container>
 
-              <!-- Modo solo lectura -->
               <ng-template #verUnidad>
                 <p
                   (click)="trabajo.get('editarUnidad')?.setValue(true)"
@@ -107,16 +67,7 @@
                   {{ unidadTexto(trabajo.get('unidad')?.value) }}
                 </p>
               </ng-template>
-
-              <!-- Error de validación -->
-              <div
-                *ngIf="trabajo.get('unidad')?.errors?.['required'] && trabajo.get('unidad')?.touched"
-                class="text-danger small"
-              >
-                Campo requerido.
-              </div>
             </td>
-
 
             <!-- Cantidad -->
             <td>
@@ -154,10 +105,7 @@
             <td class="text-center no-export">
               <div class="d-flex justify-content-center gap-2">
                 <ng-container *ngIf="trabajo.get('esNuevo')?.value; else accionesExistente">
-                  <button
-                    class="btn btn-success btn-sm"
-                    (click)="registrarItem(i)"
-                  >
+                  <button class="btn btn-success btn-sm" (click)="registrarItem(i)">
                     <i class="bi bi-check2-circle me-1"></i> Registrar
                   </button>
                   <button class="btn btn-danger btn-sm" (click)="eliminarItem(i)">
@@ -166,10 +114,7 @@
                 </ng-container>
 
                 <ng-template #accionesExistente>
-                  <button
-                    class="btn btn-primary btn-sm"
-                    (click)="actualizarItem(i)"
-                  >
+                  <button class="btn btn-primary btn-sm" (click)="actualizarItem(i)">
                     <i class="bi bi-pencil"></i> Actualizar
                   </button>
                   <button class="btn btn-danger btn-sm" (click)="eliminarItem(i)">
@@ -178,39 +123,43 @@
                 </ng-template>
               </div>
             </td>
+
           </tr>
         </tbody>
       </table>
     </div>
+
     <div class="card-footer">
       <table class="table table-bordered table-hover mb-0">
         <tbody>
           <tr>
             <td>Subtotal Mano de Obra</td>
-            <td class="text-end">
-              {{ subtotalManoObra | number : "1.2-2" }}
-            </td>
+            <td class="text-end">{{ formatearNumero(subtotalManoObra) }}</td>
           </tr>
           <tr>
-            <td>
-              <p>Cargas Sociales: ({{carga_social | number : "1.2-2"}} %)</p>
-            </td>
-            <td class="text-end">
-              {{ cargasManoObra | number : "1.2-2" }}
-            </td>
+            <td>Cargas Sociales ({{ formatearNumero(carga_social) }} %)</td>
+            <td class="text-end">{{ formatearNumero(cargasManoObra) }}</td>
           </tr>
           <tr>
-            <td>
-              <p>IVA: ({{iva | number : "1.2-2"}} %)</p>
-            </td>
-            <td class="text-end">{{ ivaManoObra | number : "1.2-2" }}</td>
+            <td>IVA ({{ formatearNumero(iva_efectiva) }} %)</td>
+            <td class="text-end">{{ formatearNumero(ivaManoObra) }}</td>
           </tr>
           <tr class="table-success fw-bold">
             <td>Total Mano de Obra</td>
-            <td class="text-end">{{ totalManoObra | number : "1.2-2" }}</td>
+            <td class="text-end">{{ formatearNumero(totalManoObra) }}</td>
           </tr>
         </tbody>
       </table>
     </div>
   </div>
 </form>
+
+<app-confirmacion
+  *ngIf="mostrarConfirmacion"
+  [mensaje]="mensajeConfirmacion"
+  (aceptar)="manejarAceptar()"
+  (cancelar)="manejarCancelar()"
+></app-confirmacion>
+
+<app-ok *ngIf="mensajeExito" [mensaje]="mensajeExito" (close)="manejarOk()"></app-ok>
+<app-error *ngIf="mensajeError" [mensaje]="mensajeError" (close)="manejarError()"></app-error>

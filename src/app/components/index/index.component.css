@@ -13,3 +13,13 @@
   cursor: pointer;
 }
 
+.carousel-inner {
+  height: 500px; /* tamaño fijo del carrusel */
+}
+
+.carousel-inner img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* mantiene proporciones y recorta exceso */
+  border-radius: 8px; /* esquinas redondeadas */
+}

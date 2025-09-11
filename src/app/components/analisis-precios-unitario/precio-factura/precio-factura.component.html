@@ -3,267 +3,290 @@
       <!-- <p class="mb-1"><strong>Codigo ID Proyecto:</strong> {{ identificadorGeneral }}</p> -->
       <!-- 📄 Página 1 -->
       <div class="pdf-page-section" id="page1-content">
-        <h3 class="section-title">1.- GASTOS DE OPERACIÓN Y COSTO DE VENTA</h3>
-        <div class="table-responsive-wrapper">
-          <table class="data-table module-table">
+        <!-- 1.- GASTOS DE OPERACIÓN Y COSTO DE VENTA -->
+        <div class="table-responsive">
+          <table class="table table-bordered table-hover align-middle mb-3">
+            <thead class="table-active text-center">
+              <tr>
+                <th colspan="3">1.- GASTOS DE OPERACIÓN Y COSTO DE VENTA</th>
+              </tr>
+            </thead>
             <tbody>
               <tr>
-                <td colspan="2" class="description-col bold-text">GASTOS DE OPERACIÓN</td>
-                <td class="amount-col value-cell bold-text">{{ precio_unitario | number:'1.2-2' }}</td>
+                <td colspan="2" class="fw-bold">GASTOS DE OPERACIÓN</td>
+                <td class="text-end fw-bold">{{ formatearNumero(precio_unitario) }}</td>
               </tr>
               <tr>
-                <td colspan="2" class="description-col bold-text">CREDITO FISCAL IVA 13%</td>
-                <td class="amount-col value-cell bold-text">-{{ creditoFiscal | number:'1.2-2' }}</td>
+                <td colspan="2" class="fw-bold">CREDITO FISCAL IVA 13%</td>
+                <td class="text-end fw-bold">-{{ formatearNumero(creditoFiscal) }}</td>
               </tr>
               <tr>
-                <td colspan="2" class="description-col bold-text">COSTO DE VENTA</td>
-                <td class="amount-col value-cell bold-text">{{ costoVenta | number:'1.2-2' }}</td>
+                <td colspan="2" class="fw-bold">COSTO DE VENTA</td>
+                <td class="text-end fw-bold">{{ formatearNumero(costoVenta) }}</td>
               </tr>
             </tbody>
           </table>
         </div>
 
+        <!-- 2.- PRECIO FACTURA -->
         <h3 class="section-title">2.- PRECIO FACTURA</h3>
-        <div class="table-responsive-wrapper">
-          <table class="data-table">
-            <thead>
+        <div class="table-responsive">
+          <table class="table table-bordered table-hover align-middle mb-3">
+            <thead class="table-primary text-center">
               <tr>
-                <th colspan="2" class="align-center">PORCENTAJES DE ALICUOTAS</th>
-                <th colspan="2" class="align-center">DESCRIPCION</th>
-                <th class="amount-col">MONTO (Bs)</th>
+                <th colspan="2">PORCENTAJES DE ALICUOTAS</th>
+                <th colspan="2">DESCRIPCION</th>
+                <th>MONTO (Bs)</th>
               </tr>
             </thead>
             <tbody>
               <tr>
-                <td class="percentage-col bold-text text-center" rowspan="3"><br><br>{{ SumaIva_SumaAB }}%</td>
-                <td class="percentage-col bold-text text-center" rowspan="2"><br>{{ SumaAB }}%</td>
-                <td class="description-label-col bold-text">A = {{ a_costo_venta | number:'1.2-2' }} %</td>
-                <td class="description-col">COSTO DE VENTA</td>
-                <td class="amount-col value-cell">{{ costoVenta | number:'1.2-2' }}</td>
+                <td class="text-center fw-bold" rowspan="3"><br><br>{{ SumaIva_SumaAB }}%</td>
+                <td class="text-center fw-bold" rowspan="2"><br>{{ SumaAB }}%</td>
+                <td class="fw-bold">A = {{ formatearNumero(a_costo_venta) }} %</td>
+                <td>COSTO DE VENTA</td>
+                <td class="text-end">{{ formatearNumero(costoVenta) }}</td>
               </tr>
-              <tr class="dashed-bottom">
-                <td class="description-label-col bold-text">B = {{ b_margen_utilidad | number:'1.2-2' }} %</td>
-                <td class="description-col">MARGEN DE UTILIDAD</td>
-                <td class="amount-col value-cell">{{ margenUtilidad | number:'1.2-2' }}</td>
+              <tr class="table-border-bottom">
+                <td class="fw-bold">B = {{ formatearNumero(b_margen_utilidad) }} %</td>
+                <td>MARGEN DE UTILIDAD</td>
+                <td class="text-end">{{ formatearNumero(margenUtilidad) }}</td>
               </tr>
               <tr>
-                <td colspan="2" class="percentage-col bold-text text-center">{{ iva_tasa_nominal }} %</td>
-                <td class="description-col">IVA (TASA EFECTIVA 14,94%) DE COSTO DE VENTA MAS MARGEN DE UTILIDAD</td>
-                <td class="amount-col value-cell">{{ ivaEfectiva | number:'1.2-2' }}</td>
+                <td colspan="2" class="text-center fw-bold">{{ formatearNumero(iva_tasa_nominal) }} %</td>
+                <td>IVA (TASA EFECTIVA 14,94%) DE COSTO DE VENTA MAS MARGEN DE UTILIDAD</td>
+                <td class="text-end">{{ formatearNumero(ivaEfectiva) }}</td>
               </tr>
-              <tr class="bold-text">
-                <td colspan="4" class="description-col text-end">PRECIO FACTURA</td>
-                <td class="amount-col value-cell">{{ precioFacturaS2 | number:'1.2-2' }}</td>
+              <tr class="fw-bold">
+                <td colspan="4" class="text-end">PRECIO FACTURA</td>
+                <td class="text-end">{{ formatearNumero(precioFacturaS2) }}</td>
               </tr>
             </tbody>
           </table>
+
           <div *ngIf="mensajeErrorAB" class="alert alert-danger text-center">{{ mensajeErrorAB }}</div>
           <div *ngIf="mensajeErrorIva" class="alert alert-warning text-center">{{ mensajeErrorIva }}</div>
         </div>
 
+        <!-- 3.- FISCALIZACION POR IMPUESTOS INTERNOS -->
         <h3 class="section-title">3.- FISCALIZACION POR IMPUESTOS INTERNOS</h3>
-        <div class="table-responsive-wrapper">
-          <table class="data-table">
-            <thead>
+        <div class="table-responsive">
+          <table class="table table-bordered table-hover align-middle mb-3">
+            <thead class="table-secondary text-center">
               <tr>
-                <th class="description-col">DESCRIPCION</th>
-                <th class="amount-col">MONTO (Bs)</th>
+                <th>DESCRIPCION</th>
+                <th style="width: 8%;">MONTO (Bs)</th>
               </tr>
             </thead>
             <tbody>
-              <tr class="dashed-bottom">
-                <td class="description-col">COSTO DE VENTA</td>
-                <td class="amount-col value-cell">{{ costoVentaT3 | number:'1.2' }}</td>
+              <tr class="table-border-bottom">
+                <td>COSTO DE VENTA</td>
+                <td class="text-end bg-light w-auto">{{ formatearNumero(costoVentaT3) }}</td>
               </tr>
-              <tr class="dashed-bottom">
-                <td class="description-col">MARGEN DE UTILIDAD</td>
-                <td class="amount-col value-cell">{{ MargenDeUtilidad | number:'1.2-2' }}</td>
+              <tr class="table-border-bottom">
+                <td>MARGEN DE UTILIDAD</td>
+                <td class="text-end bg-light w-auto">{{ formatearNumero(MargenDeUtilidad) }}</td>
               </tr>
-              <tr class="dashed-bottom">
-                <td class="description-col">IVA 13% DE PRECIO FACTURA</td>
-                <td class="amount-col value-cell">{{ IVAenFactura | number:'1.2-2' }}</td>
+              <tr class="table-border-bottom">
+                <td>IVA 13% DE PRECIO FACTURA</td>
+                <td class="text-end bg-light w-auto">{{ formatearNumero(IVAenFactura) }}</td>
               </tr>
-              <tr class="dashed-bottom bold-text">
-                <td class="description-col">PRECIO FACTURA</td>
-                <td class="amount-col value-cell">{{ SumaFactura | number:'1.2-2' }}</td>
+              <tr class="fw-bold table-border-bottom">
+                <td class="text-end">PRECIO FACTURA</td>
+                <td class="text-end bg-light w-auto">{{ formatearNumero(SumaFactura) }}</td>
               </tr>
             </tbody>
           </table>
         </div>
 
+        <!-- 4.- ESTADO DE RESULTADOS -->
         <h3 class="section-title">4.- ESTADO DE RESULTADOS</h3>
-        <div class="table-responsive-wrapper">
-          <table class="data-table">
-            <thead>
+        <div class="table-responsive">
+          <table class="table table-bordered table-hover align-middle mb-3">
+            <thead class="table-success text-center">
               <tr>
-                <th class="description-col">DESCRIPCION</th>
-                <th class="amount-col">En bolivianos (Bs)</th>
+                <th>DESCRIPCION</th>
+                <th style="width: 8%;">En bolivianos (Bs)</th>
               </tr>
             </thead>
             <tbody>
-              <tr class="bold-text">
-                <td class="description-col">PRECIO FACTURA</td>
-                <td class="amount-col value-cell">{{ precioFacturaS2 | number:'1.2-2' }}</td>
+              <tr class="fw-bold">
+                <td>PRECIO FACTURA</td>
+                <td class="text-end bg-light w-auto">{{ formatearNumero(precioFacturaS2) }}</td>
               </tr>
               <tr>
-                <td class="description-col">GASTOS DE OPERACIÓN</td>
-                <td class="amount-col value-cell">-{{ precio_unitario | number:'1.2-2' }}</td>
+                <td>GASTOS DE OPERACIÓN</td>
+                <td class="text-end bg-light w-auto">-{{ formatearNumero(precio_unitario) }}</td>
               </tr>
-              <tr class="dashed-bottom">
-                <td class="description-col bold-text text-danger">VALOR AGREGADO</td>
-                <td class="amount-col value-cell bold-text">{{ ValorAgregado | number:'1.2-2' }}</td>
-              </tr>
-              <tr>
-                <td class="description-col">Impuestos IVA 13%</td>
-                <td class="amount-col value-cell">{{ ImpuestoIva | number:'1.2-2' }}</td>
+              <tr class="border-bottom fw-bold text-danger">
+                <td>VALOR AGREGADO</td>
+                <td class="text-end bg-light w-auto">{{ formatearNumero(ValorAgregado) }}</td>
               </tr>
               <tr>
-                <td class="description-col">IT 3% de la factura</td>
-                <td class="amount-col value-cell">{{ itFactura | number:'1.2-2' }}</td>
+                <td>Impuestos IVA 13%</td>
+                <td class="text-end bg-light w-auto">{{ formatearNumero(ImpuestoIva) }}</td>
               </tr>
-              <tr class="dashed-bottom">
-                <td class="description-col">IUE 25% utilidad</td>
-                <td class="amount-col value-cell">{{ iueUtilidad | number:'1.2-2' }}</td>
+              <tr>
+                <td>IT 3% de la factura</td>
+                <td class="text-end bg-light w-auto">{{ formatearNumero(itFactura) }}</td>
               </tr>
-              <tr class="dashed-bottom">
-                <td class="description-col bold-text text-danger">TOTAL IMPUESTOS</td>
-                <td class="amount-col value-cell bold-text">{{ SumaImpuestos | number:'1.2-2' }}</td>
+              <tr class="border-bottom">
+                <td>IUE 25% utilidad</td>
+                <td class="text-end bg-light w-auto">{{ formatearNumero(iueUtilidad) }}</td>
               </tr>
-              <tr class="bold-text">
-                <td class="description-col text-danger">TOTAL UTILIDAD NETA</td>
-                <td class="amount-col value-cell">{{ SumaTotalNeta | number:'1.2-2' }}</td>
+              <tr class="border-bottom fw-bold text-danger">
+                <td>TOTAL IMPUESTOS</td>
+                <td class="text-end bg-light w-auto">{{ formatearNumero(SumaImpuestos) }}</td>
+              </tr>
+              <tr class="fw-bold text-danger">
+                <td>TOTAL UTILIDAD NETA</td>
+                <td class="text-end bg-light w-auto">{{ formatearNumero(SumaTotalNeta) }}</td>
               </tr>
             </tbody>
           </table>
         </div>
 
+
+        <!-- 5.- METODOLOGIA LA GANANCIA ES PRIMERO -->
         <h3 class="section-title">5.- METODOLOGIA LA GANANCIA ES PRIMERO</h3>
-        <div class="table-responsive-wrapper">
-          <table class="data-table">
-            <thead>
+        <div class="table-responsive">
+          <table class="table table-bordered table-hover align-middle mb-3">
+            <thead class="table-danger text-center">
               <tr>
-                <th class="description-col">DESCRIPCION</th>
-                <th class="amount-col">GANANCIAS NETAS</th>
-                <th class="percentage-col">% DE DISTRIBUCION META</th>
-                <th class="ideal-col">IDEAL</th>
+                <th>DESCRIPCION</th>
+                <th>GANANCIAS NETAS</th>
+                <th>% DE DISTRIBUCION META</th>
+                <th>IDEAL</th>
               </tr>
             </thead>
             <tbody>
-              <tr class="dashed-bottom">
-                <td class="description-col">GANANCIA</td>
-                <td class="amount-col value-cell">{{ gananciaPrimero | number:'1.2' }}</td>
-                <td class="percentage-col">{{ gananciaPrimeroPorcentage | number:'1.2' }}%</td>
-                <td class="ideal-col">10%</td>
+              <tr class="table-border-bottom">
+                <td>GANANCIA</td>
+                <td class="text-end bg-light w-auto">{{ formatearNumero(gananciaPrimero) }}</td>
+                <td class="text-end">{{ formatearNumero(gananciaPrimeroPorcentage) }}%</td>
+                <td class="text-center">10%</td>
               </tr>
-              <tr class="dashed-bottom">
-                <td class="description-col">COMPENSACION DEL DUEÑO</td>
-                <td class="amount-col value-cell">{{ CompensacionDueno | number:'1.2' }}</td>
-                <td class="percentage-col">{{ CompensacionDuenoPorcentage | number:'1.2' }}%</td>
-                <td class="ideal-col">10%</td>
+              <tr class="table-border-bottom">
+                <td>COMPENSACION DEL DUEÑO</td>
+                <td class="text-end bg-light w-auto">{{ formatearNumero(CompensacionDueno) }}</td>
+                <td class="text-end">{{ formatearNumero(CompensacionDuenoPorcentage) }}%</td>
+                <td class="text-center">10%</td>
               </tr>
-              <tr class="dashed-bottom">
-                <td class="description-col">IMPUESTOS</td>
-                <td class="amount-col value-cell">{{ SumaImpuestos | number:'1.2-2' }}</td>
-                <td class="percentage-col">{{ ImpuestoPorcentage | number:'1.2-2' }}%</td>
-                <td class="ideal-col">15%</td>
+              <tr class="table-border-bottom">
+                <td>IMPUESTOS</td>
+                <td class="text-end bg-light w-auto">{{ formatearNumero(SumaImpuestos) }}</td>
+                <td class="text-end">{{ formatearNumero(ImpuestoPorcentage) }}%</td>
+                <td class="text-center">15%</td>
               </tr>
-              <tr class="dashed-bottom">
-                <td class="description-col">GASTOS DE OPERACIÓN</td>
-                <td class="amount-col value-cell">{{ precio_unitario | number:'1.2-2' }}</td>
-                <td class="percentage-col">{{ gastoOperacionPorcentage | number:'1.2-2' }}%</td>
-                <td class="ideal-col">65%</td>
+              <tr class="table-border-bottom">
+                <td>GASTOS DE OPERACIÓN</td>
+                <td class="text-end bg-light w-auto">{{ formatearNumero(precio_unitario) }}</td>
+                <td class="text-end">{{ formatearNumero(gastoOperacionPorcentage) }}%</td>
+                <td class="text-center">65%</td>
               </tr>
-              <tr class="dashed-bottom bold-text">
-                <td class="description-col">PRECIO FACTURA</td>
-                <td class="amount-col value-cell">{{ PrecioFacturaPrimero | number:'1.2-2' }}</td>
-                <td class="percentage-col">{{ PorcentajeTotalGananciaPrimero | number:'1.2-2' }}%</td>
-                <td class="ideal-col">100%</td>
+              <tr class="fw-bold table-border-bottom">
+                <td>PRECIO FACTURA</td>
+                <td class="text-end bg-light w-auto">{{ formatearNumero(PrecioFacturaPrimero) }}</td>
+                <td class="text-end">{{ formatearNumero(PorcentajeTotalGananciaPrimero) }}%</td>
+                <td class="text-center">100%</td>
               </tr>
             </tbody>
           </table>
         </div>
       </div>
+
       <!-- 📄 Página 2 -->
       <div class="pdf-page-section" id="page2-content">
-        <h3 class="section-title">6.- RENTABILIDAD</h3>
-        <div class="table-responsive-wrapper">
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th class="description-col">DESCRIPCION</th>
-                <th class="amount-col">MONTO (Bs)</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr class="dashed-bottom">
-                <td class="description-col bold-text text-danger">RENTABILIDAD (PROYECTO)</td>
-                <td class="amount-col value-cell">{{ RentabilidadProyecto | number:'1.2-2' }}%</td>
-              </tr>
-              <tr class="dashed-bottom">
-                <td class="description-col">RENTABILIDAD (GANANCIA)</td>
-                <td class="amount-col value-cell">{{ RentabilidadGanancia | number:'1.2-2' }}%</td>
-              </tr>
-              <tr class="dashed-bottom">
-                <td class="description-col">RENTABILIDAD (COMPENSACIÓN DEL DUEÑO)</td>
-                <td class="amount-col value-cell">{{ RentabilidadCompensacionDueno | number:'1.2-2' }}%</td>
-              </tr>
-              <tr class="dashed-bottom">
-                <td class="description-col">RENTABILIDAD (IMPUESTOS)</td>
-                <td class="amount-col value-cell">{{ RentabilidadImpuestos | number:'1.2-2' }}%</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+         <!-- 6.- RENTABILIDAD -->
+          <h3 class="section-title">6.- RENTABILIDAD</h3>
+          <div class="table-responsive">
+            <table class="table table-bordered table-hover align-middle mb-3">
+              <thead class="table-warning text-center">
+                <tr>
+                  <th>DESCRIPCION</th>
+                  <th>MONTO (Bs)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr class="fw-bold text-danger table-border-bottom">
+                  <td>RENTABILIDAD (PROYECTO)</td>
+                  <td class="text-end bg-light w-auto">{{ formatearNumero(RentabilidadProyecto) }}%</td>
+                </tr>
+                <tr class="table-border-bottom">
+                  <td>RENTABILIDAD (GANANCIA)</td>
+                  <td class="text-end bg-light w-auto">{{ formatearNumero(RentabilidadGanancia) }}%</td>
+                </tr>
+                <tr class="table-border-bottom">
+                  <td>RENTABILIDAD (COMPENSACIÓN DEL DUEÑO)</td>
+                  <td class="text-end bg-light w-auto">{{ formatearNumero(RentabilidadCompensacionDueno) }}%</td>
+                </tr>
+                <tr class="table-border-bottom">
+                  <td>RENTABILIDAD (IMPUESTOS)</td>
+                  <td class="text-end bg-light w-auto">{{ formatearNumero(RentabilidadImpuestos) }}%</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
 
-        <h3 class="section-title">7.- RETORNO DE GASTOS DE OPERACIÓN</h3>
-        <div class="table-responsive-wrapper">
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th class="description-col">DESCRIPCION</th>
-                <th class="amount-col">NUMERO DE</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr class="dashed-bottom">
-                <td class="description-col bold-text text-danger">RETORNO</td>
-                <td class="amount-col value-cell">{{ Retorno | number:'1.2-2' }}%</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+         <!-- 7.- RETORNO DE GASTOS DE OPERACIÓN -->
+          <h3 class="section-title">7.- RETORNO DE GASTOS DE OPERACIÓN</h3>
+          <div class="table-responsive">
+            <table class="table table-bordered table-hover align-middle mb-3">
+              <thead class="table-info text-white text-center">
+                <tr>
+                  <th>DESCRIPCION</th>
+                  <th>NUMERO DE</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr class="fw-bold text-danger table-border-bottom">
+                  <td>RETORNO</td>
+                  <td class="text-end bg-light w-auto">{{ formatearNumero(Retorno) }}%</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
       </div>
     </div>
 
     <div class="position-sticky top-50 translate-middle-y align-self-start z-3" style="width: 60px">
       <!-- Botón Home -->
       <a
-        class="btn btn-success d-flex align-items-center justify-content-center p-0 mb-3"
+        class="btn d-flex align-items-center justify-content-center p-0 mb-3"
         (click)="navigateToHome()"
         style="width: 60px; height: 60px"
       >
-        <i class="bi bi-arrow-right-circle fs-3"></i>
+        <img 
+          src="https://cdn-icons-png.flaticon.com/128/3487/3487330.png" 
+          class="img-fluid"
+          style="width: 40px; height: 40px;"
+        />  
       </a>
 
       <!-- Botón PDF -->
       <a
-        class="btn btn-danger d-flex align-items-center justify-content-center p-0 mb-3"
+        class="btn d-flex align-items-center justify-content-center p-0 mb-3"
         (click)="exportPDF()"
         style="width: 60px; height: 60px"
       >
-        <i class="bi bi-file-earmark-pdf fs-3"></i>
+        <img 
+          src="https://cdn-icons-png.flaticon.com/128/6968/6968842.png" 
+          class="img-fluid"
+          style="width: 40px; height: 40px;"
+        />
       </a>
       <a
-        class="btn btn-primary d-flex align-items-center justify-content-center p-0"
+        class="btn d-flex align-items-center justify-content-center p-0"
         (click)="exportWORD()"
         style="width: 60px; height: 60px"
       >
-        <i class="bi bi-file-earmark-word fs-3"></i>
-
+        <img 
+          src="https://cdn-icons-png.flaticon.com/128/888/888883.png" 
+          class="img-fluid"
+          style="width: 40px; height: 40px;"
+        />
       </a>
     </div>
-
-
 
 </div>
 

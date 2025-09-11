@@ -1,20 +1,28 @@
 <section class="layout">
   <!-- Navbar (header) -->
-  <nav class="navbar navbar-expand-md header bg-light">
+  <nav class="navbar navbar-expand-md header navbar-dark bg-white">
+
     <div class="container-fluid mx-2">
       <button class="toggle-button btn me-2" (click)="toggleSidebar()">
-          <i [ngClass]="isSidebarOpen ? 'fas fa-times' : 'fas fa-bars'"></i>
+        <img 
+          [src]="isSidebarOpen ? imagenCerrar : imagenAbrir" 
+          alt="toggle sidebar" 
+          style="width: 24px; height: 24px;" 
+        />
       </button>
+      
+
       <div class="ms-auto d-flex align-items-center gap-2">
         <div class="dropdown d-flex align-items-center">
-          <div class="me-2">
-            <img
-              *ngIf="imagenUrl"
-              [src]="imagenUrl"
-              alt="Foto de usuario"
-              class="rounded-circle img-fluid"
-              style="width: 40px; height: 40px"
+          
+          <div class="d-flex align-items-center gap-2 me-3">
+            <img 
+              src="https://cdn-icons-gif.flaticon.com/10967/10967596.gif" 
+              alt="Reloj de arena" 
+              class="img-fluid"
+              style="width: 40px; height: 40px;"
             />
+            <span class="fw-bold">Día: {{ diasTranscurridos }}</span>
           </div>
 
           <button
@@ -24,6 +32,15 @@
             data-bs-toggle="dropdown"
             aria-expanded="false"
           >
+           <div class="me-2">
+            <img
+              *ngIf="imagenUrl"
+              [src]="imagenUrl"
+              alt="Foto de usuario"
+              class="rounded-circle img-fluid"
+              style="width: 40px; height: 40px"
+            />
+          </div>
             {{ userName }}
           </button>
 
@@ -36,7 +53,12 @@
                 class="dropdown-item d-flex align-items-center"
                 (click)="verPerfil()"
               >
-                <i class="fas fa-user-circle me-2"></i>
+                <img 
+                  src="https://cdn-icons-png.flaticon.com/128/14778/14778312.png" 
+                  alt="cerrarSesion" 
+                  class="img-fluid"
+                  style="width: 30px; height: 30px;"
+                />
                 <span>Ver Perfil</span>
               </div>
             </li>
@@ -45,7 +67,12 @@
                 class="dropdown-item text-danger d-flex align-items-center"
                 (click)="onSelectChange('cerrarSesion')"
               >
-                <i class="fas fa-power-off text-danger fs-6 me-2"></i>
+                <img 
+                  src="https://cdn-icons-png.flaticon.com/128/2550/2550435.png" 
+                  alt="cerrarSesion" 
+                  class="img-fluid"
+                  style="width: 30px; height: 30px;"
+                />
                 <span> Cerrar Sesión</span>
               </div>
             </li>
@@ -57,16 +84,16 @@
 
   <!-- Sidebar (leftSide) -->
   <aside
-    class="leftSide bg-light p-3"
+    class="leftSide aside-dark bg-white p-3"
     [class.sidebar-open]="isSidebarOpen"
     [class.sidebar-closed]="!isSidebarOpen"
   >
     <div class="mb-3">
       <div class="d-flex justify-content-center align-items-center">
         <img
-          src=""
+          src="https://res.cloudinary.com/dexggkhkd/image/upload/v1750767599/logoMallaPNG_g2ta8p.png"
           alt=""
-          style="max-width: 80px"
+          style="max-width: 200px"
         />
       </div>
 
@@ -78,286 +105,176 @@
     </div>
 
     <ul class="list-group">
-      <li class="d-flex align-items-center" *ngIf="puedeVer('servicios')">
-        <div class="col-auto pe-2">
-          <i class="bi bi-boxes fs-2 text-dark"></i>
-        </div>
-        <div class="col text-start">
-          <a
-            routerLink="/panel-control/servicios"
-            class="text-dark text-decoration-none"
-            (click)="closeSidebarOnMobile()"
-          >
-            servicios
-          </a>
-        </div>
-      </li>
       <!-- Gestión de Usuarios -->
       <li
-        class="d-flex align-items-center"
+        class="d-flex align-items-center p-2 rounded"
         *ngIf="puedeVer('GestionDeUsuarios')"
         (click)="toggleSection('GestióndeUsuarios')"
-        style="cursor: pointer"
       >
-        <div class="col-auto pe-2">
-          <i class="bi bi-people fs-2 text-dark"></i>
+        <div style="width: 40px; flex-shrink: 0;">
+          <img
+            src="https://cdn-icons-png.flaticon.com/128/1402/1402118.png"
+            style="max-width: 100%;"
+          />
         </div>
-        <div class="col text-start">
+        <div class="flex-grow-1 text-start ms-2">
           <span class="text-dark">Gestión de Usuarios</span>
         </div>
-        <div class="col-auto pe-2">
+        <div>
           <i
-            class="bi"
+            class="bi text-dark"
             [ngClass]="
-              isActive('GestionDeUsuarios')
-                ? 'bi-chevron-down'
-                : 'bi-chevron-right'
+              isActive('GestionDeUsuarios') ? 'bi-chevron-down' : 'bi-chevron-right'
             "
-            class="text-dark"
           ></i>
         </div>
       </li>
-      <ul class="list-group ps-3" *ngIf="isActive('GestióndeUsuarios')">
-        <li class="d-flex align-items-center" *ngIf="puedeVer('ListarRoles')">
-          <div class="col-auto pe-2">
-            <i class="bi bi-shield-lock fs-2 text-dark"></i>
+
+      <ul class="list-group ps-3 mt-2" *ngIf="isActive('GestióndeUsuarios')">
+        <li class="d-flex align-items-center p-2 rounded" *ngIf="puedeVer('ListarRoles')">
+          <div style="width: 40px; flex-shrink: 0;">
+            <img src="https://cdn-icons-png.flaticon.com/128/8964/8964949.png" style="max-width: 100%;" />
           </div>
-          <div class="col text-start">
-            <a
-              routerLink="/panel-control/listar-rol"
-              class="text-dark text-decoration-none"
-              (click)="closeSidebarOnMobile()"
-              >Rol</a
-            >
+          <div class="flex-grow-1 text-start ms-2">
+            <a routerLink="/panel-control/listar-rol" class="text-dark text-decoration-none" (click)="closeSidebarOnMobile()">Rol</a>
           </div>
         </li>
-        <li
-          class="d-flex align-items-center"
-          *ngIf="puedeVer('ListarPermisos')"
-        >
-          <div class="col-auto pe-2">
-            <i class="bi bi-key fs-2 text-dark"></i>
+        <li class="d-flex align-items-center p-2 rounded" *ngIf="puedeVer('ListarPermisos')">
+          <div style="width: 40px; flex-shrink: 0;">
+            <img src="https://cdn-icons-png.flaticon.com/128/3315/3315568.png" style="max-width: 100%;" />
           </div>
-          <div class="col text-start">
-            <a
-              routerLink="/panel-control/listar-permiso"
-              class="text-dark text-decoration-none"
-              (click)="closeSidebarOnMobile()"
-              >Permiso</a
-            >
+          <div class="flex-grow-1 text-start ms-2">
+            <a routerLink="/panel-control/listar-permiso" class="text-dark text-decoration-none" (click)="closeSidebarOnMobile()">Permiso</a>
           </div>
         </li>
-        <li
-          class="d-flex align-items-center"
-          *ngIf="puedeVer('ListarUsuarios')"
-        >
-          <div class="col-auto pe-2">
-            <i class="bi bi-person-badge fs-2 text-dark"></i>
+        <li class="d-flex align-items-center p-2 rounded" *ngIf="puedeVer('ListarUsuarios')">
+          <div style="width: 40px; flex-shrink: 0;">
+            <img src="https://cdn-icons-png.flaticon.com/128/3660/3660732.png" style="max-width: 100%;" />
           </div>
-          <div class="col text-start">
-            <a
-              routerLink="/panel-control/listar-usuario"
-              class="text-dark text-decoration-none"
-              (click)="closeSidebarOnMobile()"
-              >Usuarios</a
-            >
+          <div class="flex-grow-1 text-start ms-2">
+            <a routerLink="/panel-control/listar-usuario" class="text-dark text-decoration-none" (click)="closeSidebarOnMobile()">Usuarios</a>
           </div>
         </li>
-        <li
-          class="d-flex align-items-center"
-          *ngIf="puedeVer('ListarUsuarioRol')"
-        >
-          <div class="col-auto pe-2">
-            <i class="bi bi-person-lines-fill fs-2 text-dark"></i>
+        <li class="d-flex align-items-center p-2 rounded" *ngIf="puedeVer('ListarUsuarioRol')">
+          <div style="width: 40px; flex-shrink: 0;">
+            <img src="https://cdn-icons-png.flaticon.com/128/10307/10307344.png" style="max-width: 100%;" />
           </div>
-          <div class="col text-start">
-            <a
-              routerLink="/panel-control/listar-usuario-rol"
-              class="text-dark text-decoration-none"
-              (click)="closeSidebarOnMobile()"
-              >Usuario Rol</a
-            >
+          <div class="flex-grow-1 text-start ms-2">
+            <a routerLink="/panel-control/listar-usuario-rol" class="text-dark text-decoration-none" (click)="closeSidebarOnMobile()">Usuario Rol</a>
           </div>
         </li>
-        <li
-          class="d-flex align-items-center"
-          *ngIf="puedeVer('ListarRolPermiso')"
-        >
-          <div class="col-auto pe-2">
-            <i class="bi bi-shield-check fs-2 text-dark"></i>
+        <li class="d-flex align-items-center p-2 rounded" *ngIf="puedeVer('ListarRolPermiso')">
+          <div style="width: 40px; flex-shrink: 0;">
+            <img src="https://cdn-icons-png.flaticon.com/128/18841/18841862.png" style="max-width: 100%;" />
           </div>
-          <div class="col text-start">
-            <a
-              routerLink="/panel-control/listar-rol-permiso"
-              class="text-dark text-decoration-none"
-              (click)="closeSidebarOnMobile()"
-              >Rol Permiso</a
-            >
+          <div class="flex-grow-1 text-start ms-2">
+            <a routerLink="/panel-control/listar-rol-permiso" class="text-dark text-decoration-none" (click)="closeSidebarOnMobile()">Rol Permiso</a>
           </div>
         </li>
       </ul>
-      <!-- Gestión de Productos de la ecuación (Operaciones Económicas) -->
-<!-- Operaciones -->
-<li
-  class="d-flex align-items-center"
-  *ngIf="puedeVer('Operaciones')"
-  (click)="toggleSection('Operaciones')"
-  style="cursor: pointer"
->
-  <div class="col-auto pe-2">
-    <i class="bi bi-calculator fs-2 text-dark"></i>
-  </div>
-  <div class="col text-start">
-    <span class="text-dark">Operaciones</span>
-  </div>
-  <div class="col-auto pe-2">
-    <i
-      class="bi text-dark"
-      [ngClass]="isActive('Operaciones') ? 'bi-chevron-down' : 'bi-chevron-right'"
-    ></i>
-  </div>
-</li>
 
-<ul class="list-group ps-3" *ngIf="isActive('Operaciones')">
-  <li class="d-flex align-items-center">
-    <div class="col-auto pe-2">
-      <i class="bi bi-bar-chart fs-2 text-dark"></i>
-    </div>
-    <div class="col text-start">
-      <a
-        routerLink="/panel-control/gastos-operaciones"
-        class="text-dark text-decoration-none"
-        (click)="closeSidebarOnMobile()"
-        >Gastos Operaciones</a
+      <!-- Operaciones -->
+      <li
+        class="d-flex align-items-center p-2 rounded mt-2"
+        *ngIf="puedeVer('Operaciones')"
+        (click)="toggleSection('Operaciones')"
       >
-    </div>
-  </li>
-</ul>
+        <div style="width: 40px; flex-shrink: 0;">
+          <img src="https://cdn-icons-png.flaticon.com/128/3919/3919704.png" style="max-width: 100%;" />
+        </div>
+        <div class="flex-grow-1 text-start ms-2">
+          <span class="text-dark">Operaciones</span>
+        </div>
+        <div>
+          <i class="bi text-dark" [ngClass]="isActive('Operaciones') ? 'bi-chevron-down' : 'bi-chevron-right'"></i>
+        </div>
+      </li>
 
-<!-- Reportes -->
-<li
-  class="d-flex align-items-center"
-  *ngIf="puedeVer('Operaciones')"
-  (click)="toggleSection('Reportes')"
-  style="cursor: pointer"
->
-  <div class="col-auto pe-2">
-    <i class="bi bi-file-earmark-text fs-2 text-dark"></i>
-  </div>
-  <div class="col text-start">
-    <span class="text-dark">Reportes</span>
-  </div>
-  <div class="col-auto pe-2">
-    <i
-      class="bi text-dark"
-      [ngClass]="isActive('Reportes') ? 'bi-chevron-down' : 'bi-chevron-right'"
-    ></i>
-  </div>
-</li>
-
-<ul class="list-group ps-3" *ngIf="isActive('Reportes')">
-  <li class="d-flex align-items-center">
-    <div class="col-auto pe-2">
-      <i class="bi bi-shield-lock fs-2 text-dark"></i>
-    </div>
-    <div class="col text-start">
-      <a
-        routerLink="/panel-control/reporte-sql-inyeccion"
-        class="text-dark text-decoration-none"
-        (click)="closeSidebarOnMobile()"
-        >Reporte SQL Inyección</a
+      <ul class="list-group ps-3 mt-2" *ngIf="isActive('Operaciones')">
+        <li class="d-flex align-items-center p-2 rounded">
+          <div style="width: 40px; flex-shrink: 0;">
+            <img src="https://cdn-icons-png.flaticon.com/128/1575/1575408.png" style="max-width: 100%;" />
+          </div>
+          <div class="flex-grow-1 text-start ms-2">
+            <a routerLink="/panel-control/gastos-operaciones" class="text-dark text-decoration-none" (click)="closeSidebarOnMobile()">Gastos Operaciones</a>
+          </div>
+        </li>
+      </ul>
+      <li
+        class="d-flex align-items-center p-2 rounded mt-2"
+        *ngIf="puedeVer('Reportes')"
+        (click)="toggleSection('Reportes')"
       >
-    </div>
-  </li>
+        <div style="width: 40px; flex-shrink: 0;">
+          <img src="https://cdn-icons-png.flaticon.com/128/9422/9422941.png" style="max-width: 100%;" />
+        </div>
+        <div class="flex-grow-1 text-start ms-2">
+          <span class="text-dark">Reportes</span>
+        </div>
+        <div>
+          <i class="bi text-dark" [ngClass]="isActive('Reportes') ? 'bi-chevron-down' : 'bi-chevron-right'"></i>
+        </div>
+      </li>
 
-  <li class="d-flex align-items-center">
-    <div class="col-auto pe-2">
-      <i class="bi bi-bug fs-2 text-dark"></i>
-    </div>
-    <div class="col text-start">
-      <a
-        routerLink="/panel-control/reporte-xss"
-        class="text-dark text-decoration-none"
-        (click)="closeSidebarOnMobile()"
-        >Reporte XSS</a
-      >
-    </div>
-  </li>
-
-  <li class="d-flex align-items-center">
-    <div class="col-auto pe-2">
-      <i class="bi bi-shield-check fs-2 text-dark"></i>
-    </div>
-    <div class="col text-start">
-      <a
-        routerLink="/panel-control/reporte-csrf"
-        class="text-dark text-decoration-none"
-        (click)="closeSidebarOnMobile()"
-        >Reporte CSRF</a
-      >
-    </div>
-  </li>
-  <!-- Denegación de Servicio -->
-<li class="d-flex align-items-center">
-  <div class="col-auto pe-2">
-    <i class="bi bi-slash-circle fs-2 text-dark"></i>
-  </div>
-  <div class="col text-start">
-    <a
-      routerLink="/panel-control/reporte-dos"
-      class="text-dark text-decoration-none"
-      (click)="closeSidebarOnMobile()"
-      >Reporte DoS</a
-    >
-  </div>
-</li>
-
-<!-- Keylogger -->
-<li class="d-flex align-items-center">
-  <div class="col-auto pe-2">
-    <i class="bi bi-key fs-2 text-dark"></i>
-  </div>
-  <div class="col text-start">
-    <a
-      routerLink="/panel-control/reporte-keylogger"
-      class="text-dark text-decoration-none"
-      (click)="closeSidebarOnMobile()"
-      >Reporte Keylogger</a
-    >
-  </div>
-</li>
-
-<!-- Auditoría -->
-<li class="d-flex align-items-center">
-  <div class="col-auto pe-2">
-    <i class="bi bi-journal-text fs-2 text-dark"></i>
-  </div>
-  <div class="col text-start">
-    <a
-      routerLink="/panel-control/reporte-auditoria"
-      class="text-dark text-decoration-none"
-      (click)="closeSidebarOnMobile()"
-      >Reporte Auditoría</a
-    >
-  </div>
-</li>
-
-<!-- Reporte IA General -->
-<li class="d-flex align-items-center">
-  <div class="col-auto pe-2">
-    <i class="bi bi-robot fs-2 text-dark"></i>
-  </div>
-  <div class="col text-start">
-    <a
-      routerLink="/panel-control/reporte-ia-general"
-      class="text-dark text-decoration-none"
-      (click)="closeSidebarOnMobile()"
-      >Reporte IA General</a
-    >
-  </div>
-</li>
-</ul>
-
+      <ul class="list-group ps-3 mt-2" *ngIf="isActive('Reportes')">
+        <li class="d-flex align-items-center p-2 rounded">
+          <div style="width: 40px; flex-shrink: 0;">
+            <img src="https://cdn-icons-png.flaticon.com/128/10961/10961459.png" style="max-width: 100%;" />
+          </div>
+          <div class="flex-grow-1 text-start ms-2">
+            <a routerLink="/panel-control/reporte-sql-inyeccion" class="text-dark text-decoration-none" (click)="closeSidebarOnMobile()">Reporte SQL Inyección</a>
+          </div>
+        </li>
+        <li class="d-flex align-items-center p-2 rounded">
+          <div style="width: 40px; flex-shrink: 0;">
+            <img src="https://cdn-icons-png.flaticon.com/128/13502/13502242.png" style="max-width: 100%;" />
+          </div>
+          <div class="flex-grow-1 text-start ms-2">
+            <a routerLink="/panel-control/reporte-xss" class="text-dark text-decoration-none" (click)="closeSidebarOnMobile()">Reporte XSS</a>
+          </div>
+        </li>
+        <li class="d-flex align-items-center p-2 rounded">
+          <div style="width: 40px; flex-shrink: 0;">
+            <img src="https://cdn-icons-png.flaticon.com/128/4440/4440880.png" style="max-width: 100%;" />
+          </div>
+          <div class="flex-grow-1 text-start ms-2">
+            <a routerLink="/panel-control/reporte-csrf" class="text-dark text-decoration-none" (click)="closeSidebarOnMobile()">Reporte CSRF</a>
+          </div>
+        </li>
+        <li class="d-flex align-items-center p-2 rounded">
+          <div style="width: 40px; flex-shrink: 0;">
+            <img src="https://cdn-icons-png.flaticon.com/128/6653/6653409.png" style="max-width: 100%;" />
+          </div>
+          <div class="flex-grow-1 text-start ms-2">
+            <a routerLink="/panel-control/reporte-dos" class="text-dark text-decoration-none" (click)="closeSidebarOnMobile()">Reporte DoS</a>
+          </div>
+        </li>
+        <li class="d-flex align-items-center p-2 rounded">
+          <div style="width: 40px; flex-shrink: 0;">
+            <img src="https://cdn-icons-png.flaticon.com/128/2842/2842036.png" style="max-width: 100%;" />
+          </div>
+          <div class="flex-grow-1 text-start ms-2">
+            <a routerLink="/panel-control/reporte-keylogger" class="text-dark text-decoration-none" (click)="closeSidebarOnMobile()">Reporte Keylogger</a>
+          </div>
+        </li>
+        <li class="d-flex align-items-center p-2 rounded">
+          <div style="width: 40px; flex-shrink: 0;">
+            <img src="https://cdn-icons-png.flaticon.com/128/4307/4307952.png" style="max-width: 100%;" />
+          </div>
+          <div class="flex-grow-1 text-start ms-2">
+            <a routerLink="/panel-control/reporte-auditoria" class="text-dark text-decoration-none" (click)="closeSidebarOnMobile()">Reporte Auditoría</a>
+          </div>
+        </li>
+        <li class="d-flex align-items-center p-2 rounded">
+          <div style="width: 40px; flex-shrink: 0;">
+            <img src="https://cdn-icons-png.flaticon.com/128/14668/14668039.png" style="max-width: 100%;" />
+          </div>
+          <div class="flex-grow-1 text-start ms-2">
+            <a routerLink="/panel-control/reporte-ia-general" class="text-dark text-decoration-none" (click)="closeSidebarOnMobile()">Reporte IA General</a>
+          </div>
+        </li>
+        <!-- Más items de reportes siguiendo la misma estructura -->
+      </ul>
     </ul>
   </aside>
   <!-- Overlay para móvil -->
@@ -377,3 +294,9 @@
     </div>
   </main>
 </section>
+<app-confirmacion
+  *ngIf="mostrarConfirmacion"
+  [mensaje]="mensajeConfirmacion"
+  (aceptar)="manejarAceptar()"
+  (cancelar)="manejarCancelar()"
+></app-confirmacion>

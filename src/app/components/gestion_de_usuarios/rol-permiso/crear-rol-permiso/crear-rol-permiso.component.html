@@ -17,16 +17,25 @@
                     </select>
                 </div>
 
-                <!-- Permiso -->
+               
+                <!-- Permisos Múltiples -->
                 <div class="mb-3">
-                    <label class="form-label fw-semibold">Permiso</label>
-                    <select class="form-select" formControlName="permiso" required>
-                        <option value="">Seleccione un permiso</option>
-                        <option *ngFor="let p of permisos" [value]="p.id">
-                            {{ p.nombre }}
-                        </option>
-                    </select>
+                <label class="form-label fw-semibold">Permisos</label>
+                <div *ngFor="let p of permisos" class="form-check">
+                    <input
+                    class="form-check-input"
+                    type="checkbox"
+                    [value]="p.id"
+                    (change)="onPermisoChange($event)"
+                    [checked]="isChecked(p.id)"
+                    />
+                    <label class="form-check-label">
+                    {{ p.nombre }}
+                    </label>
                 </div>
+                </div>
+
+
 
                 <!-- Botones -->
                 <div class="d-flex flex-column flex-md-row justify-content-between gap-2">

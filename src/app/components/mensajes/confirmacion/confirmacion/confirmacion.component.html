@@ -1,0 +1,25 @@
+<div class="modal d-block" tabindex="-1" style="display: block">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Confirmación</h5>
+        <button type="button" class="btn-close" (click)="manejarCancelar()"></button>
+      </div>
+
+      <div class="modal-body d-flex flex-column align-items-center text-center gap-3">
+        <img
+          src="https://cdn-icons-png.flaticon.com/128/5517/5517627.png"
+          class="img-fluid" 
+          style="max-width: 80px;" 
+          alt="Confirmar"
+        />
+        <p class="mb-0">{{ mensaje }}</p>
+      </div>
+
+      <div class="modal-footer justify-content-center gap-2">
+        <button type="button" class="btn btn-success" (click)="manejarAceptar()">Aceptar</button>
+        <button type="button" class="btn btn-secondary" (click)="manejarCancelar()">Cancelar</button>
+      </div>
+    </div>
+  </div>
+</div>
