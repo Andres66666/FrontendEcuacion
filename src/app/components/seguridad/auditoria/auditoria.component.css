@@ -1,0 +1,48 @@
+.custom-carousel-btn {
+  background-color: #28a745 !important; /* Verde Bootstrap */
+  border-radius: 50%; /* Botones redondos */
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.9;
+
+  position: absolute;
+  top: 50%; /* Centrado vertical */
+  transform: translateY(-50%); /* Ajuste exacto */
+  z-index: 5;
+}
+
+/* Botón izquierdo */
+.carousel-control-prev.custom-carousel-btn {
+  left: -50px; /* separado del borde */
+}
+
+/* Botón derecho */
+.carousel-control-next.custom-carousel-btn {
+  right: -50px; /* separado del borde */
+}
+
+.custom-carousel-btn:hover {
+  background-color: #218838 !important; /* Verde más oscuro al pasar el mouse */
+  opacity: 1;
+}
+
+/* Flechas en blanco */
+.carousel-control-prev-icon,
+.carousel-control-next-icon {
+  filter: invert(1); /* negro -> blanco */
+}
+
+
+
+/* estilos para la lista de atacantes */
+.list-group-item.active {
+  background-color: rgba(0, 123, 255, 0.15); /* azul suave, transparencia */
+  color: #0d6efd; /* texto azul tenue */
+  border-color: rgba(0, 123, 255, 0.25); /* borde suave */
+}
+.list-group-item.active:hover {
+  background-color: rgba(0, 123, 255, 0.2); /* un poquito más visible al hover */
+}

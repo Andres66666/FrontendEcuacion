@@ -1,23 +1,22 @@
 <section class="layout">
   <!-- Navbar (header) -->
   <nav class="navbar navbar-expand-md header navbar-dark bg-white">
-
     <div class="container-fluid mx-2">
       <button class="toggle-button btn me-2" (click)="toggleSidebar()">
-        <img 
-          [src]="isSidebarOpen ? imagenCerrar : imagenAbrir" 
-          alt="toggle sidebar" 
-          style="width: 24px; height: 24px;" 
+        <img
+          [src]="isSidebarOpen ? imagenCerrar : imagenAbrir"
+          alt="toggle sidebar"
+          style="width: 24px; height: 24px"
         />
       </button>
       <div class="ms-auto d-flex align-items-center gap-2">
         <div class="dropdown d-flex align-items-center">
           <div class="d-flex align-items-center gap-2 me-3">
-            <img 
-              src="https://cdn-icons-gif.flaticon.com/10967/10967596.gif" 
-              alt="Reloj de arena" 
+            <img
+              src="https://cdn-icons-gif.flaticon.com/10967/10967596.gif"
+              alt="Reloj de arena"
               class="img-fluid"
-              style="width: 40px; height: 40px;"
+              style="width: 40px; height: 40px"
             />
             <span class="fw-bold">Día: {{ diasTranscurridos }}</span>
           </div>
@@ -29,15 +28,15 @@
             data-bs-toggle="dropdown"
             aria-expanded="false"
           >
-           <div class="me-2">
-            <img
-              *ngIf="imagenUrl"
-              [src]="imagenUrl"
-              alt="Foto de usuario"
-              class="rounded-circle img-fluid"
-              style="width: 40px; height: 40px"
-            />
-          </div>
+            <div class="me-2">
+              <img
+                *ngIf="imagenUrl"
+                [src]="imagenUrl"
+                alt="Foto de usuario"
+                class="rounded-circle img-fluid"
+                style="width: 40px; height: 40px"
+              />
+            </div>
             {{ userName }}
           </button>
 
@@ -50,11 +49,11 @@
                 class="dropdown-item d-flex align-items-center"
                 (click)="verPerfil()"
               >
-                <img 
-                  src="https://cdn-icons-png.flaticon.com/128/14778/14778312.png" 
-                  alt="cerrarSesion" 
+                <img
+                  src="https://cdn-icons-png.flaticon.com/128/14778/14778312.png"
+                  alt="cerrarSesion"
                   class="img-fluid"
-                  style="width: 30px; height: 30px;"
+                  style="width: 30px; height: 30px"
                 />
                 <span>Ver Perfil</span>
               </div>
@@ -64,11 +63,11 @@
                 class="dropdown-item text-danger d-flex align-items-center"
                 (click)="onSelectChange('cerrarSesion')"
               >
-                <img 
-                  src="https://cdn-icons-png.flaticon.com/128/2550/2550435.png" 
-                  alt="cerrarSesion" 
+                <img
+                  src="https://cdn-icons-png.flaticon.com/128/2550/2550435.png"
+                  alt="cerrarSesion"
                   class="img-fluid"
-                  style="width: 30px; height: 30px;"
+                  style="width: 30px; height: 30px"
                 />
                 <span> Cerrar Sesión</span>
               </div>
@@ -108,10 +107,10 @@
         *ngIf="puedeVer('GestionDeUsuarios')"
         (click)="toggleSection('GestióndeUsuarios')"
       >
-        <div style="width: 40px; flex-shrink: 0;">
+        <div style="width: 40px; flex-shrink: 0">
           <img
             src="https://cdn-icons-png.flaticon.com/128/1402/1402118.png"
-            style="max-width: 100%;"
+            style="max-width: 100%"
           />
         </div>
         <div class="flex-grow-1 text-start ms-2">
@@ -121,51 +120,108 @@
           <i
             class="bi text-dark"
             [ngClass]="
-              isActive('GestionDeUsuarios') ? 'bi-chevron-down' : 'bi-chevron-right'
+              isActive('GestionDeUsuarios')
+                ? 'bi-chevron-down'
+                : 'bi-chevron-right'
             "
           ></i>
         </div>
       </li>
 
       <ul class="list-group ps-3 mt-2" *ngIf="isActive('GestióndeUsuarios')">
-        <li class="d-flex align-items-center p-2 rounded" *ngIf="puedeVer('ListarRoles')">
-          <div style="width: 40px; flex-shrink: 0;">
-            <img src="https://cdn-icons-png.flaticon.com/128/8964/8964949.png" style="max-width: 100%;" />
+        <li
+          class="d-flex align-items-center p-2 rounded"
+          *ngIf="puedeVer('ListarRoles')"
+        >
+          <div style="width: 40px; flex-shrink: 0">
+            <img
+              src="https://cdn-icons-png.flaticon.com/128/8964/8964949.png"
+              style="max-width: 100%"
+            />
           </div>
           <div class="flex-grow-1 text-start ms-2">
-            <a routerLink="/panel-control/listar-rol" class="text-dark text-decoration-none" (click)="closeSidebarOnMobile()">Rol</a>
+            <a
+              routerLink="/panel-control/listar-rol"
+              class="text-dark text-decoration-none"
+              (click)="closeSidebarOnMobile()"
+              >Rol</a
+            >
           </div>
         </li>
-        <li class="d-flex align-items-center p-2 rounded" *ngIf="puedeVer('ListarPermisos')">
-          <div style="width: 40px; flex-shrink: 0;">
-            <img src="https://cdn-icons-png.flaticon.com/128/3315/3315568.png" style="max-width: 100%;" />
+        <li
+          class="d-flex align-items-center p-2 rounded"
+          *ngIf="puedeVer('ListarPermisos')"
+        >
+          <div style="width: 40px; flex-shrink: 0">
+            <img
+              src="https://cdn-icons-png.flaticon.com/128/3315/3315568.png"
+              style="max-width: 100%"
+            />
           </div>
           <div class="flex-grow-1 text-start ms-2">
-            <a routerLink="/panel-control/listar-permiso" class="text-dark text-decoration-none" (click)="closeSidebarOnMobile()">Permiso</a>
+            <a
+              routerLink="/panel-control/listar-permiso"
+              class="text-dark text-decoration-none"
+              (click)="closeSidebarOnMobile()"
+              >Permiso</a
+            >
           </div>
         </li>
-        <li class="d-flex align-items-center p-2 rounded" *ngIf="puedeVer('ListarUsuarios')">
-          <div style="width: 40px; flex-shrink: 0;">
-            <img src="https://cdn-icons-png.flaticon.com/128/3660/3660732.png" style="max-width: 100%;" />
+        <li
+          class="d-flex align-items-center p-2 rounded"
+          *ngIf="puedeVer('ListarUsuarios')"
+        >
+          <div style="width: 40px; flex-shrink: 0">
+            <img
+              src="https://cdn-icons-png.flaticon.com/128/3660/3660732.png"
+              style="max-width: 100%"
+            />
           </div>
           <div class="flex-grow-1 text-start ms-2">
-            <a routerLink="/panel-control/listar-usuario" class="text-dark text-decoration-none" (click)="closeSidebarOnMobile()">Usuarios</a>
+            <a
+              routerLink="/panel-control/listar-usuario"
+              class="text-dark text-decoration-none"
+              (click)="closeSidebarOnMobile()"
+              >Usuarios</a
+            >
           </div>
         </li>
-        <li class="d-flex align-items-center p-2 rounded" *ngIf="puedeVer('ListarUsuarioRol')">
-          <div style="width: 40px; flex-shrink: 0;">
-            <img src="https://cdn-icons-png.flaticon.com/128/10307/10307344.png" style="max-width: 100%;" />
+        <li
+          class="d-flex align-items-center p-2 rounded"
+          *ngIf="puedeVer('ListarUsuarioRol')"
+        >
+          <div style="width: 40px; flex-shrink: 0">
+            <img
+              src="https://cdn-icons-png.flaticon.com/128/10307/10307344.png"
+              style="max-width: 100%"
+            />
           </div>
           <div class="flex-grow-1 text-start ms-2">
-            <a routerLink="/panel-control/listar-usuario-rol" class="text-dark text-decoration-none" (click)="closeSidebarOnMobile()">Usuario Rol</a>
+            <a
+              routerLink="/panel-control/listar-usuario-rol"
+              class="text-dark text-decoration-none"
+              (click)="closeSidebarOnMobile()"
+              >Usuario Rol</a
+            >
           </div>
         </li>
-        <li class="d-flex align-items-center p-2 rounded" *ngIf="puedeVer('ListarRolPermiso')">
-          <div style="width: 40px; flex-shrink: 0;">
-            <img src="https://cdn-icons-png.flaticon.com/128/18841/18841862.png" style="max-width: 100%;" />
+        <li
+          class="d-flex align-items-center p-2 rounded"
+          *ngIf="puedeVer('ListarRolPermiso')"
+        >
+          <div style="width: 40px; flex-shrink: 0">
+            <img
+              src="https://cdn-icons-png.flaticon.com/128/18841/18841862.png"
+              style="max-width: 100%"
+            />
           </div>
           <div class="flex-grow-1 text-start ms-2">
-            <a routerLink="/panel-control/listar-rol-permiso" class="text-dark text-decoration-none" (click)="closeSidebarOnMobile()">Rol Permiso</a>
+            <a
+              routerLink="/panel-control/listar-rol-permiso"
+              class="text-dark text-decoration-none"
+              (click)="closeSidebarOnMobile()"
+              >Rol Permiso</a
+            >
           </div>
         </li>
       </ul>
@@ -176,24 +232,40 @@
         *ngIf="puedeVer('Operaciones')"
         (click)="toggleSection('Operaciones')"
       >
-        <div style="width: 40px; flex-shrink: 0;">
-          <img src="https://cdn-icons-png.flaticon.com/128/3919/3919704.png" style="max-width: 100%;" />
+        <div style="width: 40px; flex-shrink: 0">
+          <img
+            src="https://cdn-icons-png.flaticon.com/128/3919/3919704.png"
+            style="max-width: 100%"
+          />
         </div>
         <div class="flex-grow-1 text-start ms-2">
           <span class="text-dark">Operaciones</span>
         </div>
         <div>
-          <i class="bi text-dark" [ngClass]="isActive('Operaciones') ? 'bi-chevron-down' : 'bi-chevron-right'"></i>
+          <i
+            class="bi text-dark"
+            [ngClass]="
+              isActive('Operaciones') ? 'bi-chevron-down' : 'bi-chevron-right'
+            "
+          ></i>
         </div>
       </li>
 
       <ul class="list-group ps-3 mt-2" *ngIf="isActive('Operaciones')">
         <li class="d-flex align-items-center p-2 rounded">
-          <div style="width: 40px; flex-shrink: 0;">
-            <img src="https://cdn-icons-png.flaticon.com/128/1575/1575408.png" style="max-width: 100%;" />
+          <div style="width: 40px; flex-shrink: 0">
+            <img
+              src="https://cdn-icons-png.flaticon.com/128/1575/1575408.png"
+              style="max-width: 100%"
+            />
           </div>
           <div class="flex-grow-1 text-start ms-2">
-            <a routerLink="/panel-control/gastos-operaciones" class="text-dark text-decoration-none" (click)="closeSidebarOnMobile()">Gastos Operaciones</a>
+            <a
+              routerLink="/panel-control/gastos-operaciones"
+              class="text-dark text-decoration-none"
+              (click)="closeSidebarOnMobile()"
+              >Gastos Operaciones</a
+            >
           </div>
         </li>
       </ul>
@@ -203,72 +275,136 @@
         *ngIf="puedeVer('Reportes')"
         (click)="toggleSection('Reportes')"
       >
-        <div style="width: 40px; flex-shrink: 0;">
-          <img src="https://cdn-icons-png.flaticon.com/128/9422/9422941.png" style="max-width: 100%;" />
+        <div style="width: 40px; flex-shrink: 0">
+          <img
+            src="https://cdn-icons-png.flaticon.com/128/9422/9422941.png"
+            style="max-width: 100%"
+          />
         </div>
         <div class="flex-grow-1 text-start ms-2">
           <span class="text-dark">Reportes</span>
         </div>
         <div>
-          <i class="bi text-dark" [ngClass]="isActive('Reportes') ? 'bi-chevron-down' : 'bi-chevron-right'"></i>
+          <i
+            class="bi text-dark"
+            [ngClass]="
+              isActive('Reportes') ? 'bi-chevron-down' : 'bi-chevron-right'
+            "
+          ></i>
         </div>
       </li>
 
       <ul class="list-group ps-3 mt-2" *ngIf="isActive('Reportes')">
         <li class="d-flex align-items-center p-2 rounded">
-          <div style="width: 40px; flex-shrink: 0;">
-            <img src="https://cdn-icons-png.flaticon.com/128/10961/10961459.png" style="max-width: 100%;" />
+          <div style="width: 40px; flex-shrink: 0">
+            <img
+              src="https://cdn-icons-png.flaticon.com/128/10961/10961459.png"
+              style="max-width: 100%"
+            />
           </div>
           <div class="flex-grow-1 text-start ms-2">
-            <a routerLink="/panel-control/sql" class="text-dark text-decoration-none" (click)="closeSidebarOnMobile()">Reporte SQL Inyección</a>
+            <a
+              routerLink="/panel-control/sql"
+              class="text-dark text-decoration-none"
+              (click)="closeSidebarOnMobile()"
+              >Reporte SQL Inyección</a
+            >
           </div>
         </li>
         <li class="d-flex align-items-center p-2 rounded">
-          <div style="width: 40px; flex-shrink: 0;">
-            <img src="https://cdn-icons-png.flaticon.com/128/13502/13502242.png" style="max-width: 100%;" />
+          <div style="width: 40px; flex-shrink: 0">
+            <img
+              src="https://cdn-icons-png.flaticon.com/128/13502/13502242.png"
+              style="max-width: 100%"
+            />
           </div>
           <div class="flex-grow-1 text-start ms-2">
-            <a routerLink="/panel-control/xss" class="text-dark text-decoration-none" (click)="closeSidebarOnMobile()">Reporte XSS</a>
+            <a
+              routerLink="/panel-control/xss"
+              class="text-dark text-decoration-none"
+              (click)="closeSidebarOnMobile()"
+              >Reporte XSS</a
+            >
           </div>
         </li>
         <li class="d-flex align-items-center p-2 rounded">
-          <div style="width: 40px; flex-shrink: 0;">
-            <img src="https://cdn-icons-png.flaticon.com/128/4440/4440880.png" style="max-width: 100%;" />
+          <div style="width: 40px; flex-shrink: 0">
+            <img
+              src="https://cdn-icons-png.flaticon.com/128/4440/4440880.png"
+              style="max-width: 100%"
+            />
           </div>
           <div class="flex-grow-1 text-start ms-2">
-            <a routerLink="/panel-control/csrf" class="text-dark text-decoration-none" (click)="closeSidebarOnMobile()">Reporte CSRF</a>
+            <a
+              routerLink="/panel-control/csrf"
+              class="text-dark text-decoration-none"
+              (click)="closeSidebarOnMobile()"
+              >Reporte CSRF</a
+            >
           </div>
         </li>
         <li class="d-flex align-items-center p-2 rounded">
-          <div style="width: 40px; flex-shrink: 0;">
-            <img src="https://cdn-icons-png.flaticon.com/128/6653/6653409.png" style="max-width: 100%;" />
+          <div style="width: 40px; flex-shrink: 0">
+            <img
+              src="https://cdn-icons-png.flaticon.com/128/6653/6653409.png"
+              style="max-width: 100%"
+            />
           </div>
           <div class="flex-grow-1 text-start ms-2">
-            <a routerLink="/panel-control/ddos" class="text-dark text-decoration-none" (click)="closeSidebarOnMobile()">Reporte DoS</a>
+            <a
+              routerLink="/panel-control/ddos"
+              class="text-dark text-decoration-none"
+              (click)="closeSidebarOnMobile()"
+              >Reporte DoS</a
+            >
           </div>
         </li>
         <li class="d-flex align-items-center p-2 rounded">
-          <div style="width: 40px; flex-shrink: 0;">
-            <img src="https://cdn-icons-png.flaticon.com/128/2842/2842036.png" style="max-width: 100%;" />
+          <div style="width: 40px; flex-shrink: 0">
+            <img
+              src="https://cdn-icons-png.flaticon.com/128/2842/2842036.png"
+              style="max-width: 100%"
+            />
           </div>
           <div class="flex-grow-1 text-start ms-2">
-            <a routerLink="/panel-control/keylogger" class="text-dark text-decoration-none" (click)="closeSidebarOnMobile()">Reporte Keylogger</a>
+            <a
+              routerLink="/panel-control/keylogger"
+              class="text-dark text-decoration-none"
+              (click)="closeSidebarOnMobile()"
+              >Reporte Keylogger</a
+            >
           </div>
         </li>
         <li class="d-flex align-items-center p-2 rounded">
-          <div style="width: 40px; flex-shrink: 0;">
-            <img src="https://cdn-icons-png.flaticon.com/128/4307/4307952.png" style="max-width: 100%;" />
+          <div style="width: 40px; flex-shrink: 0">
+            <img
+              src="https://cdn-icons-png.flaticon.com/128/4307/4307952.png"
+              style="max-width: 100%"
+            />
           </div>
           <div class="flex-grow-1 text-start ms-2">
-            <a routerLink="/panel-control/auditoria" class="text-dark text-decoration-none" (click)="closeSidebarOnMobile()">Reporte Auditoría</a>
+            <a
+              routerLink="/panel-control/auditoria"
+              class="text-dark text-decoration-none"
+              (click)="closeSidebarOnMobile()"
+              >Reporte Auditoría</a
+            >
           </div>
         </li>
         <li class="d-flex align-items-center p-2 rounded">
-          <div style="width: 40px; flex-shrink: 0;">
-            <img src="https://cdn-icons-png.flaticon.com/128/14668/14668039.png" style="max-width: 100%;" />
+          <div style="width: 40px; flex-shrink: 0">
+            <img
+              src="https://cdn-icons-png.flaticon.com/128/14668/14668039.png"
+              style="max-width: 100%"
+            />
           </div>
           <div class="flex-grow-1 text-start ms-2">
-            <a routerLink="/panel-control/ia" class="text-dark text-decoration-none" (click)="closeSidebarOnMobile()">Reporte IA General</a>
+            <a
+              routerLink="/panel-control/ia"
+              class="text-dark text-decoration-none"
+              (click)="closeSidebarOnMobile()"
+              >Reporte IA General</a
+            >
           </div>
         </li>
         <!-- Más items de reportes siguiendo la misma estructura -->

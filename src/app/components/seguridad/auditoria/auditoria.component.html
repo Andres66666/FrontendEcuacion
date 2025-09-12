@@ -3,126 +3,106 @@
     <div>
       <h3 class="mb-0">Panel de Bloqueo de Atacantes</h3>
       <small class="text-muted"
-        >Interfaz visual (Bootstrap) — sin lógica aún</small
+        >Interfaz visual (Bootstrap) — funcionalidad simulada</small
       >
     </div>
     <div>
-      <div class="btn-group" role="group" aria-label="Tipos de ataque">
-        <button type="button" class="btn btn-outline-primary active">
-          SQL
+      <div class="btn-group me-2" role="group">
+        <button
+          *ngFor="let tipo of tiposAtaque"
+          type="button"
+          class="btn btn-outline-primary d-flex align-items-center"
+          [class.active]="tipo === selectedTipo"
+          (click)="filterByTipo(tipo)"
+        >
+          <img
+            [src]="tipoIconos[tipo]"
+            alt="{{ tipo }}"
+            style="width: 20px; height: 20px; margin-right: 6px"
+          />
+          {{ tipo }}
         </button>
-        <button type="button" class="btn btn-outline-primary" im>XSS</button>
-        <button type="button" class="btn btn-outline-primary">CSRF</button>
-        <button type="button" class="btn btn-outline-primary">DDoS</button>
-        <button type="button" class="btn btn-outline-primary">Keylogger</button>
-        <button type="button" class="btn btn-outline-primary">Auditoría</button>
-        <button type="button" class="btn btn-outline-primary">IA</button>
       </div>
+
+      <button class="btn btn-outline-secondary" (click)="showAll()">
+        Ver todos
+      </button>
     </div>
   </div>
 
   <div class="row">
-    <!-- Left: lista de atacantes -->
+    <!-- Lista atacantes -->
     <div class="col-lg-6 mb-3">
       <div class="card h-100">
         <div class="card-body">
-          <div class="mb-3 d-flex gap-2">
-            <input
-              class="form-control"
-              placeholder="Filtrar por IP, país, user-agent..."
-              disabled
-            />
-            <button class="btn btn-outline-secondary" disabled>Limpiar</button>
-          </div>
-
           <ul class="list-group">
             <li
+              *ngFor="let a of filteredAtacantes"
               class="list-group-item d-flex justify-content-between align-items-start"
+              (click)="selectAtacante(a)"
+              [class.active]="a === selectedAtacante"
+              style="cursor: pointer"
             >
               <div class="ms-2 me-auto">
-                <div class="fw-bold">203.0.113.45</div>
-                BO • AS64500 • sqlmap/1.6
+                <div class="fw-bold">{{ a.ip }}</div>
+                {{ a.pais }} • {{ a.asn }} • {{ a.userAgent }}
                 <div class="small text-muted">
-                  12 eventos • última: 2025-09-11 12:01
+                  {{ a.eventos }} eventos • última: {{ a.ultima }}
                 </div>
               </div>
               <div class="text-end">
-                <span class="badge bg-danger rounded-pill">SQL</span>
+                <span class="badge rounded-pill" [ngClass]="getBadgeClass(a)">
+                  <img
+                    [src]="tipoIconos[a.tipo]"
+                    alt="{{ a.tipo }}"
+                    style="width: 16px; height: 16px; margin-right: 4px"
+                  />
+                  {{ a.tipo }}
+                </span>
                 <div class="mt-2">
-                  <button class="btn btn-sm btn-outline-danger" disabled>
-                    Bloquear
-                  </button>
-                </div>
-              </div>
-            </li>
-
-            <li
-              class="list-group-item d-flex justify-content-between align-items-start"
-            >
-              <div class="ms-2 me-auto">
-                <div class="fw-bold">198.51.100.22</div>
-                BR • ASXXXXX • botnet-checker
-                <div class="small text-muted">
-                  2400 eventos • última: 2025-09-11 02:24
-                </div>
-              </div>
-              <div class="text-end">
-                <span class="badge bg-warning text-dark rounded-pill"
-                  >DDoS</span
-                >
-                <div class="mt-2">
-                  <button class="btn btn-sm btn-outline-secondary" disabled>
-                    Desbloquear
+                  <button
+                    class="btn btn-sm"
+                    [ngClass]="a.bloqueado ? 'btn-success' : 'btn-danger'"
+                    (click)="toggleBloqueo(a); $event.stopPropagation()"
+                  >
+                    {{ a.bloqueado ? "Desbloquear" : "Bloquear" }}
                   </button>
                 </div>
               </div>
             </li>
             <li
-              class="list-group-item d-flex justify-content-between align-items-start"
+              *ngIf="filteredAtacantes.length === 0"
+              class="list-group-item text-center text-muted"
             >
-              <div class="ms-2 me-auto">
-                <div class="fw-bold">192.0.2.10</div>
-                PE • AS12345 • Mozilla/5.0
-                <div class="small text-muted">
-                  3 eventos • última: 2025-09-11 07:30
-                </div>
-              </div>
-              <div class="text-end">
-                <span class="badge bg-info text-dark rounded-pill">XSS</span>
-                <div class="mt-2">
-                  <button class="btn btn-sm btn-outline-danger" disabled>
-                    Bloquear
-                  </button>
-                </div>
-              </div>
-            </li>
-
-            <!-- Ejemplo vacío -->
-            <li class="list-group-item text-center text-muted">
-              No hay más registros (mock)
+              No hay registros
             </li>
           </ul>
         </div>
         <div class="card-footer text-muted small">
-          Mockup UI • Conecta los botones al backend cuando quieras
+          Simulación UI — botones activos
         </div>
       </div>
     </div>
 
-    <!-- Right: detalle del atacante -->
-    <div class="col-lg-6 mb-3">
+    <!-- Detalles atacante -->
+    <div class="col-lg-6 mb-3" *ngIf="selectedAtacante">
       <div class="card h-100">
         <div class="card-body">
-          <h5 class="card-title">Detalles — 203.0.113.45</h5>
+          <h5 class="card-title">Detalles — {{ selectedAtacante.ip }}</h5>
           <dl class="row">
             <dt class="col-sm-4">Tipo de ataque</dt>
-            <dd class="col-sm-8">SQL</dd>
+            <dd class="col-sm-8">{{ selectedAtacante.tipo }}</dd>
 
             <dt class="col-sm-4">Visto por primera vez</dt>
             <dd class="col-sm-8">2025-09-10 10:12</dd>
 
             <dt class="col-sm-4">Última vez</dt>
-            <dd class="col-sm-8">2025-09-11 12:01</dd>
+            <dd class="col-sm-8">{{ selectedAtacante.ultima }}</dd>
+
+            <dt class="col-sm-4">Estado</dt>
+            <dd class="col-sm-8">
+              {{ selectedAtacante.bloqueado ? "Bloqueado" : "Activo" }}
+            </dd>
           </dl>
         </div>
       </div>
@@ -130,7 +110,6 @@
   </div>
 </div>
 
-<!-- auditoria.component.html -->
 <div class="container my-4">
   <div class="d-flex justify-content-between align-items-center mb-3">
     <div>
@@ -150,18 +129,68 @@
     </div>
   </div>
 
-  <!-- gráfico -->
-  <div class="card mb-4">
-    <div class="card-body">
-      <canvas
-        baseChart
-        [data]="lineChartData"
-        [options]="lineChartOptions"
-        chartType="line"
-      >
-      </canvas>
-    </div>
-  </div>
+  <!-- Carrusel de gráficos -->
+  <div id="chartsCarousel" class="carousel slide" data-bs-ride="carousel">
+    <div class="carousel-inner">
+      <!-- Gráfico de Líneas -->
+      <div class="carousel-item active">
+        <div class="card">
+          <div class="card-body">
+            <h5>Gráfico de Líneas</h5>
+            <div id="myChart" style="height: 400px; width: 100%"></div>
+          </div>
+        </div>
+      </div>
 
-  <!-- debajo puedes dejar la UI que ya tenías (lista de atacantes, detalles, etc.) -->
+      <!-- Gráfico de Barras -->
+      <div class="carousel-item">
+        <div class="card">
+          <div class="card-body">
+            <h5>Gráfico de Barras</h5>
+            <div id="myBarChart" style="height: 400px; width: 100%"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pie Chart -->
+      <div class="carousel-item">
+        <div class="card">
+          <div class="card-body">
+            <h5>Pie Chart</h5>
+            <div id="myPieChart" style="height: 300px; width: 100%"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Gráfico Adicional -->
+      <div class="carousel-item">
+        <div class="card">
+          <div class="card-body">
+            <h5>Gráfico Adicional</h5>
+            <div id="myExtraChart" style="height: 300px; width: 100%"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Controles del carrusel -->
+    <!-- Controles del carrusel -->
+    <!-- Controles del carrusel -->
+    <button
+      class="carousel-control-prev custom-carousel-btn"
+      type="button"
+      data-bs-target="#chartsCarousel"
+      data-bs-slide="prev"
+    >
+      <span class="carousel-control-prev-icon"></span>
+    </button>
+    <button
+      class="carousel-control-next custom-carousel-btn"
+      type="button"
+      data-bs-target="#chartsCarousel"
+      data-bs-slide="next"
+    >
+      <span class="carousel-control-next-icon"></span>
+    </button>
+  </div>
 </div>
