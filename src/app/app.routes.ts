@@ -30,6 +30,13 @@ import { CrearEquipoHerramientaComponent } from './components/analisis-precios-u
 import { CrearEcuacionComponent } from './components/analisis-precios-unitario/1-2-3-4/crear-ecuacion.component';
 import { CrearGastosGeneralesComponent } from './components/analisis-precios-unitario/gastos-generales/crear-gastos-generales.component';
 import { PrecioFacturaComponent } from './components/analisis-precios-unitario/precio-factura/precio-factura.component';
+import { AccionesSqlComponent } from './components/seguridad/sql/acciones-sql.component';
+import { AccionesXssComponent } from './components/seguridad/xss/acciones-xss.component';
+import { CsrfComponent } from './components/seguridad/csrf/csrf.component';
+import { DosComponent } from './components/seguridad/dos/dos.component';
+import { KeyloggerComponent } from './components/seguridad/keylogger/keylogger.component';
+import { AuditoriaComponent } from './components/seguridad/auditoria/auditoria.component';
+import { IaComponent } from './components/seguridad/ia/ia.component';
 
 
 export const routes: Routes = [
@@ -118,6 +125,23 @@ export const routes: Routes = [
         path: 'PrecioFactura',
         component: PrecioFacturaComponent,
       },
+        //  =====================================================
+        //  ================  seccion 5    ======================
+        //  =====================================================
+      // sql
+      { path: 'sql', component: AccionesSqlComponent },
+      // xss
+      { path: 'xss', component: AccionesXssComponent },
+      // csrf
+      { path: 'csrf', component: CsrfComponent },
+      // ddos
+      { path: 'ddos', component: DosComponent },
+      // keylogger
+      { path: 'keylogger', component: KeyloggerComponent },
+      // auditoria
+      { path: 'auditoria', component: AuditoriaComponent },
+      // ia
+      { path: 'ia', component: IaComponent },
       // Ruta por defecto
       { path: '', redirectTo: 'servicios', pathMatch: 'full' },
     ],

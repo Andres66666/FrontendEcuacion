@@ -1,0 +1,167 @@
+<div class="container my-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+      <h3 class="mb-0">Panel de Bloqueo de Atacantes</h3>
+      <small class="text-muted"
+        >Interfaz visual (Bootstrap) — sin lógica aún</small
+      >
+    </div>
+    <div>
+      <div class="btn-group" role="group" aria-label="Tipos de ataque">
+        <button type="button" class="btn btn-outline-primary active">
+          SQL
+        </button>
+        <button type="button" class="btn btn-outline-primary" im>XSS</button>
+        <button type="button" class="btn btn-outline-primary">CSRF</button>
+        <button type="button" class="btn btn-outline-primary">DDoS</button>
+        <button type="button" class="btn btn-outline-primary">Keylogger</button>
+        <button type="button" class="btn btn-outline-primary">Auditoría</button>
+        <button type="button" class="btn btn-outline-primary">IA</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <!-- Left: lista de atacantes -->
+    <div class="col-lg-6 mb-3">
+      <div class="card h-100">
+        <div class="card-body">
+          <div class="mb-3 d-flex gap-2">
+            <input
+              class="form-control"
+              placeholder="Filtrar por IP, país, user-agent..."
+              disabled
+            />
+            <button class="btn btn-outline-secondary" disabled>Limpiar</button>
+          </div>
+
+          <ul class="list-group">
+            <li
+              class="list-group-item d-flex justify-content-between align-items-start"
+            >
+              <div class="ms-2 me-auto">
+                <div class="fw-bold">203.0.113.45</div>
+                BO • AS64500 • sqlmap/1.6
+                <div class="small text-muted">
+                  12 eventos • última: 2025-09-11 12:01
+                </div>
+              </div>
+              <div class="text-end">
+                <span class="badge bg-danger rounded-pill">SQL</span>
+                <div class="mt-2">
+                  <button class="btn btn-sm btn-outline-danger" disabled>
+                    Bloquear
+                  </button>
+                </div>
+              </div>
+            </li>
+
+            <li
+              class="list-group-item d-flex justify-content-between align-items-start"
+            >
+              <div class="ms-2 me-auto">
+                <div class="fw-bold">198.51.100.22</div>
+                BR • ASXXXXX • botnet-checker
+                <div class="small text-muted">
+                  2400 eventos • última: 2025-09-11 02:24
+                </div>
+              </div>
+              <div class="text-end">
+                <span class="badge bg-warning text-dark rounded-pill"
+                  >DDoS</span
+                >
+                <div class="mt-2">
+                  <button class="btn btn-sm btn-outline-secondary" disabled>
+                    Desbloquear
+                  </button>
+                </div>
+              </div>
+            </li>
+            <li
+              class="list-group-item d-flex justify-content-between align-items-start"
+            >
+              <div class="ms-2 me-auto">
+                <div class="fw-bold">192.0.2.10</div>
+                PE • AS12345 • Mozilla/5.0
+                <div class="small text-muted">
+                  3 eventos • última: 2025-09-11 07:30
+                </div>
+              </div>
+              <div class="text-end">
+                <span class="badge bg-info text-dark rounded-pill">XSS</span>
+                <div class="mt-2">
+                  <button class="btn btn-sm btn-outline-danger" disabled>
+                    Bloquear
+                  </button>
+                </div>
+              </div>
+            </li>
+
+            <!-- Ejemplo vacío -->
+            <li class="list-group-item text-center text-muted">
+              No hay más registros (mock)
+            </li>
+          </ul>
+        </div>
+        <div class="card-footer text-muted small">
+          Mockup UI • Conecta los botones al backend cuando quieras
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: detalle del atacante -->
+    <div class="col-lg-6 mb-3">
+      <div class="card h-100">
+        <div class="card-body">
+          <h5 class="card-title">Detalles — 203.0.113.45</h5>
+          <dl class="row">
+            <dt class="col-sm-4">Tipo de ataque</dt>
+            <dd class="col-sm-8">SQL</dd>
+
+            <dt class="col-sm-4">Visto por primera vez</dt>
+            <dd class="col-sm-8">2025-09-10 10:12</dd>
+
+            <dt class="col-sm-4">Última vez</dt>
+            <dd class="col-sm-8">2025-09-11 12:01</dd>
+          </dl>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- auditoria.component.html -->
+<div class="container my-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+      <h3 class="mb-0">Panel de Auditoría</h3>
+      <small class="text-muted">Evolución de ataques detectados</small>
+    </div>
+    <div>
+      <select
+        class="form-select"
+        [(ngModel)]="selectedRange"
+        (change)="onRangeChange()"
+      >
+        <option value="dia">Por día</option>
+        <option value="mes">Por mes</option>
+        <option value="anio">Por año</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- gráfico -->
+  <div class="card mb-4">
+    <div class="card-body">
+      <canvas
+        baseChart
+        [data]="lineChartData"
+        [options]="lineChartOptions"
+        chartType="line"
+      >
+      </canvas>
+    </div>
+  </div>
+
+  <!-- debajo puedes dejar la UI que ya tenías (lista de atacantes, detalles, etc.) -->
+</div>
