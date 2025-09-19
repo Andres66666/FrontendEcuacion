@@ -109,3 +109,13 @@ export interface GastosGenerales {
   modificado_por: number;
 }
 
+export interface Atacante {
+  id?: number;
+  ip: string;
+  tipos: string[]; 
+  descripcion: string;
+  payload: string;
+  user_agent: string;
+  fecha: string;
+  bloqueado: boolean;
+}

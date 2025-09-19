@@ -2,17 +2,11 @@ import { Component, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
+import { ServiciosService } from '../../../services/servicios.service';
+import { Atacante } from '../../../models/models';
 import { AgCharts } from 'ag-charts-community';
-interface Atacante {
-  ip: string;
-  pais: string;
-  asn: string;
-  userAgent: string;
-  eventos: number;
-  ultima: string;
-  tipo: string;
-  bloqueado?: boolean;
-}
+
+
 @Component({
   selector: 'app-auditoria',
   standalone: true,
@@ -21,217 +15,247 @@ interface Atacante {
   styleUrls: ['./auditoria.component.css']
 })
 export class AuditoriaComponent implements AfterViewInit {
-  selectedRange: 'dia' | 'mes' | 'anio' = 'dia';
+  ataques: Atacante[] = [];
+  selectedAtacante: Atacante | null = null;
 
-  // 🔹 Guardamos referencia de TODOS los gráficos
-  chart: any;
+  // Gráficas
+  lineChart: any;
   barChart: any;
   pieChart: any;
   extraChart: any;
 
-  dataSets = {
-    dia: [
-      { hour: '00h', sql: 10, xss: 5, ddos: 2 },
-      { hour: '06h', sql: 25, xss: 10, ddos: 5 },
-      { hour: '12h', sql: 30, xss: 15, ddos: 8 },
-      { hour: '18h', sql: 20, xss: 8, ddos: 3 },
-      { hour: '24h', sql: 15, xss: 4, ddos: 1 },
-    ],
-    mes: [
-      { week: 'Semana 1', sql: 100, xss: 40, ddos: 20 },
-      { week: 'Semana 2', sql: 250, xss: 60, ddos: 30 },
-      { week: 'Semana 3', sql: 180, xss: 50, ddos: 25 },
-      { week: 'Semana 4', sql: 220, xss: 70, ddos: 40 },
-    ],
-    anio: [
-      { month: 'Ene', sql: 500, xss: 200, ddos: 150 },
-      { month: 'Feb', sql: 600, xss: 250, ddos: 180 },
-      { month: 'Mar', sql: 800, xss: 300, ddos: 220 },
-      { month: 'Abr', sql: 700, xss: 280, ddos: 200 },
-      { month: 'May', sql: 900, xss: 350, ddos: 250 },
-      { month: 'Jun', sql: 1000, xss: 400, ddos: 300 },
-    ],
+  // Filtros
+  tiposAtaque: string[] = ['SQL', 'XSS', 'CSRF', 'DDoS', 'Keylogger', 'Auditoría', 'IA'];
+  selectedTipo: string = '';
+  filteredAtacantes: Atacante[] = [];
+
+  // Iconos
+  tipoIconos: { [key: string]: string } = {
+    'SQL': 'https://cdn-icons-png.flaticon.com/128/10961/10961459.png',
+    'XSS': 'https://cdn-icons-png.flaticon.com/128/13502/13502242.png',
+    'CSRF': 'https://cdn-icons-png.flaticon.com/128/4440/4440880.png',
+    'DDoS': 'https://cdn-icons-png.flaticon.com/128/6653/6653409.png',
+    'Keylogger': 'https://cdn-icons-png.flaticon.com/128/2842/2842036.png',
+    'Auditoría': 'https://cdn-icons-png.flaticon.com/128/4307/4307952.png',
+    'IA': 'https://cdn-icons-png.flaticon.com/128/14668/14668039.png'
   };
 
-  ngAfterViewInit(): void {
-    this.updateCharts(this.dataSets.dia);
-  }
+  // 🔹 Rango para la auditoría
+  selectedRange: 'dia' | 'mes' | 'anio' = 'dia';
 
-  // 🔹 Método central: dibuja todos los gráficos
-  updateCharts(data: any[]) {
-    this.createChart(data);
-    this.createBarChart(data);
-    this.createPieChart(data);
-    this.createExtraChart(data);
-  }
+  constructor(private servicio: ServiciosService) {}
 
-  createChart(data: any[]) {
-    const chartContainer = document.getElementById('myChart');
-    if (!chartContainer) return;
-
-    if (this.chart) this.chart.destroy();
-
-    const normalized = data.map(d => ({
-      hour: d.hour,
-      sql: d.sql,
-      xss: d.xss,
-      ddos: d.ddos
-    }));
-
-    this.chart = AgCharts.create({
-      container: chartContainer,
-      data: normalized,
-      series: [
-        { type: 'line', xKey: 'hour', yKey: 'sql', yName: 'SQL' },
-        { type: 'line', xKey: 'hour', yKey: 'xss', yName: 'XSS' },
-        { type: 'line', xKey: 'hour', yKey: 'ddos', yName: 'DDoS' },
-      ],
-      axes: [
-        { type: 'category', position: 'bottom', title: { text: 'Tiempo' } },
-        { type: 'number', position: 'left', title: { text: 'Cantidad de ataques' } }
-      ],
-      legend: { position: 'bottom' },
-      tooltip: { enabled: true }
-    });
-  }
-
-  createBarChart(data: any[]) {
-    const container = document.getElementById('myBarChart');
-    if (!container) return;
-
-    if (this.barChart) this.barChart.destroy();
-
-    this.barChart = AgCharts.create({
-      container,
-      data,
-      series: [
-        { type: 'bar', xKey: 'hour', yKey: 'sql', yName: 'SQL', fill: '#EF5452' },
-        { type: 'bar', xKey: 'hour', yKey: 'xss', yName: 'XSS', fill: '#5470C6' },
-        { type: 'bar', xKey: 'hour', yKey: 'ddos', yName: 'DDoS', fill: '#91CC75' },
-      ],
-      axes: [
-        { type: 'category', position: 'bottom', title: { text: 'Tiempo' } },
-        { type: 'number', position: 'left', title: { text: 'Cantidad de ataques' } }
-      ],
-      legend: { position: 'bottom' },
-      tooltip: { enabled: true }
-    });
-  }
-
-  createPieChart(data: any[]) {
-    const container = document.getElementById('myPieChart');
-    if (!container) return;
-
-    if (this.pieChart) this.pieChart.destroy();
-
-    this.pieChart = AgCharts.create({
-      container,
-      data,
-      series: [
-        { type: 'pie', angleKey: 'sql', labelKey: 'hour', calloutLabelKey: 'hour' }
-      ]
-    });
-  }
-
-  createExtraChart(data: any[]) {
-    const container = document.getElementById('myExtraChart');
-    if (!container) return;
-
-    if (this.extraChart) this.extraChart.destroy();
-
-    this.extraChart = AgCharts.create({
-      container,
-      data,
-      series: [
-        { type: 'bar', xKey: 'hour', yKey: 'ddos', yName: 'DDoS' }
-      ]
-    });
-  }
-
-  // 🔹 Cambia datos según rango y redibuja todos los gráficos
-  onRangeChange() {
-    let data: any[] = [];
-    switch (this.selectedRange) {
-      case 'dia':
-        data = this.dataSets.dia;
-        break;
-      case 'mes':
-        data = this.dataSets.mes.map(d => ({
-          hour: d.week,
-          sql: d.sql,
-          xss: d.xss,
-          ddos: d.ddos
-        }));
-        break;
-      case 'anio':
-        data = this.dataSets.anio.map(d => ({
-          hour: d.month,
-          sql: d.sql,
-          xss: d.xss,
-          ddos: d.ddos
-        }));
-        break;
-    }
-    this.updateCharts(data);
+  ngAfterViewInit() {
+    this.cargarAtaques();
   }
 
 
+cargarAtaques() {
+  this.servicio.getAtaquesDB().subscribe((res: Atacante[]) => {
+    this.ataques = res;
+    this.filteredAtacantes = [...res];
+    if (res.length > 0) this.selectedAtacante = res[0];
+    this.updateCharts(); // Dibuja todo al inicio
+  });
+}
 
-tiposAtaque = ['SQL', 'XSS', 'CSRF', 'DDoS', 'Keylogger', 'Auditoría', 'IA'];
-  selectedTipo: string = 'SQL';
-
-  atacantes: Atacante[] = [
-    { ip: '203.0.113.45', pais: 'BO', asn: 'AS64500', userAgent: 'sqlmap/1.6', eventos: 12, ultima: '2025-09-11 12:01', tipo: 'SQL', bloqueado: false },
-    { ip: '198.51.100.22', pais: 'BR', asn: 'ASXXXXX', userAgent: 'botnet-checker', eventos: 2400, ultima: '2025-09-11 02:24', tipo: 'DDoS', bloqueado: false },
-    { ip: '192.0.2.10', pais: 'PE', asn: 'AS12345', userAgent: 'Mozilla/5.0', eventos: 3, ultima: '2025-09-11 07:30', tipo: 'XSS', bloqueado: false }
-  ];
-
-  filteredAtacantes: Atacante[] = [...this.atacantes];
-  selectedAtacante: Atacante | null = this.atacantes[0];
-
-  // Filtrar por tipo de ataque
-  filterByTipo(tipo: string) {
-    this.selectedTipo = tipo;
-    this.filteredAtacantes = this.atacantes.filter(a => a.tipo === tipo);
-    this.selectedAtacante = this.filteredAtacantes[0] || null;
+  seleccionarAtacante(atacante: Atacante) {
+    this.selectedAtacante = atacante;
   }
 
-  // Ver todos
+
+filterByTipo(tipo: string) {
+  this.selectedTipo = tipo;
+  if (!tipo) {
+    this.filteredAtacantes = [...this.ataques];
+  } else {
+    this.filteredAtacantes = this.ataques.filter(a => a.tipos.includes(tipo));
+  }
+  this.selectedAtacante = this.filteredAtacantes[0] || null;
+  this.updateCharts();
+}
+
   showAll() {
     this.selectedTipo = '';
-    this.filteredAtacantes = [...this.atacantes];
+    this.filteredAtacantes = [...this.ataques];
     this.selectedAtacante = this.filteredAtacantes[0] || null;
+    this.updateCharts();
   }
 
-  // Seleccionar atacante
-  selectAtacante(a: Atacante) {
-    this.selectedAtacante = a;
-  }
 
-  // Bloquear / desbloquear
-  toggleBloqueo(a: Atacante) {
-    a.bloqueado = !a.bloqueado;
-    alert(`Atacante ${a.ip} ${a.bloqueado ? 'bloqueado' : 'desbloqueado'} (simulado)`);
-  }
+toggleBloqueo(a: Atacante) {
+  const nuevoEstado = !a.bloqueado;
+  this.servicio.updateAtacanteBloqueo(a.id!, nuevoEstado).subscribe(() => {
+    a.bloqueado = nuevoEstado;
+    this.updateCharts();
+  });
+}
 
-  // Badge colores suaves
   getBadgeClass(a: Atacante) {
-    const base = 'text-dark';
-    switch(a.tipo) {
-      case 'SQL': return 'bg-danger bg-opacity-25 ' + base;
-      case 'DDoS': return 'bg-warning bg-opacity-25 ' + base;
-      case 'XSS': return 'bg-info bg-opacity-25 ' + base;
-      default: return 'bg-secondary bg-opacity-25 ' + base;
+    if (a.tipos.includes('SQL')) return 'bg-danger bg-opacity-25 text-dark';
+    if (a.tipos.includes('DDoS')) return 'bg-warning bg-opacity-25 text-dark';
+    if (a.tipos.includes('XSS')) return 'bg-info bg-opacity-25 text-dark';
+    return 'bg-secondary bg-opacity-25 text-dark';
+  }
+
+  // 🔹 Normalizar para Pie Chart
+  getPieData() {
+    const data: { tipo: string; count: number }[] = [];
+    this.filteredAtacantes.forEach(a => {
+      a.tipos.forEach(t => {
+        const existing = data.find(d => d.tipo === t);
+        if (existing) existing.count += 1;
+        else data.push({ tipo: t, count: 1 });
+      });
+    });
+    return data;
+  }
+
+  // 🔹 Normalizar para Line Chart y Bar Chart
+  getTimeSeriesData() {
+    const ataquesTipos = ['SQL', 'XSS', 'CSRF', 'DDoS', 'Keylogger', 'IA']; 
+    const map: { [fecha: string]: { [tipo: string]: number } } = {};
+
+    this.filteredAtacantes.forEach(a => {
+      const fecha = this.formatDate(a.fecha, this.selectedRange);
+      if (!map[fecha]) map[fecha] = {};
+      a.tipos.forEach(t => {
+        map[fecha][t] = (map[fecha][t] || 0) + 1;
+      });
+    });
+
+    const data = Object.keys(map).map(fecha => ({ fecha, ...map[fecha] }));
+    data.sort((a, b) => a.fecha.localeCompare(b.fecha));
+    return data;
+  }
+
+
+
+  // 🔹 Extra Chart: bloqueados vs activos
+getExtraData() {
+  const bloqueado = this.filteredAtacantes.filter(a => a.bloqueado).length;
+  const activo = this.filteredAtacantes.length - bloqueado;
+
+  return [
+    { estado: 'Bloqueado', count: bloqueado, descripcion: this.filteredAtacantes.filter(a => a.bloqueado).map(a => `${a.ip}: ${a.descripcion}`).join('<br/>') },
+    { estado: 'Activo', count: activo, descripcion: this.filteredAtacantes.filter(a => !a.bloqueado).map(a => `${a.ip}: ${a.descripcion}`).join('<br/>') }
+  ];
+}
+  formatDate(fecha: string, rango: 'dia' | 'mes' | 'anio') {
+    const d = new Date(fecha);
+    switch (rango) {
+      case 'dia': return d.toISOString().split('T')[0]; // YYYY-MM-DD
+      case 'mes': return `${d.getFullYear()}-${('0'+(d.getMonth()+1)).slice(-2)}`; // YYYY-MM
+      case 'anio': return `${d.getFullYear()}`;
     }
   }
-  tipoIconos: { [key: string]: string } = {
-  'SQL': 'https://cdn-icons-png.flaticon.com/128/10961/10961459.png',
-  'XSS': 'https://cdn-icons-png.flaticon.com/128/13502/13502242.png',
-  'CSRF': 'https://cdn-icons-png.flaticon.com/128/4440/4440880.png',
-  'DDoS': 'https://cdn-icons-png.flaticon.com/128/6653/6653409.png',
-  'Keylogger': 'https://cdn-icons-png.flaticon.com/128/2842/2842036.png',
-  'Auditoría': 'https://cdn-icons-png.flaticon.com/128/4307/4307952.png',
-  'IA': 'https://cdn-icons-png.flaticon.com/128/14668/14668039.png'
-};
 
+
+  updateCharts() {
+  this.createPieChart(this.getPieData());
+  this.createLineChart(this.getTimeSeriesData());
+  this.createExtraChart(this.getExtraData());
+}createPieChart(data: any[]) {
+  const container = document.getElementById('myPieChart');
+  if (!container) return;
+  if (this.pieChart) this.pieChart.destroy();
+
+  this.pieChart = AgCharts.create({
+    container,
+    data,
+    series: [{
+      type: 'pie',
+      angleKey: 'count',
+      labelKey: 'tipo',
+      calloutLabelKey: 'tipo',
+      fills: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40', '#8AFF33'], // Colores por tipo
+      strokes: ['#fff'],
+      strokeWidth: 1,
+      tooltip: {
+        renderer: (params: any) => {
+          const tipo = params.datum.tipo;
+          const atacantesTipo = this.filteredAtacantes.filter((a: any) => a.tipos.includes(tipo));
+          const desc = atacantesTipo
+            .map((a: any) => `<strong>${a.ip}</strong>: ${a.descripcion}`)
+            .join('<br/>');
+          return { content: `<strong>${tipo}</strong> (${params.datum.count})<br/>${desc}` };
+        }
+      }
+    }]
+  } as any);
+}
+
+createLineChart(data: any[]) {
+  const container = document.getElementById('myChart');
+  if (!container) return;
+  if (this.lineChart) this.lineChart.destroy();
+
+  const series: any[] = Object.keys(data[0] || {})
+    .filter(k => k !== 'fecha')
+    .map(t => ({
+      type: 'line',
+      xKey: 'fecha',
+      yKey: t,
+      yName: t
+    }));
+
+
+  this.lineChart = AgCharts.create({
+    container,
+    type: 'cartesian',
+    data,
+    series,
+    axes: [
+      { type: 'category', position: 'bottom', title: { text: 'Fecha' } },
+      { type: 'number', position: 'left', title: { text: 'Cantidad de ataques' } }
+    ],
+    tooltip: {
+      enabled: true,
+      renderer: (params: any) => {
+        let text = `Fecha: ${params.xValue}<br/>`;
+        params.series.forEach((s: any) => {
+          text += `${s.seriesId}: ${s.yValue}<br/>`;
+        });
+        return { content: text };
+      }
+    }
+  });
+}
+
+
+createExtraChart(data: any[]) {
+  const container = document.getElementById('myExtraChart');
+  if (!container) return;
+  if (this.extraChart) this.extraChart.destroy();
+
+  this.extraChart = AgCharts.create({
+    container,
+    data,
+    series: [{
+      type: 'pie',
+      angleKey: 'count',
+      labelKey: 'estado',
+      calloutLabelKey: 'estado',
+      fills: ['#FF4C4C', '#4CAF50'], // Rojo para bloqueados, verde para activos
+      strokes: ['#fff'],
+      strokeWidth: 1,
+      tooltip: {
+        renderer: (params: any) => {
+          const atacantes = this.filteredAtacantes.filter(a =>
+            params.datum.estado === 'Bloqueado' ? a.bloqueado : !a.bloqueado
+          );
+          const desc = atacantes
+            .map(a => `<strong>${a.ip}</strong>: ${a.descripcion}`)
+            .join('<br/>');
+          return { content: `<strong>${params.datum.estado}</strong> (${params.datum.count})<br/>${desc}` };
+        }
+      }
+    }]
+  } as any);
+}
+
+
+onRangeChange() {
+  this.updateCharts();
+}
 }

@@ -98,6 +98,24 @@ export class PrecioFacturaComponent {
   // ========================
   // 🔹 SECCIÓN 4
   // ========================
+  get metodoMallaFinitapreciounitariomasvaloragregado (): number{
+    return this.precio_unitario + this.ValorAgregado;
+  }
+  get restaPfacturamenosPunitario (): number{
+    return this.precioFacturaS2 - this.precio_unitario;
+  }
+  get gastosdeoperacionC2 (): number{
+    return (this.precio_unitario * this.porcentaje_global_100) / this.metodoMallaFinitapreciounitariomasvaloragregado;
+  }
+  get valoragradoC2 (): number{
+    return (this.ValorAgregado * this.porcentaje_global_100) / this.metodoMallaFinitapreciounitariomasvaloragregado;
+  }
+  get preciofacturaC2 (): number{
+    return this.gastosdeoperacionC2 + this.valoragradoC2;
+  }
+  // ========================
+  // 🔹 SECCIÓN 5
+  // ========================
   get ValorAgregado (): number{
     return this.precioFacturaS2 - this.precio_unitario;
   }
@@ -117,7 +135,7 @@ export class PrecioFacturaComponent {
     return this.ValorAgregado - this.SumaImpuestos;
   }
   // ========================
-  // 🔹 SECCIÓN 5
+  // 🔹 SECCIÓN 6
   // ========================
   get gananciaPrimero (): number{
     return this.SumaTotalNeta * (this.ganancia / this.porcentaje_global_100);
@@ -145,7 +163,7 @@ export class PrecioFacturaComponent {
     return this.gananciaPrimeroPorcentage + this.CompensacionDuenoPorcentage + this.ImpuestoPorcentage + this.gastoOperacionPorcentage;
   }
   // ========================
-  // 🔹 SECCIÓN 6
+  // 🔹 SECCIÓN 7
   // ========================
   get RentabilidadProyecto(): number{
     return (this.ValorAgregado/ this.precio_unitario) * this.porcentaje_global_100;
@@ -160,7 +178,7 @@ export class PrecioFacturaComponent {
     return (this.SumaImpuestos/ this.precio_unitario) * this.porcentaje_global_100;
   } 
   // ========================
-  // 🔹 SECCIÓN 7
+  // 🔹 SECCIÓN 8
   // ========================
   get Retorno():number{
     return this.precio_unitario/ this.gananciaPrimero

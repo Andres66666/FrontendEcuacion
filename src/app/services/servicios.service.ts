@@ -14,6 +14,7 @@ import {
   GastosGenerales,
   GastoOperacion,
   Proyecto,
+  Atacante,
 } from '../models/models';
 
 @Injectable({
@@ -33,6 +34,29 @@ export class ServiciosService {
     const loginData = { correo: correo, password: password }; // 👈 debe coincidir con el serializer
     return this.http.post<any>(`${this.apiUrl}login/`, loginData);
   }
+  // servicios.service.ts
+
+
+getAtaquesDB(): Observable<Atacante[]> {
+  return this.http.get<any[]>(`${this.apiUrl}auditoria_db/`).pipe(
+    map((ataques: any[]) =>
+      ataques.map((a) => ({
+        ...a,
+        tipos: Array.isArray(a.tipos) 
+          ? a.tipos 
+          : (a.tipos ? a.tipos.split(",") : []), // 👈 conversión segura
+      }))
+    )
+  );
+}
+
+
+updateAtacanteBloqueo(id: number, bloqueado: boolean): Observable<any> {
+  return this.http.patch(`${this.apiUrl}auditoria_db/${id}/`, { bloqueado });
+}
+
+
+
 /*   getRolesFromLocalStorage(): string[] {
     const roles = localStorage.getItem('rol');
     return roles ? JSON.parse(roles) : [];
@@ -308,5 +332,10 @@ export class ServiciosService {
   //  =====================================================
   //  ================  seccion 5    ======================
   //  =====================================================
+
+
+
+
+
 
 }

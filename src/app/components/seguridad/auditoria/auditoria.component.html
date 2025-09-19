@@ -12,7 +12,7 @@
           *ngFor="let tipo of tiposAtaque"
           type="button"
           class="btn btn-outline-primary d-flex align-items-center"
-          [class.active]="tipo === selectedTipo"
+          [class.active]="selectedTipo === tipo"
           (click)="filterByTipo(tipo)"
         >
           <img
@@ -39,26 +39,19 @@
             <li
               *ngFor="let a of filteredAtacantes"
               class="list-group-item d-flex justify-content-between align-items-start"
-              (click)="selectAtacante(a)"
+              (click)="seleccionarAtacante(a)"
               [class.active]="a === selectedAtacante"
               style="cursor: pointer"
             >
               <div class="ms-2 me-auto">
                 <div class="fw-bold">{{ a.ip }}</div>
-                {{ a.pais }} • {{ a.asn }} • {{ a.userAgent }}
                 <div class="small text-muted">
-                  {{ a.eventos }} eventos • última: {{ a.ultima }}
+                  Tipos: {{ a.tipos.join(", ") }} • User Agent:
+                  {{ a.user_agent }}
                 </div>
+                <div class="small text-muted">Fecha: {{ a.fecha }}</div>
               </div>
               <div class="text-end">
-                <span class="badge rounded-pill" [ngClass]="getBadgeClass(a)">
-                  <img
-                    [src]="tipoIconos[a.tipo]"
-                    alt="{{ a.tipo }}"
-                    style="width: 16px; height: 16px; margin-right: 4px"
-                  />
-                  {{ a.tipo }}
-                </span>
                 <div class="mt-2">
                   <button
                     class="btn btn-sm"
@@ -90,14 +83,14 @@
         <div class="card-body">
           <h5 class="card-title">Detalles — {{ selectedAtacante.ip }}</h5>
           <dl class="row">
-            <dt class="col-sm-4">Tipo de ataque</dt>
-            <dd class="col-sm-8">{{ selectedAtacante.tipo }}</dd>
+            <dt class="col-sm-4">Tipos de ataque</dt>
+            <dd class="col-sm-8">{{ selectedAtacante.tipos.join(", ") }}</dd>
 
-            <dt class="col-sm-4">Visto por primera vez</dt>
-            <dd class="col-sm-8">2025-09-10 10:12</dd>
+            <dt class="col-sm-4">User Agent</dt>
+            <dd class="col-sm-8">{{ selectedAtacante.user_agent }}</dd>
 
-            <dt class="col-sm-4">Última vez</dt>
-            <dd class="col-sm-8">{{ selectedAtacante.ultima }}</dd>
+            <dt class="col-sm-4">Fecha</dt>
+            <dd class="col-sm-8">{{ selectedAtacante.fecha }}</dd>
 
             <dt class="col-sm-4">Estado</dt>
             <dd class="col-sm-8">
@@ -127,55 +120,53 @@
         <option value="anio">Por año</option>
       </select>
     </div>
+    <div class="mb-3">
+      <label for="tipoSelect" class="form-label"
+        >Filtrar por tipo de ataque:</label
+      >
+      <select
+        id="tipoSelect"
+        class="form-select"
+        [(ngModel)]="selectedTipo"
+        (change)="filterByTipo(selectedTipo)"
+      >
+        <option value="">Todos</option>
+        <option *ngFor="let tipo of tiposAtaque" [value]="tipo">
+          {{ tipo }}
+        </option>
+      </select>
+    </div>
   </div>
 
-  <!-- Carrusel de gráficos -->
   <div id="chartsCarousel" class="carousel slide" data-bs-ride="carousel">
     <div class="carousel-inner">
-      <!-- Gráfico de Líneas -->
       <div class="carousel-item active">
         <div class="card">
           <div class="card-body">
-            <h5>Gráfico de Líneas</h5>
+            <h5>Gráfico de Líneas - Evolución ataques</h5>
             <div id="myChart" style="height: 400px; width: 100%"></div>
           </div>
         </div>
       </div>
 
-      <!-- Gráfico de Barras -->
       <div class="carousel-item">
         <div class="card">
           <div class="card-body">
-            <h5>Gráfico de Barras</h5>
-            <div id="myBarChart" style="height: 400px; width: 100%"></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Pie Chart -->
-      <div class="carousel-item">
-        <div class="card">
-          <div class="card-body">
-            <h5>Pie Chart</h5>
+            <h5>Pie Chart - Distribución por tipo</h5>
             <div id="myPieChart" style="height: 300px; width: 100%"></div>
           </div>
         </div>
       </div>
-
-      <!-- Gráfico Adicional -->
       <div class="carousel-item">
         <div class="card">
           <div class="card-body">
-            <h5>Gráfico Adicional</h5>
+            <h5>Gráfico Adicional - Bloqueados vs Activos</h5>
             <div id="myExtraChart" style="height: 300px; width: 100%"></div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Controles del carrusel -->
-    <!-- Controles del carrusel -->
-    <!-- Controles del carrusel -->
     <button
       class="carousel-control-prev custom-carousel-btn"
       type="button"
