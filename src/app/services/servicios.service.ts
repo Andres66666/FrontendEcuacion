@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, forkJoin, map, Observable } from 'rxjs';
-
+import { environment } from '../../environments/environment';
 import {
   Rol,
   Permiso,
@@ -22,10 +22,7 @@ import {
   providedIn: 'root',
 })
 export class ServiciosService {
-  private apiUrl = 'http://localhost:8000/api/';
-
- /*  private apiUrl = 'https://backendecuacion.onrender.com/api/'; */
-  
+  private apiUrl = environment.apiUrl;  
 
   constructor(private http: HttpClient) {}
   //  =====================================================
