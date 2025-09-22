@@ -53,14 +53,14 @@ getAtaquesDB(): Observable<Atacante[]> {
 updateAtacanteBloqueo(id: number, bloqueado: boolean): Observable<any> {
   return this.http.patch(`${this.apiUrl}auditoria_db/${id}/`, { bloqueado });
 }
-  getRolesFromLocalStorage(): string[] {
-    const usuario = localStorage.getItem('usuarioLogueado');
-    if (usuario) {
-      const userObj = JSON.parse(usuario);
-      return userObj.roles || [];
-    }
-    return [];
+getRolesFromLocalStorage(): string[] {
+  const usuario = localStorage.getItem('usuarioLogueado');
+  if (usuario) {
+    const userObj = JSON.parse(usuario);
+    return userObj.roles || [];
   }
+  return [];
+}
 
   verificarUsuario(usuario_id: number): Observable<Usuario> {
     return this.http.get<Usuario>(`${this.apiUrl}usuario/${usuario_id}`);

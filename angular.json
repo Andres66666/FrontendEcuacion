@@ -34,13 +34,20 @@
               "node_modules/@fortawesome/fontawesome-free/css/all.min.css",
               "src/styles.css"
             ],
-            "scripts": ["node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"]
+            "scripts": ["node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"],
+             "allowedCommonJsDependencies": [
+              "html2canvas",
+              "canvg",
+              "dompurify",
+              "raf",
+              "rgbcolor"
+            ]
           },
           "configurations": {
             "production": {
-              "budgets": [
-                { "type": "initial", "maximumWarning": "2MB", "maximumError": "3MB" },
-                { "type": "anyComponentStyle", "maximumWarning": "10kB", "maximumError": "15kB" }
+             "budgets": [
+                { "type": "initial", "maximumWarning": "5MB", "maximumError": "6MB" },
+                { "type": "anyComponentStyle", "maximumWarning": "20kB", "maximumError": "30kB" }
               ],
               "outputHashing": "all",
               "optimization": true,
