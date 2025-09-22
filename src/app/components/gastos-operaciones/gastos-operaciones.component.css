@@ -1,16 +1,23 @@
+.table-responsive {
+  max-height: calc(2.8rem * 20 + 3.5rem); /* 10 filas + header/footer */
+  overflow-y: auto;
+}
+
+
+
 thead th {
   position: sticky;
   top: 0;
-  background-color: #008528; /* Color igual al .table-primary de Bootstrap */
-  color: #ffffff; /* Texto blanco */
+  background-color: #d4f5de; /* Color igual al .table-primary de Bootstrap */
+  color: #000000; /* Texto blanco */
   z-index: 2;
   border-bottom: 2px solid #ffffff; /* línea de división inferior */
 }
 tfoot td {
   position: sticky;
   bottom: 0;
-  background-color: #008528; /* Igual que el thead */
-  color: #ffffff;
+  background-color: #d4f5de; /* Igual que el thead */
+  color: #000000;
   z-index: 2;
   border-top: 2px solid #ffffff;
 }
@@ -30,7 +37,7 @@ tfoot td {
   border: none;
   background-color: transparent;
   padding: 8px;
-  font-size: 14px;
+  font-size: 16px;
 }
 
 /* Ocultar flechas en inputs tipo number */

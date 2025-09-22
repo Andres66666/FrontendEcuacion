@@ -1,0 +1,41 @@
+<div
+  class="modal d-block"
+  tabindex="-1"
+  style="display: block; background-color: rgba(0, 0, 0, 0.5)"
+>
+  <div class="modal-dialog">
+    <div class="modal-content border-warning">
+      <!-- Borde amarillo para advertencia -->
+      <div class="modal-header bg-warning bg-opacity-10">
+        <!-- Fondo claro amarillo -->
+        <h5 class="modal-title text-warning">
+          <i class="bi bi-exclamation-triangle me-2"></i>Advertencia
+        </h5>
+        <button
+          type="button"
+          class="btn-close"
+          (click)="manejarCerrar()"
+        ></button>
+      </div>
+
+      <div
+        class="modal-body d-flex flex-column align-items-center text-center gap-3"
+      >
+        <img
+          src="https://cdn-icons-png.flaticon.com/128/3922/3922179.png"
+          class="img-fluid"
+          style="max-width: 80px; filter: hue-rotate(40deg)"
+          alt="Advertencia"
+        />
+        <p class="mb-0 text-warning fw-semibold">{{ mensaje }}</p>
+        <!-- Texto en negrita amarillo -->
+      </div>
+
+      <div class="modal-footer justify-content-center">
+        <button type="button" class="btn btn-warning" (click)="manejarCerrar()">
+          <i class="bi bi-check-circle me-1"></i>Entendido
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

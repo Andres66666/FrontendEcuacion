@@ -4,6 +4,7 @@ import { Router, RouterModule } from '@angular/router';
 import { StorageService } from '../../services/Storage.service';
 import { ConfirmacionComponent } from '../mensajes/confirmacion/confirmacion/confirmacion.component';
 import { ExportService } from '../../services/export.service';
+import { ServiciosService } from '../../services/servicios.service';
 
 
 @Component({
@@ -32,16 +33,23 @@ export class PanelControlComponent implements OnInit, OnDestroy {
   mostrarConfirmacion: boolean = false;
   mensajeConfirmacion: string = '';
 
+  notificaciones: any[] = [];  // ← NUEVO: Lista de usuarios desactivados (notificaciones)
+  mostrarNotificaciones = false;  // ← NUEVO: Para toggle del dropdown de notificaciones
+
+
   imagenAbrir: string = 'https://cdn-icons-png.flaticon.com/128/14025/14025576.png';   // la imagen para abrir
   imagenCerrar: string = 'https://cdn-icons-png.flaticon.com/128/603/603495.png'; // la imagen para cerrar
 
 
+ 
   constructor(
     private router: Router,
     @Inject(PLATFORM_ID) private platformId: Object,
     private storageService: StorageService,
-     private exportService: ExportService 
+    private exportService: ExportService,
+    private serviciosService: ServiciosService  // ← NUEVO: Inyecta el servicio
   ) {}
+
 
   ngOnInit(): void {
     const usuarioStr = this.storageService.getItem('usuarioLogueado');
@@ -63,6 +71,8 @@ export class PanelControlComponent implements OnInit, OnDestroy {
 
     this.checkScreenSize();
     this.resetInactivityTimer();
+    // ← NUEVO: Cargar notificaciones de usuarios desactivados
+    this.cargarNotificaciones();
   }
 
 
@@ -71,6 +81,41 @@ export class PanelControlComponent implements OnInit, OnDestroy {
       clearTimeout(this.timeoutInactivity);
     }
   }
+    // ← NUEVO: Cargar notificaciones de usuarios desactivados
+  cargarNotificaciones(): void {
+    this.serviciosService.getUsuariosDesactivados().subscribe({  // Asume que agregas este método en ServiciosService
+      next: (usuariosDesactivados: any[]) => {
+        this.notificaciones = usuariosDesactivados.map(usuario => ({
+          id: usuario.id,
+          nombre: `${usuario.nombre} ${usuario.apellido}`,
+          correo: usuario.correo,
+          fechaBloqueo: usuario.fecha_actualizacion || new Date().toISOString()  // Usa fecha de actualización como referencia
+        }));
+      },
+      error: (error) => {
+        console.error('Error al cargar notificaciones:', error);
+        this.notificaciones = [];
+      }
+    });
+  }
+
+  // ← NUEVO: Toggle para mostrar/ocultar notificaciones
+  toggleNotificaciones(): void {
+    this.mostrarNotificaciones = !this.mostrarNotificaciones;
+  }
+
+  // ← NUEVO: Manejar clic en notificación (muestra detalle del usuario bloqueado)
+  verNotificacion(usuario: any): void {
+    const detalle = `Usuario bloqueado: ${usuario.nombre} (Correo: ${usuario.correo})`;
+    alert(detalle);  // ← Simple alert; puedes cambiar por modal o navegación a detalle
+    this.mostrarNotificaciones = false;  // Cierra el dropdown
+  }
+
+  // ← NUEVO: Recargar notificaciones (opcional, para refresh manual)
+  recargarNotificaciones(): void {
+    this.cargarNotificaciones();
+  }
+
 
   puedeVer(permiso: string): boolean {
     return this.userPermissions?.includes(permiso) ?? false;

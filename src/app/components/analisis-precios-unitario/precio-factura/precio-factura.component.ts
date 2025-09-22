@@ -14,7 +14,10 @@ export class PrecioFacturaComponent {
   id_gasto_operaciones: number = 0;
   identificadorGeneral: number = 0;
   precio_unitario: number = 0; // De cada Item
-
+  // ✅ NUEVAS PROPIEDADES PARA LOS TOTALES
+  totalGastosOperacionGeneral: number = 0;
+  totalValorAgregado: number = 0;
+  totalFactura: number = 0;
 
   iva_tasa_nominal: number = 0;   // IVA % mostrado Variable Principal
   it: number = 0;      // IT % mostrado Variable Principal
@@ -27,11 +30,24 @@ export class PrecioFacturaComponent {
 
   constructor(private route: ActivatedRoute, public router: Router,  private exportService: ExportService ) {}
 
+
   ngOnInit(): void {
     this.route.queryParams.subscribe((params) => {
       this.id_gasto_operaciones = Number(params['id_gasto_operaciones']) || 0;
       this.identificadorGeneral = Number(params['identificadorGeneral']) || 0;
-      this.precio_unitario = Number(params['precio_unitario']) || 0;
+
+      // 🔹 Detectar si viene desde la otra vista con totales
+      if (params['totalGastosOperacion']) {
+        this.totalGastosOperacionGeneral = Number(params['totalGastosOperacion']);
+        this.totalValorAgregado = Number(params['totalValorAgregado']) || 0;
+        this.totalFactura = Number(params['totalFactura']) || 0;
+
+        // 🔹 Asignar al precio_unitario solo en este caso
+        this.precio_unitario = this.totalGastosOperacionGeneral;
+      } else {
+        this.precio_unitario = Number(params['precio_unitario']) || 0;
+      }
+
       this.iva_tasa_nominal = Number(params['iva_tasa_nominal']) || 0;
       this.it = Number(params['it']) || 0;
       this.iue = Number(params['iue']) || 0;
@@ -44,6 +60,7 @@ export class PrecioFacturaComponent {
   formatearNumero(valor: number): string {
     return new Intl.NumberFormat('es-BO', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(valor);
   }
+  
   // ========================
   // 🔹 SECCIÓN 1
   // ========================

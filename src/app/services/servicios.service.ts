@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, map, Observable } from 'rxjs';
+import { BehaviorSubject, forkJoin, map, Observable } from 'rxjs';
 
 import {
   Rol,
@@ -15,6 +15,7 @@ import {
   GastoOperacion,
   Proyecto,
   Atacante,
+  Modulo,
 } from '../models/models';
 
 @Injectable({
@@ -113,6 +114,12 @@ updateAtacanteBloqueo(id: number, bloqueado: boolean): Observable<any> {
   editarUsuario(id: number, usuario: FormData): Observable<Usuario> {
     return this.http.put<Usuario>(`${this.apiUrl}usuario/${id}/`, usuario);
   }
+  // ← NUEVO: Obtener usuarios desactivados (filtra por estado=false)
+  getUsuariosDesactivados(): Observable<any[]> {
+    return this.getUsuarios().pipe(  // Usa el método existente getUsuarios()
+      map(usuarios => usuarios.filter(usuario => !usuario.estado))  // Filtra solo desactivados
+    );
+  }
 
   // === UsuarioRol ===
   getUsuarioRoles(): Observable<UsuarioRol[]> {
@@ -147,6 +154,7 @@ updateAtacanteBloqueo(id: number, bloqueado: boolean): Observable<any> {
   //  =====================================================
   //  ================  seccion 2    ======================
   //  =====================================================
+  
   getIdentificadorGeneral(): Observable<Proyecto[]> {
     return this.http.get<Proyecto[]>(`${this.apiUrl}IdGeneral/`);
   }
@@ -187,30 +195,45 @@ updateAtacanteBloqueo(id: number, bloqueado: boolean): Observable<any> {
       `${this.apiUrl}GastosOperaciones/?identificador=${id}`
     );
   }
-  // El método para crear gastos recibe un arreglo de Partial<GastoOperacion> (sin id, identificador, etc)
-  createGastoOperacion(gastos: Partial<GastoOperacion>[]): Observable<{
+
+  // Sección 2 (después de métodos de GastoOperacion)
+  // Nuevos métodos para Módulo
+  getModulosPorProyecto(idProyecto: number): Observable<Modulo[]> {
+    return this.http.get<Modulo[]>(`${this.apiUrl}modulos/?proyecto=${idProyecto}`);
+  }
+  createModulo(modulo: Partial<Modulo>): Observable<Modulo> {
+    return this.http.post<Modulo>(`${this.apiUrl}modulos/`, modulo);
+  }
+  // En ServiciosService
+  deleteModulo(id: number): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/modulos/${id}/`);
+  }
+  updateModulo(id: number, modulo: Partial<Modulo>): Observable<Modulo> {
+    return this.http.put<Modulo>(`${this.apiUrl}/modulos/${id}/`, modulo);
+  }
+  // Si no tienes deleteGastoOperacion
+  deleteGastoOperacion(id: number): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/GastosOperaciones/${id}/`);
+  }
+  moverGastoAModulo(gastoId: number, moduloId: number | null): Observable<GastoOperacion> {
+    const payload = { modulo_id: moduloId };  // Envía solo ID o null
+    return this.http.patch<GastoOperacion>(`${this.apiUrl}GastosOperaciones/${gastoId}/`, payload);
+  }
+
+  // Ajusta createGastoOperacion para aceptar modulo_id (extiende tipo)
+  createGastoOperacion(gastos: (Partial<GastoOperacion> & { modulo_id?: number | null })[]): Observable<{
     mensaje: string;
     identificador_general: number;
     gastos: GastoOperacion[];
   }> {
-    return this.http.post<{
-      mensaje: string;
-      identificador_general: number;
-      gastos: GastoOperacion[];
-    }>(`${this.apiUrl}GastosOperaciones/`, gastos);
+    return this.http.post<{ mensaje: string; identificador_general: number; gastos: GastoOperacion[] }>(`${this.apiUrl}GastosOperaciones/`, gastos);
   }
 
-  updateGastoOperacion(
-    gasto: Partial<GastoOperacion>
-  ): Observable<GastoOperacion> {
-    return this.http.put<GastoOperacion>(
-      `${this.apiUrl}GastosOperaciones/${gasto.id}/`,
-      gasto
-    );
-  }
-
-  deleteGastoOperacion(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}GastosOperaciones/${id}/`);
+  // Ajusta updateGastoOperacion para aceptar modulo_id
+  updateGastoOperacion(gasto: Partial<GastoOperacion> & { modulo_id?: number | null }): Observable<GastoOperacion> {
+    const payload = { ...gasto };
+    // Django mapeará modulo_id a modulo si lo configuras en serializer
+    return this.http.put<GastoOperacion>(`${this.apiUrl}GastosOperaciones/${gasto.id}/`, payload);
   }
   //  =====================================================
   //  ================  seccion 3    ======================
@@ -332,6 +355,25 @@ updateAtacanteBloqueo(id: number, bloqueado: boolean): Observable<any> {
   //  =====================================================
   //  ================  seccion 5    ======================
   //  =====================================================
+// Materiales
+createMateriales(materiales: Materiales[]): Observable<Materiales[]> {
+  return forkJoin(materiales.map(m => this.createMaterial(m)));
+}
+
+// Mano de Obra
+createManoDeObraLista(manos: ManoDeObra[]): Observable<ManoDeObra[]> {
+  return forkJoin(manos.map(m => this.createManoDeObra(m)));
+}
+
+// Equipo/Herramienta
+createEquipoHerramientaLista(equipos: EquipoHerramienta[]): Observable<EquipoHerramienta[]> {
+  return forkJoin(equipos.map(e => this.createEquipoHerramienta(e)));
+}
+
+// Gastos Generales
+createGastosGeneralesLista(gastos: GastosGenerales[]): Observable<GastosGenerales[]> {
+  return forkJoin(gastos.map(g => this.createGasto(g)));
+}
 
 
 

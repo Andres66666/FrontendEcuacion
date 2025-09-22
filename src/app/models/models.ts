@@ -55,6 +55,16 @@ export interface RolPermiso {
   modificado_por: number; 
 }
 
+export interface Modulo {
+    id: number;
+    proyecto: number;
+    codigo: string;
+    nombre: string;
+    fecha_creacion: string;
+    creado_por: number;
+    modificado_por: number;
+}
+  
 export interface GastoOperacion {
   id: number;
   identificador: Proyecto; // objeto completo
@@ -66,6 +76,7 @@ export interface GastoOperacion {
   costo_parcial: number;
   creado_por: number;
   modificado_por: number;
+  modulo?: Modulo | null;  
 }
   //  ================  seccion 3    ======================
 export interface Materiales {
