@@ -50,18 +50,9 @@ getAtaquesDB(): Observable<Atacante[]> {
     )
   );
 }
-
-
 updateAtacanteBloqueo(id: number, bloqueado: boolean): Observable<any> {
   return this.http.patch(`${this.apiUrl}auditoria_db/${id}/`, { bloqueado });
 }
-
-
-
-/*   getRolesFromLocalStorage(): string[] {
-    const roles = localStorage.getItem('rol');
-    return roles ? JSON.parse(roles) : [];
-  } */
   getRolesFromLocalStorage(): string[] {
     const usuario = localStorage.getItem('usuarioLogueado');
     if (usuario) {
