@@ -743,7 +743,12 @@
 
       <tfoot class="table-light">
         <tr>
-          <td [attr.colspan]="mostrarColumnaModulo ? 5 : 4"></td>
+          <td
+            [attr.colspan]="mostrarColumnaModulo ? 5 : 4"
+            class="text-end fw-bold"
+          >
+            TOTALES
+          </td>
           <!-- Ajustado dinámicamente: 5 columnas con módulo, 4 sin módulo -->
           <td class="fw-bold text-center">
             {{ formatearNumero(totalGastosOperacionGeneral) }}
@@ -758,9 +763,7 @@
           <td class="fw-bold text-center">
             {{ formatearNumero(totalValorAgregado) }}
           </td>
-          <td colspan="2" class="text-end fw-bold">
-            TOTAL GASTOS DE OPERACIÓN
-          </td>
+          <td colspan="2" class="text-end fw-bold"></td>
           <td class="fw-bold text-center">{{ formatearNumero(total) }}</td>
           <td class="no-export"></td>
         </tr>
