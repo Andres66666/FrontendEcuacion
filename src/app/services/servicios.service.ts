@@ -22,10 +22,10 @@ import {
   providedIn: 'root',
 })
 export class ServiciosService {
+private apiUrl = environment.apiUrl;
 
-
-  private apiUrl = 'https://backendecuacion.onrender.com/api/';
-
+/*  private apiUrl = 'https://backendecuacion.onrender.com/api/';  */
+  //https://backendecuacion.onrender.com
 
   constructor(private http: HttpClient) {}
   //  =====================================================
