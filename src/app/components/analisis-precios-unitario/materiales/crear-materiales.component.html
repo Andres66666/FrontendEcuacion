@@ -31,45 +31,69 @@
             [formGroupName]="i"
           >
             <!-- Descripción -->
-            <td>
+          <td>
+            <div class="position-relative">
               <input
                 type="text"
-                class="form-control"
-                formControlName="descripcion"
+                class="form-control input-descripcion"
                 placeholder="Ej. Cemento"
+                [formControl]="getDescripcionControl(i)"
+                (input)="filtrarDescripciones(i, $event)"
+                (focus)="mostrarDescripcionesFila(i)"
+                (blur)="guardarDescripcionPersonalizada(i, $event)"
               />
-              <div
-                *ngIf="mat.get('descripcion')?.errors?.['required']"
-                class="text-danger small"
+
+              <ul
+                *ngIf="descripcionesFiltradas[i]?.length && mostrarListaDescripcion[i]"
+                class="list-group position-absolute w-100 descripcion-list"
+                style="z-index: 1000; max-height: 150px; overflow-y: auto;"
               >
+                <li
+                  *ngFor="let d of descripcionesFiltradas[i]"
+                  class="list-group-item list-group-item-action p-1"
+                  (mousedown)="seleccionarDescripcion(i, d)"
+                  style="cursor: pointer;"
+                >
+                  {{ d }}
+                </li>
+              </ul>
+
+              <div *ngIf="mat.get('descripcion')?.errors?.['required']" class="text-danger small">
                 Campo requerido.
               </div>
-            </td>
+            </div>
+          </td>
 
             <!-- Unidad -->
             <td>
-              <ng-container *ngIf="mat.get('esNuevo')?.value || mat.get('editarUnidad')?.value; else verUnidad">
-                <select
-                  class="form-select"
-                  formControlName="unidad"
-                  (blur)="mat.get('editarUnidad')?.setValue(false)"
+              <div class="position-relative">
+                <input
+                  type="text"
+                  class="form-control form-control-sm input-unidad"
+                  placeholder="Seleccione o escriba una unidad"
+                  [formControl]="getUnidadControl(i)"
+                  (input)="filtrarUnidades(i, $event)"
+                  (focus)="mostrarUnidadesFila(i)"  
+                  (blur)="guardarUnidadPersonalizada(i, $event)"
+                />
+
+                <ul
+                  *ngIf="unidadesFiltradas[i]?.length && mostrarLista[i]"
+                  class="list-group position-absolute w-100 unidad-list"
+                  style="z-index: 1000; max-height: 150px; overflow-y: auto;"
                 >
-                  <option value="">Seleccione unidad</option>
-                  <option *ngFor="let unidad of unidades" [value]="unidad">
-                    {{ unidadTexto(unidad) }}
-                  </option>
-                </select>
-              </ng-container>
+                  <li
+                    *ngFor="let u of unidadesFiltradas[i]"
+                    class="list-group-item list-group-item-action p-1"
+                    (mousedown)="seleccionarUnidad(i, u)"
+                    style="cursor: pointer;"
+                  >
+                    {{ u }}
+                  </li>
+                </ul>
 
-              <ng-template #verUnidad>
-                <p (click)="mat.get('editarUnidad')?.setValue(true)" class="mb-0" style="cursor: pointer;">
-                  {{ unidadTexto(mat.get('unidad')?.value) }}
-                </p>
-              </ng-template>
+              </div>
             </td>
-
-
-
             <!-- Cantidad -->
             <td>
               <input

@@ -1,4 +1,3 @@
-import { Component, OnInit } from '@angular/core';
 import {
   FormArray,
   FormBuilder,
@@ -17,6 +16,8 @@ import { UNIDADES, unidadTexto } from '../../../models/unidades';
 import { ConfirmacionComponent } from '../../mensajes/confirmacion/confirmacion/confirmacion.component';
 import { OkComponent } from '../../mensajes/ok/ok.component';
 import { ErrorComponent } from '../../mensajes/error/error.component';
+import { FormControl } from '@angular/forms';
+import { Component, OnInit, HostListener } from '@angular/core';
 
 @Component({
   selector: 'app-crear-materiales',
@@ -34,6 +35,7 @@ export class CrearMaterialesComponent implements OnInit {
   apellido = '';
   roles: string[] = [];
   permisos: string[] = [];
+  unidadesUsadas: string[] = [];
 
   unidades = UNIDADES; // importadas del archivo externo
   
@@ -45,6 +47,16 @@ export class CrearMaterialesComponent implements OnInit {
   mensajeConfirmacion = '';
   mensajeExito = '';
   mensajeError = '';
+
+  // Inicializa filtrado por fila
+  unidadesFiltradas: string[][] = [];
+  // Mostrar la lista solo de la fila activa
+  mostrarLista: boolean[] = [];
+
+  descripcionesUsadas: string[] = []; // lista global de descripciones
+  descripcionesFiltradas: string[][] = []; // filtrado por fila
+  mostrarListaDescripcion: boolean[] = []; // mostrar lista por fila
+
   constructor(
     private fb: FormBuilder,
     private servicio: ServiciosService,
@@ -58,10 +70,23 @@ export class CrearMaterialesComponent implements OnInit {
 
   ngOnInit(): void {
     this.recuperarUsuarioLocalStorage();
-
     this.route.queryParams.subscribe((params) => {
       this.id_gasto_operaciones = Number(params['id_gasto_operaciones']) || 0;
       if (this.id_gasto_operaciones) this.cargarMaterialesExistentes();
+    });
+    this.cargarUnidades();
+  }
+  getUnidadControl(index: number): FormControl {
+  return this.materiales.at(index).get('unidad') as FormControl;
+}
+  cargarUnidades(): void {
+    this.servicio.getUnidadesMateriales().subscribe({
+      next: (res) => {
+        this.unidadesUsadas = res || [];
+      },
+      error: (err) => {
+        console.error("Error cargando unidades:", err);
+      },
     });
   }
   formatearNumero(valor: number): string {
@@ -118,57 +143,134 @@ export class CrearMaterialesComponent implements OnInit {
     });
   }
 
-  agregarMaterial(): void {
-    this.materiales.push(this.crearMaterialForm());
-  }
 
-  cargarMaterialesExistentes(): void {
-    this.servicio.getMaterialesIDGasto(this.id_gasto_operaciones).subscribe((materiales) => {
-      this.materiales.clear();
-      materiales.forEach((mat) => {
-        this.materiales.push(this.crearMaterialForm(mat, false));
-      });
+
+
+
+agregarMaterial(): void {
+  this.materiales.push(this.crearMaterialForm());
+  this.unidadesFiltradas.push([...this.unidadesUsadas]);
+  this.mostrarLista.push(false);
+
+  this.descripcionesFiltradas.push([...this.descripcionesUsadas]);
+  this.mostrarListaDescripcion.push(false);
+}
+cargarMaterialesExistentes(): void {
+  this.servicio.getMaterialesIDGasto(this.id_gasto_operaciones).subscribe((materiales) => {
+    this.materiales.clear();
+    this.unidadesFiltradas = [];
+    this.mostrarLista = [];
+    this.descripcionesFiltradas = [];
+    this.mostrarListaDescripcion = [];
+
+    materiales.forEach((mat) => {
+      this.materiales.push(this.crearMaterialForm(mat, false));
+      this.agregarUnidadSiNoExiste(mat.unidad);
+      this.agregarDescripcionSiNoExiste(mat.descripcion);
+
+      this.unidadesFiltradas.push([...this.unidadesUsadas]);
+      this.mostrarLista.push(false);
+
+      this.descripcionesFiltradas.push([...this.descripcionesUsadas]);
+      this.mostrarListaDescripcion.push(false);
     });
+  });
+}
+getDescripcionControl(index: number): FormControl {
+  return this.materiales.at(index).get('descripcion') as FormControl;
+}
+// Agregar descripción si no existe
+private agregarDescripcionSiNoExiste(descripcion: string) {
+  const normalizado = descripcion.trim();
+  if (normalizado && !this.descripcionesUsadas.includes(normalizado)) {
+    this.descripcionesUsadas.push(normalizado);
   }
+}
+
+// Filtrar mientras escribe
+filtrarDescripciones(index: number, event: Event): void {
+  const valor = (event.target as HTMLInputElement).value.toLowerCase();
+  this.descripcionesFiltradas[index] = this.descripcionesUsadas.filter(d =>
+    d.toLowerCase().includes(valor)
+  );
+  this.materiales.at(index).get('descripcion')?.setValue((event.target as HTMLInputElement).value);
+}
+
+// Mostrar todas las descripciones al enfocar
+mostrarTodasDescripciones(index: number): void {
+  this.descripcionesFiltradas[index] = [...this.descripcionesUsadas];
+}
+
+// Mostrar descripciones al hacer focus en la fila
+mostrarDescripcionesFila(index: number): void {
+  this.mostrarListaDescripcion = this.mostrarListaDescripcion.map(() => false);
+  this.mostrarListaDescripcion[index] = true;
+  this.descripcionesFiltradas[index] = [...this.descripcionesUsadas];
+}
+
+// Seleccionar descripción de la lista
+seleccionarDescripcion(index: number, descripcion: string): void {
+  this.materiales.at(index).get('descripcion')?.setValue(descripcion);
+  this.mostrarListaDescripcion[index] = false;
+}
+
+// Guardar nueva descripción al perder focus
+guardarDescripcionPersonalizada(index: number, event: Event): void {
+  const input = event.target as HTMLInputElement;
+  const valor = input.value.trim();
+
+  if (valor) {
+    this.materiales.at(index).get('descripcion')?.setValue(valor);
+    this.agregarDescripcionSiNoExiste(valor);
+  } else {
+    this.materiales.at(index).get('descripcion')?.setValue('');
+  }
+}
+
+
+
 
   // 🔹 CRUD
-  registrarItem(index: number): void {
-    const mat = this.materiales.at(index);
-    if (mat.invalid) {
-      mat.markAllAsTouched();
-      return;
-    }
-
-    const nuevoMaterial: Materiales = this.crearMaterialDesdeForm(mat);
-    this.servicio.createMaterial(nuevoMaterial).subscribe({
-      next: (res: Materiales) => {
-        mat.patchValue({ id: res.id, esNuevo: false, total: res.total });
-        this.actualizarTotalGlobal();
-        this.mensajeExito = 'Material registrado exitosamente.'; // ✅ modal OK
-      },
-      error: () => {
-        this.mensajeError = 'Error al registrar material.'; // ✅ modal Error
-      },
-    });
+registrarItem(index: number): void {
+  const mat = this.materiales.at(index);
+  if (mat.invalid) {
+    mat.markAllAsTouched();
+    return;
   }
 
-  actualizarItem(index: number): void {
-    const mat = this.materiales.at(index);
-    if (mat.invalid || !mat.get('id')?.value) return;
+  const nuevoMaterial: Materiales = this.crearMaterialDesdeForm(mat);
+  this.servicio.createMaterial(nuevoMaterial).subscribe({
+    next: (res: Materiales) => {
+      mat.patchValue({ id: res.id, esNuevo: false, total: res.total });
+      this.actualizarTotalGlobal();
+      this.mensajeExito = 'Material registrado exitosamente.';
 
-    const materialActualizado: Materiales = this.crearMaterialDesdeForm(mat);
-    this.servicio.updateMaterial(materialActualizado).subscribe({
-      next: () => {
-        mat.patchValue({ total: materialActualizado.total });
-        this.actualizarTotalGlobal();
-        this.mensajeExito = 'Material actualizado correctamente.'; // ✅ modal OK
-      },
-      error: () => {
-        this.mensajeError = 'Error al actualizar material.'; // ✅ modal Error
-      },
-    });
-  }
+      this.agregarUnidadSiNoExiste(res.unidad);
+    },
+    error: () => {
+      this.mensajeError = 'Error al registrar material.';
+    },
+  });
+}
 
+actualizarItem(index: number): void {
+  const mat = this.materiales.at(index);
+  if (mat.invalid || !mat.get('id')?.value) return;
+
+  const materialActualizado: Materiales = this.crearMaterialDesdeForm(mat);
+  this.servicio.updateMaterial(materialActualizado).subscribe({
+    next: () => {
+      mat.patchValue({ total: materialActualizado.total });
+      this.actualizarTotalGlobal();
+      this.mensajeExito = 'Material actualizado correctamente.';
+
+      this.agregarUnidadSiNoExiste(materialActualizado.unidad);
+    },
+    error: () => {
+      this.mensajeError = 'Error al actualizar material.';
+    },
+  });
+}
 
   eliminarItem(index: number): void {
     const mat = this.materiales.at(index);
@@ -200,6 +302,89 @@ export class CrearMaterialesComponent implements OnInit {
     const total = this.totalMateriales;
     this.servicio.setTotalMateriales(total);
   }
+// Agregar unidad si no existe
+// Agregar unidad si no existe en la lista global
+private agregarUnidadSiNoExiste(unidad: string) {
+  const normalizado = unidad.trim();
+  if (normalizado && !this.unidadesUsadas.includes(normalizado)) {
+    this.unidadesUsadas.push(normalizado);
+  }
+}
+
+onUnidadChange(index: number, event: Event): void {
+  const select = event.target as HTMLSelectElement;
+  const valor = select.value;
+
+  if (valor !== '__custom__') {
+    this.materiales.at(index).get('unidad')?.setValue(valor);
+  }
+}
+
+
+
+// Filtrar mientras escribe
+filtrarUnidades(index: number, event: Event): void {
+  const valor = (event.target as HTMLInputElement).value.toLowerCase();
+  this.unidadesFiltradas[index] = this.unidadesUsadas.filter(u =>
+    u.toLowerCase().includes(valor)
+  );
+  this.materiales.at(index).get('unidad')?.setValue((event.target as HTMLInputElement).value);
+}
+
+// Mostrar todas las unidades al enfocar
+mostrarTodasUnidades(index: number): void {
+  this.unidadesFiltradas[index] = [...this.unidadesUsadas];
+}
+// Seleccionar unidad de la lista
+// Mostrar la lista solo de la fila activa
+// Mostrar unidades al hacer focus en la fila
+mostrarUnidadesFila(index: number): void {
+  this.mostrarLista = this.mostrarLista.map(() => false); // Oculta otras listas
+  this.mostrarLista[index] = true;
+  this.unidadesFiltradas[index] = [...this.unidadesUsadas]; // Muestra todas
+}
+
+// Seleccionar unidad de la lista
+seleccionarUnidad(index: number, unidad: string): void {
+  this.materiales.at(index).get('unidad')?.setValue(unidad); // ✅ actualiza formControl
+  this.mostrarLista[index] = false;
+}
+// Guardar nueva unidad al perder focus
+
+// Guardar nueva unidad
+// Guardar nueva unidad al perder focus
+guardarUnidadPersonalizada(index: number, event: Event): void {
+  const input = event.target as HTMLInputElement;
+  const valor = input.value.trim();
+
+  if (valor) {
+    this.materiales.at(index).get('unidad')?.setValue(valor);
+    this.agregarUnidadSiNoExiste(valor);
+  } else {
+    this.materiales.at(index).get('unidad')?.setValue('');
+  }
+}
+@HostListener('document:click', ['$event'])
+handleClickOutside(event: Event) {
+  const target = event.target as HTMLElement;
+
+  // Recorremos todos los inputs y listas de unidades/descripciones
+  const listaUnidades = document.querySelectorAll('.unidad-list');
+  const listaDescripciones = document.querySelectorAll('.descripcion-list');
+
+  const esDentroUnidad = Array.from(listaUnidades).some(el => el.contains(target));
+  const esDentroDescripcion = Array.from(listaDescripciones).some(el => el.contains(target));
+  const esInputUnidad = target.classList.contains('input-unidad');
+  const esInputDescripcion = target.classList.contains('input-descripcion');
+
+  if (!esDentroUnidad && !esInputUnidad) {
+    this.mostrarLista = this.mostrarLista.map(() => false);
+  }
+
+  if (!esDentroDescripcion && !esInputDescripcion) {
+    this.mostrarListaDescripcion = this.mostrarListaDescripcion.map(() => false);
+  }
+}
 
   /* mensajes */
   manejarAceptar() {

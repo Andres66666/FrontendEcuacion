@@ -245,6 +245,11 @@ getRolesFromLocalStorage(): string[] {
     return this.http.get<Materiales[]>(`${this.apiUrl}materiales/?id_gasto_operacion=${id_gasto_operacion}`);
   }
 
+  getUnidadesMateriales(): Observable<string[]> {
+    return this.http.get<string[]>(`${this.apiUrl}materiales/unidades/`);
+  }
+
+
   createMaterial(m: Materiales): Observable<Materiales> {
     return this.http.post<Materiales>(`${this.apiUrl}materiales/`, m);
   }

@@ -752,26 +752,28 @@
           <!-- Ajustado dinámicamente: 5 columnas con módulo, 4 sin módulo -->
           <td class="fw-bold text-center">
             {{ formatearNumero(totalGastosOperacionGeneral) }}
-            <button
-              class="btn btn-success btn-sm ms-2 no-export"
-              (click)="enviarTotalesAFactura()"
-              title="Reporte General"
-            >
-              <i class="bi bi-receipt"></i>
-            </button>
+            
           </td>
           <td class="fw-bold text-center">
             {{ formatearNumero(totalValorAgregado) }}
           </td>
           <td colspan="2" class="text-end fw-bold"></td>
           <td class="fw-bold text-center">{{ formatearNumero(total) }}</td>
-          <td class="no-export"></td>
+          <td class="no-export">
+             <button
+              class="btn btn-success btn-sm ms-2 no-export"
+              (click)="enviarTotalesAFactura()"
+              title="Reporte General de Gasto de Operaciones"
+            >
+              <i class="bi bi-receipt"></i> Reporte General
+            </button>
+          </td>
         </tr>
       </tfoot>
     </table>
   </div>
 
-  <p class="text-center text-muted mt-3 fw-bold">Son: {{ totalLiteral }}</p>
+  <p class="text-end text-muted mt-3 fw-bold">Son: {{ totalLiteral }}</p>
 
   <!-- Modal para Asociar/Mover a Módulo (único, actualizado) -->
   <div
