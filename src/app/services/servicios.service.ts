@@ -23,7 +23,9 @@ import {
 })
 export class ServiciosService {
   private apiUrl = environment.apiUrl;
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) {
+     console.log('API URL en servicio:', this.apiUrl);
+  }
 
   login(correo: string, password: string): Observable<any> {
     const loginData = { correo: correo, password: password };
