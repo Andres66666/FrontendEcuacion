@@ -3,17 +3,17 @@
     <div class="card-header bg-primary text-white">
       <h5 class="mb-0"><i class="bi bi-box-seam me-2"></i>1. Materiales</h5>
     </div>
-    
+
     <div class="card-body" formArrayName="materiales">
-     <div class="d-flex justify-content-end no-export">
-       <button
-        type="button"
-        class="btn btn-outline-primary mt-2 mb-3 "
-        (click)="agregarMaterial()"
-      >
-        <i class="bi bi-plus-circle me-1"></i> Añadir Material
-      </button>
-    </div>
+      <div class="d-flex justify-content-end no-export">
+        <button
+          type="button"
+          class="btn btn-outline-primary mt-2 mb-3"
+          (click)="agregarMaterial()"
+        >
+          <i class="bi bi-plus-circle me-1"></i> Añadir Material
+        </button>
+      </div>
       <table class="table table-bordered table-hover align-middle mb-3">
         <thead class="table-light text-center">
           <tr>
@@ -31,38 +31,44 @@
             [formGroupName]="i"
           >
             <!-- Descripción -->
-          <td>
-            <div class="position-relative">
-              <input
-                type="text"
-                class="form-control input-descripcion"
-                placeholder="Ej. Cemento"
-                [formControl]="getDescripcionControl(i)"
-                (input)="filtrarDescripciones(i, $event)"
-                (focus)="mostrarDescripcionesFila(i)"
-                (blur)="guardarDescripcionPersonalizada(i, $event)"
-              />
+            <td>
+              <div class="position-relative">
+                <input
+                  type="text"
+                  class="form-control input-descripcion"
+                  placeholder="Ej. Cemento"
+                  [formControl]="getDescripcionControl(i)"
+                  (input)="filtrarDescripciones(i, $event)"
+                  (focus)="mostrarDescripcionesFila(i)"
+                  (blur)="guardarDescripcionPersonalizada(i, $event)"
+                />
 
-              <ul
-                *ngIf="descripcionesFiltradas[i]?.length && mostrarListaDescripcion[i]"
-                class="list-group position-absolute w-100 descripcion-list"
-                style="z-index: 1000; max-height: 150px; overflow-y: auto;"
-              >
-                <li
-                  *ngFor="let d of descripcionesFiltradas[i]"
-                  class="list-group-item list-group-item-action p-1"
-                  (mousedown)="seleccionarDescripcion(i, d)"
-                  style="cursor: pointer;"
+                <ul
+                  *ngIf="
+                    descripcionesFiltradas[i]?.length &&
+                    mostrarListaDescripcion[i]
+                  "
+                  class="list-group position-absolute w-100 descripcion-list"
+                  style="z-index: 1000; max-height: 150px; overflow-y: auto"
                 >
-                  {{ d }}
-                </li>
-              </ul>
+                  <li
+                    *ngFor="let d of descripcionesFiltradas[i]"
+                    class="list-group-item list-group-item-action p-1"
+                    (mousedown)="seleccionarDescripcion(i, d)"
+                    style="cursor: pointer"
+                  >
+                    {{ d }}
+                  </li>
+                </ul>
 
-              <div *ngIf="mat.get('descripcion')?.errors?.['required']" class="text-danger small">
-                Campo requerido.
+                <div
+                  *ngIf="mat.get('descripcion')?.errors?.['required']"
+                  class="text-danger small"
+                >
+                  Campo requerido.
+                </div>
               </div>
-            </div>
-          </td>
+            </td>
 
             <!-- Unidad -->
             <td>
@@ -73,25 +79,24 @@
                   placeholder="Seleccione o escriba una unidad"
                   [formControl]="getUnidadControl(i)"
                   (input)="filtrarUnidades(i, $event)"
-                  (focus)="mostrarUnidadesFila(i)"  
+                  (focus)="mostrarUnidadesFila(i)"
                   (blur)="guardarUnidadPersonalizada(i, $event)"
                 />
 
                 <ul
                   *ngIf="unidadesFiltradas[i]?.length && mostrarLista[i]"
                   class="list-group position-absolute w-100 unidad-list"
-                  style="z-index: 1000; max-height: 150px; overflow-y: auto;"
+                  style="z-index: 1000; max-height: 150px; overflow-y: auto"
                 >
                   <li
                     *ngFor="let u of unidadesFiltradas[i]"
                     class="list-group-item list-group-item-action p-1"
                     (mousedown)="seleccionarUnidad(i, u)"
-                    style="cursor: pointer;"
+                    style="cursor: pointer"
                   >
                     {{ u }}
                   </li>
                 </ul>
-
               </div>
             </td>
             <!-- Cantidad -->
@@ -112,32 +117,36 @@
                 class="form-control"
                 formControlName="precio_unitario"
                 (keydown)="blockE($event)"
-                (change)="onPrecioUniChange(mat)"
+                (change)="onPrecioUniChange(mat, i)"
               />
             </td>
 
             <!-- Precio Parcial (readonly) -->
             <td>
               <input
-                  type="number"
-                  class="form-control bg-white"
-                  [value]="mat.get('total')?.value"
-                  readonly
-                />
+                type="number"
+                class="form-control bg-white"
+                [value]="mat.get('total')?.value"
+                readonly
+              />
             </td>
 
             <!-- Acción -->
             <td class="text-center no-export">
               <div class="d-flex justify-content-center gap-2">
-                <ng-container *ngIf="mat.get('esNuevo')?.value; else accionesExistente">
-
+                <ng-container
+                  *ngIf="mat.get('esNuevo')?.value; else accionesExistente"
+                >
                   <button
                     class="btn btn-success btn-sm"
                     (click)="registrarItem(i)"
                   >
                     <i class="bi bi-check2-circle me-1"></i> Registrar
                   </button>
-                  <button class="btn btn-danger btn-sm" (click)="eliminarItem(i)">
+                  <button
+                    class="btn btn-danger btn-sm"
+                    (click)="eliminarItem(i)"
+                  >
                     <i class="bi bi-trash"></i> Eliminar
                   </button>
                 </ng-container>
@@ -148,7 +157,10 @@
                   >
                     <i class="bi bi-pencil"></i> Actualizar
                   </button>
-                  <button class="btn btn-danger btn-sm" (click)="eliminarItem(i)">
+                  <button
+                    class="btn btn-danger btn-sm"
+                    (click)="eliminarItem(i)"
+                  >
                     <i class="bi bi-trash"></i> Eliminar
                   </button>
                 </ng-template>
@@ -177,5 +189,13 @@
   (aceptar)="manejarAceptar()"
   (cancelar)="manejarCancelar()"
 ></app-confirmacion>
-<app-ok *ngIf="mensajeExito" [mensaje]="mensajeExito" (close)="manejarOk()"></app-ok>
-<app-error *ngIf="mensajeError" [mensaje]="mensajeError" (close)="manejarError()"></app-error>
+<app-ok
+  *ngIf="mensajeExito"
+  [mensaje]="mensajeExito"
+  (close)="manejarOk()"
+></app-ok>
+<app-error
+  *ngIf="mensajeError"
+  [mensaje]="mensajeError"
+  (close)="manejarError()"
+></app-error>

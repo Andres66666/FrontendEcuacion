@@ -9,12 +9,12 @@ import { ConfirmacionComponent } from '../mensajes/confirmacion/confirmacion/con
 import { OkComponent } from '../mensajes/ok/ok.component';
 import { ErrorComponent } from '../mensajes/error/error.component';
 import { NumeroALetras } from '../../utils/numeroALetras';
-import { UNIDADES, unidadTexto } from '../../models/unidades';
 import { DragDropModule } from '@angular/cdk/drag-drop';
 import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 import { map } from 'rxjs/operators';
 import { ViewChild, ElementRef } from '@angular/core';
 import { forkJoin } from 'rxjs';
+import { ChangeDetectorRef } from '@angular/core';  // Agrega si no está
 
   declare var bootstrap: any;
   interface GastoOperacionExtendido extends Partial<GastoOperacion> {
@@ -59,7 +59,6 @@ export class GastosOperacionesComponent implements OnInit, AfterViewInit  {
   mensajeConfirmacion = '';
   mensajeExito = '';
   mensajeError = '';
-  mostrarLista = false;
   proyectosFiltrados: Proyecto[] = [];
   // 3. PROPIEDADES DE USUARIO LOGUEADO
   // ✅ Usuario logueado
@@ -83,8 +82,6 @@ export class GastosOperacionesComponent implements OnInit, AfterViewInit  {
   // Para ordenamiento
   modulosEnItems: GastoOperacionExtendido[] = [];
   // 5. PROPIEDADES AUXILIARES Y CONSTANTES
-  unidades = UNIDADES;
-  unidadTexto = unidadTexto;  // Propiedad para texto de unidades
   // 6. PROPIEDADES DE MODALES Y REFERENCIAS (ViewChild)
   modalNuevoProyecto: any;
   modalParametros: any;
@@ -93,6 +90,24 @@ export class GastosOperacionesComponent implements OnInit, AfterViewInit  {
   modalMover: any;
   itemIndexAMover: number | null = null;
   nuevaPosicion: number = 1;
+
+  // Para UNIDAD (dinámica de BD: únicas de GastoOperacion, actualiza en tiempo real sin duplicados)
+  unidadesUsadas: string[] = [];  // Lista global de unidades únicas de BD
+  unidadesFiltradas: string[][] = [];  // Filtrado por fila (índice en items)
+  mostrarLista: boolean[] = [];  // Mostrar lista por fila
+
+  // Para DESCRIPCIÓN (dinámica de BD: únicas de GastoOperacion, replicado)
+  descripcionesUsadas: string[] = [];  // Lista global de descripciones únicas de BD
+  descripcionesFiltradas: string[][] = [];  // Filtrado por fila
+  mostrarListaDescripcion: boolean[] = [];  // Mostrar lista por fila
+
+  // Catálogo para descripciones (de BD; opcional para auto-relleno futuro)
+  catalogoGastos: { descripcion: string; ultimo_precio?: number }[] = [];
+
+  // CORREGIDO: Renombrar esta propiedad (era boolean para dropdown de proyectos)
+  mostrarDropdownProyectos: boolean = false;  // ← Nueva propiedad (reemplaza 'mostrarLista = false;')
+  seleccionando: boolean = false;
+  // Mantener (para autocomplete de unidades, array por fila)
 
   // Métodos de ciclo de vida
   ngOnInit(): void {
@@ -111,16 +126,44 @@ export class GastosOperacionesComponent implements OnInit, AfterViewInit  {
     this.modalNuevoProyecto = new bootstrap.Modal(document.getElementById('modalNuevoProyecto'));
     this.modalParametros = new bootstrap.Modal(document.getElementById('modalParametros'));
     this.modalMover = new bootstrap.Modal(document.getElementById('modalMover'));
+    this.cargarUnidadesGasto();  // Carga unidades únicas de BD
+    this.cargarCatalogoGastos();  // Carga descripciones únicas de BD
+  
   }
-  ngAfterViewInit() {
-    this.modalMover = new bootstrap.Modal(document.getElementById('modalMover')!);
-  }
+
+ngAfterViewInit() {
+  this.modalMover = new bootstrap.Modal(document.getElementById('modalMover')!);
+  setTimeout(() => {
+    // Inicializa subs después de DOM listo
+    this.inicializarSubDropdownFinanciero();
+    this.inicializarSubDropdownTipo();  // NUEVO: Para el segundo
+    this.inicializarDropdowns();  // Inicializa principales (excluye subs)
+  }, 150);  // Ajustado para mejor timing
+}
+
+
   //Constructor y Propiedades Iniciales (No son métodos, pero relacionados)
   constructor(
     private router: Router,
     private servicios: ServiciosService,
-    private exportService: ExportService
+    private exportService: ExportService,
+    private cdr: ChangeDetectorRef 
   ) {}
+  inicializarDropdowns() {
+    const dropdownToggleElements = document.querySelectorAll('.dropdown-toggle');
+    dropdownToggleElements.forEach(dropdownToggleEl => {
+      // Excluye sub-toggles (IDs específicos) para inicialización manual separada
+      if (dropdownToggleEl.id === 'dropdownFinanciero' || dropdownToggleEl.id === 'dropdownReportesTipo') {
+        return;  // Salta; se inicializan en métodos específicos
+      }
+      if (!bootstrap.Dropdown.getInstance(dropdownToggleEl)) {
+        new bootstrap.Dropdown(dropdownToggleEl, { autoClose: 'outside' });
+      }
+    });
+
+    console.log('DEBUG: Dropdowns principales de Bootstrap inicializados (subs excluidos).');
+  }
+
   //Métodos de Inicialización y Carga de Datos
   private recuperarUsuarioLocalStorage() {
     const usuarioStr = localStorage.getItem('usuarioLogueado');
@@ -148,12 +191,16 @@ export class GastosOperacionesComponent implements OnInit, AfterViewInit  {
     if (!idGeneral) {
       this.items = [];
       this.modulosEnItems = [];
+      // CORREGIDO: Agregar reset de arrays filtrados si no hay items
+      this.unidadesFiltradas = [];
+      this.mostrarLista = [];
+      this.descripcionesFiltradas = [];
+      this.mostrarListaDescripcion = [];
       return;
     }
     // Cargar módulos primero (ya maneja condicional)
     this.cargarModulos(idGeneral);
-    
-    // Esperar módulos cargados? No, como es async, usa el estado actual (se actualiza en next de getGastoOperacionID)
+
     this.servicios.getGastoOperacionID(idGeneral).subscribe({
       next: (res) => {
         const gastos: GastoOperacionExtendido[] = res.map(item => ({
@@ -162,39 +209,55 @@ export class GastosOperacionesComponent implements OnInit, AfterViewInit  {
           esNuevo: false,
           editarModulo: false,
           editar: false,
-          moduloId: item.modulo?.id ?? null  // Si no hay módulos, será null
+          moduloId: item.modulo?.id ?? null
         }));
-        
-        // Condicional: Si hay módulos, combinar; sino, solo gastos
+
         if (this.modulosEnItems.length > 0) {
           this.items = [...this.modulosEnItems, ...gastos];
         } else {
-          this.items = [...gastos];  // Solo gastos, sin filas de módulos
+          this.items = [...gastos];
         }
-        // Preservar temporales existentes (si el usuario estaba agregando antes de recargar)
         const temporalesExistentes = this.items.filter(item => item.tipo === 'modulo');
         if (temporalesExistentes.length > 0) {
           this.items.push(...temporalesExistentes);
         }
         this.items.forEach(item => {
-            if (!item.id) return;
-            this.servicios.getGastosGenerales(item.id).pipe(
-              map((gastos: GastosGenerales[]) => gastos.length > 0 ? gastos[0].total : 0)
-            ).subscribe(total => {
-              this.totalOperacionPorGasto[item.id!] = total;
-              item.precio_unitario = total;
-              item.precio_literal = NumeroALetras.convertirConDecimal(this.SumaPrecioUnitarioActividad(item));
-            });
+          if (!item.id) return;
+          this.servicios.getGastosGenerales(item.id).pipe(
+            map((gastos: GastosGenerales[]) => gastos.length > 0 ? gastos[0].total : 0)
+          ).subscribe(total => {
+            this.totalOperacionPorGasto[item.id!] = total;
+            item.precio_unitario = total;
+            item.precio_literal = NumeroALetras.convertirConDecimal(this.SumaPrecioUnitarioActividad(item));
+            this.cdr.detectChanges();
           });
+        });
 
-        this.ordenarItemsPorModulos();  // Si no hay módulos, solo ordena gastos (sin agrupación)
+        this.ordenarItemsPorModulos();
+
+        // CORREGIDO: Movido aquí (dentro de next, después de poblar this.items)
+        this.unidadesFiltradas = this.items.map(() => [...this.unidadesUsadas]);
+        this.mostrarLista = this.items.map(() => false);
+        this.descripcionesFiltradas = this.items.map(() => [...this.descripcionesUsadas]);
+        this.mostrarListaDescripcion = this.items.map(() => false);
+
+        this.items.forEach(item => {
+          if (item.unidad) this.agregarUnidadSiNoExiste(item.unidad);
+          if (item.descripcion) this.agregarDescripcionSiNoExiste(item.descripcion);
+        });
       },
       error: (err) => {
         this.mostrarMensaje('error', 'Error al cargar gastos.');
-        this.items = [];  // Reset si error
+        this.items = [];
+        // CORREGIDO: Agregar reset en error
+        this.unidadesFiltradas = [];
+        this.mostrarLista = [];
+        this.descripcionesFiltradas = [];
+        this.mostrarListaDescripcion = [];
       }
     });
   }
+
   cargarModulos(idGeneral: number): void {
     if (!idGeneral) {
       this.modulos = [];
@@ -255,6 +318,8 @@ export class GastosOperacionesComponent implements OnInit, AfterViewInit  {
 
       // 🔹 limpiar localStorage si no hay proyecto
       localStorage.removeItem("ultimoProyectoSeleccionado");
+      console.log('DEBUG: Proyecto deseleccionado - Items reset a []');  // Log temporal
+      this.cdr.detectChanges();
       return;
     }
 
@@ -279,6 +344,15 @@ export class GastosOperacionesComponent implements OnInit, AfterViewInit  {
     this.cargarGastos(this.identificadorGeneral);
     this.cargarModulos(this.identificadorGeneral);  // Nuevo: cargar módulos
     localStorage.setItem("ultimoProyectoSeleccionado", JSON.stringify(proyecto));
+
+    // Al final, después de this.cargarGastos(this.identificadorGeneral); y this.cargarModulos(...):
+    console.log('DEBUG: Proyecto asignado ID =', proyecto.id_general, 'Nombre =', proyecto.NombreProyecto);
+    console.log('DEBUG: Iniciando carga de gastos y módulos...');  // Log temporal
+    // Fuerza detección de cambios después de async (opcional, pero ayuda con timing)
+    setTimeout(() => {
+      this.cdr.detectChanges();
+      console.log('DEBUG: Change detection forzada después de asignar proyecto');
+    }, 100);  // Pequeño delay para async
   }
   //  Métodos de Proyectos (CRUD y Gestión)
   onProyectoSeleccionado(): void {
@@ -562,9 +636,10 @@ export class GastosOperacionesComponent implements OnInit, AfterViewInit  {
   seleccionarProyecto(proyecto: Proyecto): void {
     this.nombreProyecto = proyecto.NombreProyecto; // Esto mantiene el nombre en el input
     this.asignarProyecto(proyecto);
-    this.mostrarLista = false; // cerrar dropdown
+    this.mostrarDropdownProyectos = false; // CORREGIDO: Usa nueva propiedad (cierra dropdown)
   }
-  focusInput() { this.proyectosFiltrados = [...this.listaProyectos]; this.mostrarLista = true; }
+
+  focusInput() { this.proyectosFiltrados = [...this.listaProyectos]; this.mostrarDropdownProyectos = true; }
 
  /// /* Métodos de Módulos (CRUD y Gestión) */
   agregarModulo(): void {
@@ -735,7 +810,7 @@ export class GastosOperacionesComponent implements OnInit, AfterViewInit  {
   agregarItem(): void {
     if (!this.identificadorGeneral) {
       this.mostrarMensaje('error', 'Selecciona o registra un proyecto primero para agregar ítems.');
-      this.abrirModalParametros(false);  // Opcional: Abre modal para crear proyecto
+      this.abrirModalParametros(false);
       return;
     }
     this.items.push({
@@ -745,62 +820,80 @@ export class GastosOperacionesComponent implements OnInit, AfterViewInit  {
       precio_unitario: 0,
       precio_literal: '',
       esNuevo: true,
-      editarModulo: true,  // Editable por defecto para nuevos
-      editarUnidad: true,  // Inicializa edición de unidad
-      tipo: 'gasto',  // Tipo explícito para nuevo gasto
+      editarModulo: true,
+      editarUnidad: true,
+      tipo: 'gasto',
       modulo: null,
       moduloId: null
     });
-    this.ordenarItemsPorModulos();  // Reagrupar inmediatamente (agrega al final si no hay módulos)
+    this.ordenarItemsPorModulos();
+
+    // CORREGIDO: Esto está bien (inicializa para nueva fila)
+    this.unidadesFiltradas.push([...this.unidadesUsadas]);
+    this.mostrarLista.push(false);
+    this.descripcionesFiltradas.push([...this.descripcionesUsadas]);
+    this.mostrarListaDescripcion.push(false);
   }
+
     // Método corregido: registrarItem (usa modulo_id)
-  registrarItem(index: number): void {
-    const item = this.items[index];
-    if (!this.identificadorGeneral) {
-      this.mostrarMensaje('error', 'Selecciona un proyecto primero.');
-      return;
-    }
-    const payload: Partial<GastoOperacion> & { modulo_id?: number | null } = {
-      ...item,
-      identificador: {
-        ...this.proyectoData,
-        id_general: this.identificadorGeneral,
-        NombreProyecto: this.nombreProyecto?.trim() ?? ''
-      } as Proyecto,
-      modulo_id: item.moduloId ?? null,  // Usa ID (number | null)
-      creado_por: this.usuario_id,
-      modificado_por: this.usuario_id
-    };
-    delete payload.modulo;  // Evita conflicto
-    this.servicios.createGastoOperacion([payload]).subscribe({
-      next: (res) => {
-        const nuevoItem = { ...res.gastos[0], esNuevo: false, editarModulo: false, moduloId: res.gastos[0].modulo?.id ?? null };
-        this.items[index] = nuevoItem;
-        this.identificadorGeneral = res.identificador_general;
-        this.mostrarMensaje('exito', 'Ítem registrado correctamente.');
-      },
-      error: (err) => this.mostrarMensaje('error', 'Error al registrar el ítem: ' + (err.error?.error || 'Verifica los datos enviados'))
-    });
+ registrarItem(index: number): void {
+  const item = this.items[index];
+  if (!this.identificadorGeneral) {
+    this.mostrarMensaje('error', 'Selecciona un proyecto primero.');
+    return;
   }
+  const payload: Partial<GastoOperacion> & { modulo_id?: number | null } = {
+    ...item,
+    identificador: {
+      ...this.proyectoData,
+      id_general: this.identificadorGeneral,
+      NombreProyecto: this.nombreProyecto?.trim() ?? ''
+    } as Proyecto,
+    modulo_id: item.moduloId ?? null,
+    creado_por: this.usuario_id,
+    modificado_por: this.usuario_id
+  };
+  delete payload.modulo;
+  this.servicios.createGastoOperacion([payload]).subscribe({
+    next: (res) => {
+      const nuevoItem = { ...res.gastos[0], esNuevo: false, editarModulo: false, moduloId: res.gastos[0].modulo?.id ?? null };
+      this.items[index] = nuevoItem;
+      this.identificadorGeneral = res.identificador_general;
+      this.mostrarMensaje('exito', 'Ítem registrado correctamente.');
+
+      // CORREGIDO: Movido dentro de next (usa 'res' correctamente)
+      if (res.gastos[0].unidad) this.agregarUnidadSiNoExiste(res.gastos[0].unidad);
+      if (res.gastos[0].descripcion) this.agregarDescripcionSiNoExiste(res.gastos[0].descripcion);
+    },
+    error: (err) => this.mostrarMensaje('error', 'Error al registrar el ítem: ' + (err.error?.error || 'Verifica los datos enviados'))
+  });
+}
+
   actualizarItem(index: number): void {
     const item = this.items[index];
     const payload: Partial<GastoOperacion> & { modulo_id?: number | null } = {
       ...item,
       cantidad: Number(item.cantidad),
       precio_unitario: Number(item.precio_unitario),
-      modulo_id: item.moduloId ?? null,  // Usa ID (number | null)
+      modulo_id: item.moduloId ?? null,
       modificado_por: this.usuario_id,
-      id: item.id  // Para update
+      id: item.id
     };
-    delete payload.modulo;  // Evita conflicto
+    delete payload.modulo;
     this.servicios.updateGastoOperacion(payload).subscribe({
       next: (updatedItem) => {
         this.items[index] = { ...item, ...updatedItem, esNuevo: false, editarModulo: false, moduloId: updatedItem.modulo?.id ?? null };
         this.mostrarMensaje('exito', 'Ítem actualizado correctamente.');
+
+        // CORREGIDO: Agregar verificación de cambio y actualización de listas (tiempo real, no duplicados)
+        if (updatedItem.unidad && updatedItem.unidad !== item.unidad) this.agregarUnidadSiNoExiste(updatedItem.unidad);
+        if (updatedItem.descripcion && updatedItem.descripcion !== item.descripcion) this.agregarDescripcionSiNoExiste(updatedItem.descripcion);
+        this.cdr.detectChanges(); 
       },
       error: (err) => this.mostrarMensaje('error', 'Error al actualizar el ítem: ' + (err.error?.error || 'Verifica los datos enviados'))
     });
   }
+
   eliminarItem(index: number): void {
     const item = this.items[index];
     if (!item.id) {  // Ítem nuevo/no guardado: Remover local
@@ -833,7 +926,7 @@ export class GastosOperacionesComponent implements OnInit, AfterViewInit  {
     this.servicios.updateGastoOperacion(payload).subscribe({
       next: (updatedItem) => {
         this.items[index] = { ...item, ...updatedItem, esNuevo: false, editarModulo: false, moduloId: updatedItem.modulo?.id ?? null };
-        this.mostrarMensaje('exito', 'Ítem actualizado en tiempo real.');
+        
       },
       error: (err) => this.mostrarMensaje('error', 'Error al actualizar ítem: ' + (err.error?.error || 'Intente de nuevo'))
     });
@@ -960,11 +1053,15 @@ export class GastosOperacionesComponent implements OnInit, AfterViewInit  {
     // Cerrar modal
     this.modalMover.hide();
   }
-  @HostListener('document:click', ['$event'])
-  clickFuera(event: Event) {
-    const target = event.target as HTMLElement;
-    if (!target.closest('.mb-3')) this.mostrarLista = false;
+@HostListener('document:click', ['$event'])
+clickFuera(event: Event): void {
+  const target = event.target as HTMLElement;
+  // CORREGIDO: Selector preciso con '.proyecto-dropdown' (clase del contenedor; cierra si click FUERA de él)
+  if (!target.closest('.proyecto-dropdown')) {
+    this.mostrarDropdownProyectos = false;  // Cierra dropdown en cualquier otro espacio
   }
+}
+
 
   ///* Métodos de Confirmación y Mensajes */
   confirmarEliminacion(): void {
@@ -1005,6 +1102,12 @@ export class GastosOperacionesComponent implements OnInit, AfterViewInit  {
       this.ordenarItemsPorModulos();
       this.items = [...this.items];
     }
+    // Re-inicializa filtrados para mantener sincronía con items restantes
+    this.unidadesFiltradas = this.items.map(() => [...this.unidadesUsadas]);
+    this.mostrarLista = this.items.map(() => false);
+    this.descripcionesFiltradas = this.items.map(() => [...this.descripcionesUsadas]);
+    this.mostrarListaDescripcion = this.items.map(() => false);
+    
   }
   manejarAceptar() {
     this.mostrarConfirmacion = false;
@@ -1101,25 +1204,41 @@ export class GastosOperacionesComponent implements OnInit, AfterViewInit  {
     // Retorna true si hay al menos un gasto sin módulo asignado
     return this.items.some(item => item.tipo === 'gasto' && (!item.moduloId || item.moduloId === null));
   }
-  get total(): number {
-    return this.items.reduce((acc, item) => acc + this.MultiplicacionPrecioUnitarioActividadPORcantidad(item), 0);
-  }
+  
   get totalLiteral(): string {
     return NumeroALetras.convertirConDecimal(this.total);
   }
-
-  get totalGastosOperacionGeneral(): number {
-  return this.items
-    .filter(item => item.tipo === 'gasto')  // ← NUEVO: Filtra solo gastos (ignora módulos y temporales)
-    .reduce((acc, item) => acc + this.toNum(item.precio_unitario), 0);  // Suma simple de precio_unitario
-  }
-
-  get totalValorAgregado(): number {  
+/*   get totalGastosOperacionGeneral(): number {
     return this.items
-       .filter(item => item.tipo === 'gasto')
-       .reduce((acc, item) => acc + this.toNum(this.getValorAgregado(item)), 0);  // ← Agrega toNum aquí
-   }
-   
+      .filter(item => item.tipo === 'gasto')  // Filtra solo gastos (ignora módulos y temporales)
+      .reduce((acc, item) => acc + this.toNum(item.precio_unitario), 0);  // Suma simple de precio_unitario (unitario)
+  }
+  get totalValorAgregado(): number {  
+  return this.items
+    .filter(item => item.tipo === 'gasto')
+    .reduce((acc, item) => acc + this.toNum(this.getValorAgregado(item)), 0);  // Suma de getValorAgregado (unitario)
+  }
+  get total(): number {
+    return this.items.reduce((acc, item) => acc + this.MultiplicacionPrecioUnitarioActividadPORcantidad(item), 0);
+  } */
+get totalGastosOperacionGeneral(): number {
+  return this.items
+    .filter(item => item.tipo === 'gasto' && item.id && this.toNum(item.precio_unitario) > 0)  // ← MEJORA: Filtra válidos
+    .reduce((acc, item) => acc + this.toNum(item.precio_unitario), 0);
+}
+
+get totalValorAgregado(): number {  
+  return this.items
+    .filter(item => item.tipo === 'gasto' && item.id && this.toNum(item.precio_unitario) > 0)  // ← MEJORA
+    .reduce((acc, item) => acc + this.getValorAgregado(item), 0);
+}
+
+get total(): number {
+  return this.items
+    .filter(item => item.tipo === 'gasto' && item.id)  // ← MEJORA: Ignora temporales
+    .reduce((acc, item) => acc + this.MultiplicacionPrecioUnitarioActividadPORcantidad(item), 0);
+}
+
   getCostoVenta(item: GastoOperacionExtendido): number {
     const precio = this.toNum(item.precio_unitario);
     const ivaNominal = this.toNum(this.proyectoData.iva_tasa_nominal);
@@ -1218,8 +1337,62 @@ export class GastosOperacionesComponent implements OnInit, AfterViewInit  {
     };
     this.router.navigate(['panel-control/PrecioFactura'], { queryParams: params });
   }
-  exportPDF() { this.exportService.generatePDF('contentToExport', 'factura.pdf'); }
-  exportWORD() { this.exportService.generateWord('contentToExport', 'factura.docx'); }
+  exportPDFFactura() {this.exportService.generatePDF('contentToExport', 'factura.pdf');}
+
+  // Getter para obtener solo gastos registrados (tipo 'gasto' con id)
+  getGastosRegistrados(): GastoOperacionExtendido[] {
+    const todosGastos = this.items.filter(item => item.tipo === 'gasto');
+    const conId = todosGastos.filter(item => !!item.id);
+    if (conId.length === 0) {
+      console.log('DEBUG: getGastosRegistrados vacío. Verifica: proyecto seleccionado?', !!this.identificadorGeneral, 'Items total:', this.items.length);
+    }
+    return conId.sort((a, b) => (a.id! > b.id!) ? 1 : -1);
+  }
+
+  obtenerNumeroParaGasto(indice: number): number {
+    return indice + 1;  // Simple: 1, 2, 3... para la lista filtrada de gastos
+  }   
+  // Nuevo método: Genera reporte financiero PDF para un gasto específico
+  generarReporteFinanciero(item: GastoOperacionExtendido): void {
+    if (!item.id || !this.identificadorGeneral || !this.nombreProyecto) {
+      this.mostrarMensaje('error', 'No se puede generar el reporte: Gasto o proyecto no válido.');
+      return;
+    }
+    // Preparar params con datos del gasto y parámetros del proyecto
+    const params = {
+      // Datos del gasto
+      id_gasto_operaciones: item.id,
+      descripcion: item.descripcion || 'Sin descripción',
+      precio_unitario: Number(item.precio_unitario) || 0,
+      unidad: item.unidad || 'N/A',
+      cantidad: Number(item.cantidad) || 0,
+      // Parámetros del proyecto (de propiedades locales)
+      identificadorGeneral: this.identificadorGeneral,
+      iva_tasa_nominal: this.iva_tasa_nominal || 0,
+      it: this.it || 0,
+      iue: this.iue || 0,
+      ganancia: this.ganancia || 0,
+      a_costo_venta: this.a_costo_venta || 0,
+      b_margen_utilidad: this.b_margen_utilidad || 0,
+      porcentaje_global_100: this.porcentaje_global_100 || 100,
+      // Info adicional para el reporte
+      nombreProyecto: this.nombreProyecto,
+      fechaReporte: new Date().toLocaleDateString('es-BO')
+    };
+    // Generar filename único
+    const safeDescripcion = (item.descripcion || 'gasto').replace(/[^a-zA-Z0-9]/g, '_').substring(0, 20);
+    const fileName = `reporte-financiero-${this.nombreProyecto.replace(/[^a-zA-Z0-9]/g, '_')}-${safeDescripcion}.pdf`;
+    // Llamar al servicio para generar PDF
+    this.exportService.generatePDFFinanciero(params, fileName)
+      .then(() => {
+        this.mostrarMensaje('exito', `Reporte financiero generado para "${item.descripcion}".`);
+        console.log(`PDF generado para gasto ID: ${item.id}, Descripción: ${item.descripcion}`);
+      })
+      .catch((error) => {
+        console.error('Error generando PDF financiero:', error);
+        this.mostrarMensaje('error', 'Error al generar el reporte financiero. Ver consola.');
+      });
+  }
 
   // /* Métodos de Validación y Utilidades */
   toNum(valor: any): number {
@@ -1251,19 +1424,348 @@ export class GastosOperacionesComponent implements OnInit, AfterViewInit  {
     if (item.precio_unitario != undefined) {
       item.precio_literal = NumeroALetras.convertirConDecimal(this.SumaPrecioUnitarioActividad(item));
     }
+    this.cdr.detectChanges();  // ← NUEVO: Re-renderiza tabla después de cambios
   }
 
-// FINAL ORDEN
-
+  // FINAL ORDEN
   // /* METODO ELIMINAR PROYECTO */
   eliminarProyecto(): void {
     if (!this.identificadorGeneral) {
       this.mostrarModalError('Selecciona un proyecto para eliminar.');
       return;
     }
-
     this.mensajeConfirmacion = '¿Seguro que deseas eliminar este proyecto y todos sus registros asociados?';
     this.tipoConfirmacion = 'proyecto';
     this.mostrarConfirmacion = true;
   }
+  // Cargar unidades únicas de BD (GastoOperacion; llamado en ngOnInit)
+  cargarUnidadesGasto(): void {
+    this.servicios.getUnidadesGastoOperacion().subscribe({
+      next: (res: string[]) => {
+        this.unidadesUsadas = res || [];  // Unidades únicas ordenadas de BD
+      },
+      error: (err: any) => {
+        console.error("Error cargando unidades de gastos desde BD:", err);
+      },
+    });
+  }
+  // Cargar catálogo de descripciones únicas de BD (llamado en ngOnInit; replicado)
+  private cargarCatalogoGastos(): void {
+    this.servicios.getGastosOperacion().subscribe({
+      next: (gastos: GastoOperacion[]) => {
+        this.catalogoGastos = gastos.map(g => ({
+          descripcion: g.descripcion.trim(),
+          ultimo_precio: g.precio_unitario || 0  // Si aplica; omite si no
+        }));
+        this.descripcionesUsadas = [...new Set(gastos.map(g => g.descripcion.trim()))];  // Únicas de BD
+      },
+      error: (err: any) => {
+        console.error("Error cargando catálogo de gastos desde BD:", err);
+      }
+    });
+  }
+
+  // Agregar unidad si no existe (evita duplicados; llamado en blur/registro)
+  private agregarUnidadSiNoExiste(unidad: string): void {
+    const normalizado = unidad.trim();
+    if (normalizado && !this.unidadesUsadas.includes(normalizado)) {
+      this.unidadesUsadas.push(normalizado);  // Agrega solo si nueva (no duplicado)
+      this.unidadesUsadas.sort();  // Ordena alfabéticamente para UI
+    }
+  }
+
+  // Agregar descripción si no existe (replicado; evita duplicados)
+  private agregarDescripcionSiNoExiste(descripcion: string): void {
+    const normalizado = descripcion.trim();
+    if (normalizado && !this.descripcionesUsadas.includes(normalizado)) {
+      this.descripcionesUsadas.push(normalizado);
+      this.descripcionesUsadas.sort();  // Ordena para UI
+    }
+  }
+
+  // HostListener para cerrar listas al click fuera (replicado; reemplaza tu clickFuera)
+  @HostListener('document:click', ['$event'])
+  handleClickOutside(event: Event): void {
+    const target = event.target as HTMLElement;
+    // Lógica existente para autocomplete de unidades/descripciones (mantén igual)
+    const listaUnidades = document.querySelectorAll('.unidad-list');
+    const listaDescripciones = document.querySelectorAll('.descripcion-list');
+    const esDentroUnidad = Array.from(listaUnidades).some(el => el.contains(target));
+    const esDentroDescripcion = Array.from(listaDescripciones).some(el => el.contains(target));
+    const esInputUnidad = target.classList.contains('input-unidad');
+    const esInputDescripcion = target.classList.contains('input-descripcion');
+    if (!esDentroUnidad && !esInputUnidad && !this.seleccionando) {
+      this.mostrarLista = this.mostrarLista.map(() => false);
+    }
+    if (!esDentroDescripcion && !esInputDescripcion && !this.seleccionando) {
+      this.mostrarListaDescripcion = this.mostrarListaDescripcion.map(() => false);
+    }
+    // NUEVA LÓGICA: Para cerrar dropdown de proyectos al click FUERA (unificado aquí para evitar conflictos)
+    // CORREGIDO: Selector preciso con '.proyecto-dropdown' (clase del contenedor en HTML)
+    if (!target.closest('.proyecto-dropdown')) {
+      console.log('Click fuera del dropdown de proyectos - cerrando lista');  // TEMPORAL: Debug (ver en consola F12; remueve después)
+      this.mostrarDropdownProyectos = false;  // Cierra en cualquier otro espacio de la pantalla
+    } else {
+      console.log('Click dentro del dropdown de proyectos - no cerrando');  // TEMPORAL: Debug (remueve después)
+    }
+  }
+  // === MÉTODOS PARA DESCRIPCIÓN (replicados, dinámica de BD) ===
+  filtrarDescripciones(index: number, event: Event): void {
+    const valor = (event.target as HTMLInputElement).value.toLowerCase();
+    this.descripcionesFiltradas[index] = this.descripcionesUsadas.filter(d =>
+      d.toLowerCase().includes(valor)
+    );
+    this.items[index].descripcion = (event.target as HTMLInputElement).value;
+  }
+
+  mostrarDescripcionesFila(index: number): void {
+    this.mostrarListaDescripcion = this.mostrarListaDescripcion.map(() => false);
+    this.mostrarListaDescripcion[index] = true;
+    this.descripcionesFiltradas[index] = [...this.descripcionesUsadas];
+  }
+
+  seleccionarDescripcion(index: number, descripcion: string): void {
+    this.items[index].descripcion = descripcion;
+
+    // Opcional: Auto-rellenar si hay catálogo (adapta si precio es editable)
+    const gasto = this.catalogoGastos.find(g => g.descripcion === descripcion);
+    if (gasto && this.items[index].precio_unitario === undefined) {
+      this.items[index].precio_unitario = gasto.ultimo_precio;
+      this.onPrecioUnitarioChange(index);
+    }
+
+    this.mostrarListaDescripcion[index] = false;
+  }
+
+  guardarDescripcionPersonalizada(index: number, event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const valor = input.value.trim();
+
+    if (valor) {
+      this.items[index].descripcion = valor;
+      this.agregarDescripcionSiNoExiste(valor);  // Agrega si nueva (no duplicado)
+    } else {
+      this.items[index].descripcion = '';
+    }
+  }
+
+  // === MÉTODOS PARA UNIDAD (replicados, dinámica de BD + tiempo real sin duplicados) ===
+  filtrarUnidades(index: number, event: Event): void {
+    const valor = (event.target as HTMLInputElement).value.toLowerCase();
+    this.unidadesFiltradas[index] = this.unidadesUsadas.filter(u => u.toLowerCase().includes(valor));
+    this.items[index].unidad = (event.target as HTMLInputElement).value;
+  }
+
+
+  mostrarUnidadesFila(index: number): void {
+    this.seleccionando = false;  // CORREGIDO: Reset flag al mostrar lista
+
+    this.mostrarLista = this.mostrarLista.map(() => false);  // Cierra otras
+    this.mostrarLista[index] = true;
+    this.unidadesFiltradas[index] = [...this.unidadesUsadas];
+  }
+
+
+  seleccionarUnidad(index: number, unidad: string): void {
+    this.seleccionando = true;  // CORREGIDO: Previene cierre por blur durante selección
+
+    const item = this.items[index];
+    item.unidad = unidad;  // Actualiza el valor en el item (se refleja en input por ngModel)
+
+    // Opcional: Si el item ya está registrado, actualiza en BD en tiempo real
+    if (item.id && !item.esNuevo) {
+      this.actualizarItemEnTiempoReal(item);
+    }
+
+    // Cierra la lista con timeout (después de blur)
+    setTimeout(() => {
+      this.mostrarLista[index] = false;
+      this.seleccionando = false;  // Reset flag
+    }, 100);  // 100ms suficiente para que blur no interfiera
+  }
+  guardarUnidadPersonalizada(index: number, event: Event): void {
+    if (this.seleccionando) return;  // CORREGIDO: Ignora si viene de selección (previene sobrescritura)
+
+    const input = event.target as HTMLInputElement;
+    const valor = input.value.trim();
+
+    if (valor) {
+      this.items[index].unidad = valor;
+      this.agregarUnidadSiNoExiste(valor);  // Agrega si nueva (no duplicado, tiempo real)
+    } else {
+      this.items[index].unidad = '';
+    }
+  }
+  // AGREGAR: Al final de la clase GastosOperacionesComponent (después de métodos existentes)
+  generarPDFMaterialesProyecto(): void {
+    if (!this.identificadorGeneral || !this.nombreProyecto) {
+      this.mostrarMensaje('error', 'Selecciona un proyecto primero para generar el PDF.');
+      return;
+    }
+    // Llama al servicio (usa propiedades privadas internamente; no expone en HTML)
+    this.exportService.generatePDFMaterialesProyecto(this.identificadorGeneral, this.nombreProyecto);
+  }
+  generatePDFManoDeObraProyecto(): void {
+    if (!this.identificadorGeneral || !this.nombreProyecto) {
+      this.mostrarMensaje('error', 'Selecciona un proyecto primero para generar el PDF.');
+      return;
+    }
+    // Llama al servicio (usa propiedades privadas internamente; no expone en HTML)
+    this.exportService.generatePDFManoDeObraProyecto(this.identificadorGeneral, this.nombreProyecto);
+  }
+  generatePDFEquipoHerramientaProyecto(): void {
+    if (!this.identificadorGeneral || !this.nombreProyecto) {
+      this.mostrarMensaje('error', 'Selecciona un proyecto primero para generar el PDF.');
+      return;
+    }
+    // Llama al servicio (usa propiedades privadas internamente; no expone en HTML)
+    this.exportService.generatePDFEquipoHerramientaProyecto(this.identificadorGeneral, this.nombreProyecto);
+  }
+  private inicializarSubDropdownFinanciero(): void {
+    const trigger = document.getElementById('dropdownFinanciero') as HTMLElement;
+    const subMenu = trigger?.parentElement?.querySelector('ul.dropdown-menu') as HTMLElement;
+
+    if (!trigger || !subMenu) {
+      console.warn('DEBUG: No se encontró el trigger o sub-menú de Financiero. Verifica ID en HTML.');
+      return;
+    }
+
+    console.log('DEBUG: Inicializando sub-dropdown Financiero (solo clicks, sin hover). Trigger:', trigger);
+
+    // Inicializar Bootstrap dropdown (usa data-bs-toggle para clicks automáticos)
+    if (!bootstrap.Dropdown.getInstance(trigger)) {
+      new bootstrap.Dropdown(trigger, {
+        autoClose: 'outside',
+        boundary: 'viewport',
+        popper: false  // Desactiva popper para anidados simples
+      });
+    }
+
+    // Listener global para cierre al click fuera (específico para este sub-menú)
+    const globalClickHandler = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (subMenu.classList.contains('show') && !trigger.contains(target) && !subMenu.contains(target)) {
+        const dropdown = bootstrap.Dropdown.getInstance(trigger);
+        if (dropdown) {
+          dropdown.hide();
+        } else {
+          subMenu.classList.remove('show');
+          trigger.setAttribute('aria-expanded', 'false');
+        }
+        console.log('DEBUG: Sub-menú Financiero cerrado por click fuera.');
+      }
+    };
+
+    // Remover listener global previo si existe (evita duplicados)
+    if ((document as any)._financieroGlobalClick) {
+      document.removeEventListener('click', (document as any)._financieroGlobalClick);
+    }
+    document.addEventListener('click', globalClickHandler);
+    (document as any)._financieroGlobalClick = globalClickHandler;
+
+    console.log('DEBUG: Sub-dropdown Financiero inicializado (solo clicks via Bootstrap).');
+  }
+  private inicializarSubDropdownTipo(): void {
+    const trigger = document.getElementById('dropdownReportesTipo') as HTMLElement;
+    const subMenu = trigger?.parentElement?.querySelector('ul.dropdown-menu') as HTMLElement;
+
+    if (!trigger || !subMenu) {
+      console.warn('DEBUG: No se encontró el trigger o sub-menú de Tipo. Verifica ID en HTML.');
+      return;
+    }
+
+    console.log('DEBUG: Inicializando sub-dropdown Tipo (solo clicks, sin hover). Trigger:', trigger);
+
+    // Inicializar Bootstrap dropdown (usa data-bs-toggle para clicks automáticos)
+    if (!bootstrap.Dropdown.getInstance(trigger)) {
+      new bootstrap.Dropdown(trigger, {
+        autoClose: 'outside',
+        boundary: 'viewport',
+        popper: false  // Desactiva popper para anidados simples
+      });
+    }
+
+    // Listener global para cierre al click fuera (específico para este sub-menú)
+    const globalClickHandler = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (subMenu.classList.contains('show') && !trigger.contains(target) && !subMenu.contains(target)) {
+        const dropdown = bootstrap.Dropdown.getInstance(trigger);
+        if (dropdown) {
+          dropdown.hide();
+        } else {
+          subMenu.classList.remove('show');
+          trigger.setAttribute('aria-expanded', 'false');
+        }
+        console.log('DEBUG: Sub-menú Tipo cerrado por click fuera.');
+      }
+    };
+
+    // Remover listener global previo si existe
+    if ((document as any)._tipoGlobalClick) {
+      document.removeEventListener('click', (document as any)._tipoGlobalClick);
+    }
+    document.addEventListener('click', globalClickHandler);
+    (document as any)._tipoGlobalClick = globalClickHandler;
+
+    console.log('DEBUG: Sub-dropdown Tipo inicializado (solo clicks via Bootstrap).');
+  }
+  generarReporteGeneralPDF(): void {
+    if (!this.identificadorGeneral || !this.nombreProyecto) {
+      this.mostrarMensaje('error', 'Selecciona un proyecto válido para generar el reporte general.');
+      return;
+    }
+    const params: any = {
+      identificadorGeneral: this.identificadorGeneral,
+      nombreProyecto: this.nombreProyecto,
+      
+      // Totales consolidados (ahora consistentes con cantidades)
+      totalGastosOperacion: this.totalGastosOperacionGeneral,
+      totalValorAgregado: this.totalValorAgregado,
+      totalFactura: this.total,
+      // Parámetros de tasas e impuestos
+      iva_tasa_nominal: this.iva_tasa_nominal || 0,
+      it: this.it || 0,
+      iue: this.iue || 0,
+      ganancia: this.ganancia || 0,
+      a_costo_venta: this.a_costo_venta || 0,
+      b_margen_utilidad: this.b_margen_utilidad || 0,
+      porcentaje_global_100: this.porcentaje_global_100 || 100,
+      // Info adicional para reporte
+      fechaReporte: new Date().toLocaleDateString('es-BO')
+    };
+    const fileName = `Reporte_General_${this.nombreProyecto.replace(/[^a-zA-Z0-9]/g, '_')}_${this.identificadorGeneral}.pdf`;
+    // Llamada async con manejo de errores
+    this.exportService.generatePDFReporteGeneral(params, fileName)
+      .then(() => {
+        this.mostrarMensaje('exito', `Reporte general PDF generado para "${this.nombreProyecto}".`);
+        console.log(`PDF generado: ${fileName}`);
+      })
+      .catch(error => {
+        console.error('Error al generar el PDF de Reporte General:', error);
+        this.mostrarMensaje('error', 'Error al generar el reporte general. Ver consola para detalles.');
+      });
+  }
+  // Nuevo método: Genera PDF de Gastos de Operación por Módulos (wrapper para el servicio)
+  generatePDFGastosOperacionProyecto(): void {
+    if (!this.identificadorGeneral || !this.nombreProyecto) {
+      this.mostrarMensaje('error', 'Selecciona un proyecto primero para generar el PDF.');
+      return;
+    }
+    // Llama al servicio (usa propiedades privadas internamente; no expone en HTML)
+    this.exportService.generatePDFGastosOperacionProyecto(this.identificadorGeneral, this.nombreProyecto)
+      .then(() => {
+        this.mostrarMensaje('exito', `PDF de Gastos de Operación generado para "${this.nombreProyecto}".`);
+        console.log(`PDF generado: reporte-gastos-operacion-modulos_${this.nombreProyecto}_${this.identificadorGeneral}.pdf`);
+      })
+      .catch((error) => {
+        console.error('Error generando PDF de Gastos de Operación:', error);
+        this.mostrarMensaje('error', 'Error al generar el PDF. Ver consola para detalles.');
+      });
+  }
+  // Actualizado: Usa el wrapper para generar PDF específico de Gastos de Operación
+  exportPDFGeneral(): void {
+    this.generatePDFGastosOperacionProyecto();  // ← Llama al wrapper (reutiliza validación y mensajes)
+  }
+
+
 }

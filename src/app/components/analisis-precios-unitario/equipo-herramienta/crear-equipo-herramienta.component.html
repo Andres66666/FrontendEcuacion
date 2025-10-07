@@ -33,98 +33,150 @@
             *ngFor="let eq of equipos.controls; let i = index"
             [formGroupName]="i"
           >
-            <!-- Descripción -->
+            <!-- Descripción (replicado exactamente: autocomplete con lista y auto-precio) -->
+            <td>
+              <div class="position-relative">
+                <input
+                  type="text"
+                  class="form-control input-descripcion"
+                  placeholder="Ej. Excavadora"
+                  [formControl]="getDescripcionControl(i)"
+                  (input)="filtrarDescripciones(i, $event)"
+                  (focus)="mostrarDescripcionesFila(i)"
+                  (blur)="guardarDescripcionPersonalizada(i, $event)"
+                />
+
+                <ul
+                  *ngIf="
+                    descripcionesFiltradas[i]?.length &&
+                    mostrarListaDescripcion[i]
+                  "
+                  class="list-group position-absolute w-100 descripcion-list"
+                  style="z-index: 1000; max-height: 150px; overflow-y: auto"
+                >
+                  <li
+                    *ngFor="let d of descripcionesFiltradas[i]"
+                    class="list-group-item list-group-item-action p-1"
+                    (mousedown)="seleccionarDescripcion(i, d)"
+                    style="cursor: pointer"
+                  >
+                    {{ d }}
+                  </li>
+                </ul>
+
+                <!-- Corregido: usa 'eq' en lugar de 'equipo' -->
+                <div
+                  *ngIf="eq.get('descripcion')?.errors?.['required']"
+                  class="text-danger small"
+                >
+                  Campo requerido.
+                </div>
+              </div>
+            </td>
+
+            <!-- Unidad (replicado exactamente: input editable con autocomplete, no select) -->
+            <td>
+              <div class="position-relative">
+                <input
+                  type="text"
+                  class="form-control form-control-sm input-unidad"
+                  placeholder="Seleccione o escriba una unidad"
+                  [formControl]="getUnidadControl(i)"
+                  (input)="filtrarUnidades(i, $event)"
+                  (focus)="mostrarUnidadesFila(i)"
+                  (blur)="guardarUnidadPersonalizada(i, $event)"
+                />
+
+                <ul
+                  *ngIf="unidadesFiltradas[i]?.length && mostrarLista[i]"
+                  class="list-group position-absolute w-100 unidad-list"
+                  style="z-index: 1000; max-height: 150px; overflow-y: auto"
+                >
+                  <li
+                    *ngFor="let u of unidadesFiltradas[i]"
+                    class="list-group-item list-group-item-action p-1"
+                    (mousedown)="seleccionarUnidad(i, u)"
+                    style="cursor: pointer"
+                  >
+                    {{ u }}
+                  </li>
+                </ul>
+
+                <!-- Corregido: usa 'eq' en lugar de 'equipo' -->
+                <div
+                  *ngIf="eq.get('unidad')?.errors?.['required']"
+                  class="text-danger small"
+                >
+                  Campo requerido.
+                </div>
+              </div>
+            </td>
+
+            <!-- Cantidad (replicado: pasa el control 'eq'; ya estaba correcto) -->
             <td>
               <input
+                type="number"
                 class="form-control"
-                formControlName="descripcion"
-                placeholder="Ej. Martillo eléctrico"
+                formControlName="cantidad"
+                (keydown)="blockE($event)"
+                (change)="onCantidadChange(eq)"
               />
+              <!-- Opcional: agrega error si quieres consistencia -->
               <div
-                *ngIf="eq.get('descripcion')?.errors?.['required']"
+                *ngIf="eq.get('cantidad')?.errors?.['required']"
                 class="text-danger small"
               >
                 Campo requerido.
               </div>
             </td>
 
-            <!-- Unidad -->
-            <td>
-              <ng-container
-                *ngIf="eq.get('esNuevo')?.value || eq.get('editarUnidad')?.value; else verUnidad"
-              >
-                <select
-                  class="form-select"
-                  formControlName="unidad"
-                  (blur)="eq.get('editarUnidad')?.setValue(false)"
-                >
-                  <option value="">Seleccione unidad</option>
-                  <option *ngFor="let unidad of unidades" [value]="unidad">
-                    {{ unidadTexto(unidad) }}
-                  </option>
-                </select>
-              </ng-container>
-
-              <ng-template #verUnidad>
-                <p
-                  (click)="eq.get('editarUnidad')?.setValue(true)"
-                  class="mb-0"
-                  style="cursor: pointer;"
-                >
-                  {{ unidadTexto(eq.get('unidad')?.value) }}
-                </p>
-              </ng-template>
-            </td>
-
-            <!-- Cantidad -->
+            <!-- Precio Unitario (replicado: pasa 'eq' e 'i'; corregido para 2 argumentos) -->
             <td>
               <input
                 type="number"
                 class="form-control"
-                min="0"
-                formControlName="cantidad"
-                (keydown)="blockE($event)"
-                (change)="onCantidadChange(eq)"
-              />
-            </td>
-
-            <!-- Precio Unitario -->
-            <td>
-              <input
-                type="number"
-                class="form-control"
-                min="0"
                 formControlName="precio_unitario"
                 (keydown)="blockE($event)"
-                (change)="onPrecioUniChange(eq)"
+                (change)="onPrecioUniChange(eq, i)"
               />
+              <!-- Corregido: usa 'eq' en lugar de 'equipo' -->
+              <div
+                *ngIf="eq.get('precio_unitario')?.errors?.['required']"
+                class="text-danger small"
+              >
+                Campo requerido.
+              </div>
             </td>
 
-            <!-- Precio parcial (readonly) -->
+            <!-- Precio Parcial (readonly) (replicado exactamente; ya usaba 'eq') -->
             <td>
               <input
-                class="form-control bg-white"
                 type="number"
+                class="form-control bg-white"
                 [value]="eq.get('total')?.value"
                 readonly
               />
             </td>
 
-            <!-- Acción -->
+            <!-- Acción (replicado: usa 'eq' en lugar de 'mat'; ya estaba correcto) -->
             <td class="text-center no-export">
               <div class="d-flex justify-content-center gap-2">
-                <ng-container *ngIf="eq.get('esNuevo')?.value; else accionesExistente">
+                <ng-container
+                  *ngIf="eq.get('esNuevo')?.value; else accionesExistente"
+                >
                   <button
                     class="btn btn-success btn-sm"
                     (click)="registrarItem(i)"
                   >
                     <i class="bi bi-check2-circle me-1"></i> Registrar
                   </button>
-                  <button class="btn btn-danger btn-sm" (click)="eliminarItem(i)">
+                  <button
+                    class="btn btn-danger btn-sm"
+                    (click)="eliminarItem(i)"
+                  >
                     <i class="bi bi-trash"></i> Eliminar
                   </button>
                 </ng-container>
-
                 <ng-template #accionesExistente>
                   <button
                     class="btn btn-primary btn-sm"
@@ -132,7 +184,10 @@
                   >
                     <i class="bi bi-pencil"></i> Actualizar
                   </button>
-                  <button class="btn btn-danger btn-sm" (click)="eliminarItem(i)">
+                  <button
+                    class="btn btn-danger btn-sm"
+                    (click)="eliminarItem(i)"
+                  >
                     <i class="bi bi-trash"></i> Eliminar
                   </button>
                 </ng-template>
@@ -153,11 +208,13 @@
           <tr>
             <td>
               <p>
-                Herramientas ({{ formatearNumero(herramientas) }} %) *
-                Total Mano de Obra: {{ formatearNumero(totalManoObra) }}
+                Herramientas ({{ formatearNumero(herramientas) }} %) * Total
+                Mano de Obra: {{ formatearNumero(totalManoObra) }}
               </p>
             </td>
-            <td class="text-end">{{ formatearNumero(herramientasPorcentaje) }}</td>
+            <td class="text-end">
+              {{ formatearNumero(herramientasPorcentaje) }}
+            </td>
           </tr>
           <tr class="table-warning fw-bold">
             <td>Total Equipos y Herramientas</td>
@@ -176,5 +233,13 @@
   (cancelar)="manejarCancelar()"
 ></app-confirmacion>
 
-<app-ok *ngIf="mensajeExito" [mensaje]="mensajeExito" (close)="manejarOk()"></app-ok>
-<app-error *ngIf="mensajeError" [mensaje]="mensajeError" (close)="manejarError()"></app-error>
+<app-ok
+  *ngIf="mensajeExito"
+  [mensaje]="mensajeExito"
+  (close)="manejarOk()"
+></app-ok>
+<app-error
+  *ngIf="mensajeError"
+  [mensaje]="mensajeError"
+  (close)="manejarError()"
+></app-error>

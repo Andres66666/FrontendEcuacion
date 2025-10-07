@@ -22,20 +22,46 @@ import {
   providedIn: 'root',
 })
 export class ServiciosService {
-private apiUrl = environment.apiUrl;
-
-/*  private apiUrl = 'https://backendecuacion.onrender.com/api/';  */
-  //https://backendecuacion.onrender.com
-
+  private apiUrl = environment.apiUrl;
   constructor(private http: HttpClient) {}
-  //  =====================================================
-  //  ================  seccion 1    ======================
-  //  =====================================================
+
   login(correo: string, password: string): Observable<any> {
-    const loginData = { correo: correo, password: password }; // 👈 debe coincidir con el serializer
-    return this.http.post<any>(`${this.apiUrl}login/`, loginData);
+    const loginData = { correo: correo, password: password };
+    return this.http.post<any>(`${this.apiUrl}login/`, loginData);  // ← Sin cambios: Funciona
   }
-  // servicios.service.ts
+  resetPassword(correo: string): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}reset-password/`, { correo });  // ← Sin cambios: Funciona
+  }
+  // ← CORREGIDO: Quitar '/' inicial en la ruta para evitar doble slash
+  enviarCodigoCorreo(usuarioId: number): Observable<any> {
+    return this.http.post(`${this.apiUrl}enviar-codigo/`, { usuario_id: usuarioId });
+  }
+  // ← CORREGIDO: Igual para generarQR
+  generarQR(usuarioId: number): Observable<any> {
+    return this.http.post(`${this.apiUrl}generar-qr/`, { usuario_id: usuarioId });
+  }
+  // ← CORREGIDO: Igual para verificar2FA
+  verificar2FA(usuarioId: number, codigo: string, metodo: 'correo' | 'totp'): Observable<any> {
+    return this.http.post(`${this.apiUrl}verificar-2fa/`, { usuario_id: usuarioId, codigo, metodo });
+  }
+  // ← NUEVO: Verificar temp_pass (agrega al final)
+  verificarTempPassword(usuarioId: number, tempToken: string, tempPass: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}verificar-temp/`, { 
+      usuario_id: usuarioId, 
+      temp_token: tempToken, 
+      temp_pass: tempPass 
+    });
+  }
+  // ← NUEVO: Cambiar password temp (agrega al final)
+  // ← MODIFICADO: Agrega confirmar_password al body del POST
+  cambiarPasswordTemp(usuarioId: number, tempToken: string, nuevaPassword: string, confirmarPassword: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}cambiar-password-temp/`, { 
+      usuario_id: usuarioId, 
+      temp_token: tempToken, 
+      nueva_password: nuevaPassword,
+      confirmar_password: confirmarPassword  // ← AGREGADO: Envía confirmación para validación backend
+    });
+  }
 
 
 getAtaquesDB(): Observable<Atacante[]> {
@@ -105,13 +131,11 @@ getRolesFromLocalStorage(): string[] {
   editarUsuario(id: number, usuario: FormData): Observable<Usuario> {
     return this.http.put<Usuario>(`${this.apiUrl}usuario/${id}/`, usuario);
   }
-  // ← NUEVO: Obtener usuarios desactivados (filtra por estado=false)
   getUsuariosDesactivados(): Observable<any[]> {
-    return this.getUsuarios().pipe(  // Usa el método existente getUsuarios()
-      map(usuarios => usuarios.filter(usuario => !usuario.estado))  // Filtra solo desactivados
+    return this.getUsuarios().pipe(  
+      map(usuarios => usuarios.filter(usuario => !usuario.estado))  
     );
   }
-
   // === UsuarioRol ===
   getUsuarioRoles(): Observable<UsuarioRol[]> {
     return this.http.get<UsuarioRol[]>(`${this.apiUrl}usuario_rol/`);
@@ -186,6 +210,16 @@ getRolesFromLocalStorage(): string[] {
       `${this.apiUrl}GastosOperaciones/?identificador=${id}`
     );
   }
+  // Para unidades únicas de GastoOperacion (endpoint /gasto_operacion/unidades/)
+  getUnidadesGastoOperacion(): Observable<string[]> {
+    return this.http.get<string[]>(`${this.apiUrl}gasto_operacion/unidades/`);
+  }
+/* getUnidadesGastoOperacion(): Observable<string[]> {
+  return this.http.get<string[]>(`${this.apiUrl}gasto_operacion/unidades/`);  // Endpoint de tu ViewSet
+} */
+
+
+
 
   // Sección 2 (después de métodos de GastoOperacion)
   // Nuevos métodos para Módulo
@@ -237,19 +271,20 @@ getRolesFromLocalStorage(): string[] {
     return this.http.get<Materiales[]>(`${this.apiUrl}materiales/`);
   }
   getMaterialesID(id: number): Observable<Materiales> {
-    return this.http.get<Materiales>(
-      `${this.apiUrl}materiales/${id}/`
-    );
+    return this.http.get<Materiales>(`${this.apiUrl}materiales/${id}/`);
   }
   getMaterialesIDGasto(id_gasto_operacion: number): Observable<Materiales[]> {
     return this.http.get<Materiales[]>(`${this.apiUrl}materiales/?id_gasto_operacion=${id_gasto_operacion}`);
   }
-
   getUnidadesMateriales(): Observable<string[]> {
     return this.http.get<string[]>(`${this.apiUrl}materiales/unidades/`);
   }
-
-
+  getCatalogoMaterialesPorProyecto(id_gasto_operacion: number): Observable<Materiales[]> {
+    return this.http.get<Materiales[]>(`${this.apiUrl}materiales/catalogo/?id_gasto_operacion=${id_gasto_operacion}`);
+  }
+  actualizarPrecioDescripcion(id_gasto_operacion: number,descripcion: string,precio_unitario: number): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}materiales/actualizar_precio_descripcion/`,{ id_gasto_operacion, descripcion, precio_unitario });
+  }
   createMaterial(m: Materiales): Observable<Materiales> {
     return this.http.post<Materiales>(`${this.apiUrl}materiales/`, m);
   }
@@ -265,8 +300,20 @@ getRolesFromLocalStorage(): string[] {
   getManoDeObra(): Observable<ManoDeObra[]> {
     return this.http.get<ManoDeObra[]>(`${this.apiUrl}mano_de_obra/`);
   }
+  getManoDeObraID(id: number): Observable<ManoDeObra> {
+    return this.http.get<ManoDeObra>(`${this.apiUrl}mano_de_obra/${id}/`);
+  }
   getManoDeObraIDGasto(id_gasto_operacion: number): Observable<ManoDeObra[]> {
     return this.http.get<ManoDeObra[]>(`${this.apiUrl}mano_de_obra/?id_gasto_operacion=${id_gasto_operacion}`);
+  }
+  getUnidadesManoDeObra(): Observable<string[]> {
+    return this.http.get<string[]>(`${this.apiUrl}mano_de_obra/unidades/`);
+  }
+  getCatalogoManoDeObraPorProyecto(id_gasto_operacion: number): Observable<ManoDeObra[]> {
+    return this.http.get<ManoDeObra[]>(`${this.apiUrl}mano_de_obra/catalogo/?id_gasto_operacion=${id_gasto_operacion}`);
+  }
+  actualizarPrecioDescripcionManoDeObra(id_gasto_operacion: number,descripcion: string,precio_unitario: number): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}mano_de_obra/actualizar_precio_descripcion/`,{ id_gasto_operacion, descripcion, precio_unitario });
   }
   createManoDeObra(m: ManoDeObra): Observable<ManoDeObra> {
     return this.http.post<ManoDeObra>(`${this.apiUrl}mano_de_obra/`, m);
@@ -277,29 +324,36 @@ getRolesFromLocalStorage(): string[] {
   deleteManoDeObra(id: number): Observable<ManoDeObra> {
     return this.http.delete<ManoDeObra>(`${this.apiUrl}mano_de_obra/${id}/`);
   }
-
   // ==========================
   // === Equipo Herramienta ===
   // ==========================
   getEquiposHerramientas(): Observable<EquipoHerramienta[]> {
     return this.http.get<EquipoHerramienta[]>(`${this.apiUrl}equipo_herramienta/`);
   }
+  getEquipoHerramientaID(id: number): Observable<EquipoHerramienta> {
+    return this.http.get<EquipoHerramienta>(`${this.apiUrl}equipo_herramienta/${id}/`);
+  }
+  
   getEquipoHerramientas(id_gasto_operacion: number): Observable<EquipoHerramienta[]> {
-    return this.http.get<EquipoHerramienta[]>(
-      `${this.apiUrl}equipo_herramienta/?id_gasto_operacion=${id_gasto_operacion}`
-    );
+    return this.http.get<EquipoHerramienta[]>(`${this.apiUrl}equipo_herramienta/?id_gasto_operacion=${id_gasto_operacion}`);
+  }
+  getUnidadesEquipoHerramienta(): Observable<string[]> {
+    return this.http.get<string[]>(`${this.apiUrl}equipo_herramienta/unidades/`);
+  }
+
+  getCatalogoEquipoHerramientaPorProyecto(id_gasto_operacion: number): Observable<EquipoHerramienta[]> {
+    return this.http.get<EquipoHerramienta[]>(`${this.apiUrl}equipo_herramienta/catalogo/?id_gasto_operacion=${id_gasto_operacion}`);
+  }
+
+  
+  actualizarPrecioDescripcionEquipoHerramienta(id_gasto_operacion: number,descripcion: string,precio_unitario: number): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}equipo_herramienta/actualizar_precio_descripcion/`,{ id_gasto_operacion, descripcion, precio_unitario });
   }
   createEquipoHerramienta(e: EquipoHerramienta): Observable<EquipoHerramienta> {
-    return this.http.post<EquipoHerramienta>(
-      `${this.apiUrl}equipo_herramienta/`,
-      e
-    );
+    return this.http.post<EquipoHerramienta>(`${this.apiUrl}equipo_herramienta/`,e);
   }
   updateEquipoHerramienta(e: EquipoHerramienta): Observable<EquipoHerramienta> {
-    return this.http.put<EquipoHerramienta>(
-      `${this.apiUrl}equipo_herramienta/${e.id}/`,
-      e
-    );
+    return this.http.put<EquipoHerramienta>(`${this.apiUrl}equipo_herramienta/${e.id}/`,e);
   }
   deleteEquipoHerramienta(id: number): Observable<EquipoHerramienta> {
     return this.http.delete<EquipoHerramienta>(`${this.apiUrl}equipo_herramienta/${id}/`);

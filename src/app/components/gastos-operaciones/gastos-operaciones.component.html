@@ -207,8 +207,10 @@
       <div
         class="col-12 d-flex flex-row flex-wrap align-items-center justify-content-start gap-3 mb-3 no-export"
       >
-        <!-- Input del proyecto -->
-        <div class="position-relative flex-grow-1" style="min-width: 200px">
+        <div
+          class="position-relative flex-grow-1 proyecto-dropdown"
+          style="min-width: 200px"
+        >
           <input
             class="form-control text-center"
             placeholder="Nombre del Proyecto"
@@ -217,36 +219,45 @@
             (input)="filtrarProyectos()"
           />
           <ul
-            *ngIf="mostrarLista"
+            *ngIf="mostrarDropdownProyectos"
             class="list-group position-absolute text-start"
             style="
-              z-index: 1000;
+              z-index: 1050; /* CORREGIDO: Subido a 1050 para sobreponerse a tabla/botones */
               max-height: 200px;
               overflow-y: auto;
               width: 100%;
+              background: white; /* Opcional: Fondo blanco para visibilidad */
+              border: 1px solid #ccc; /* Opcional: Borde para delimitar */
+              border-radius: 0 0 4px 4px;
             "
           >
             <li
-              class="list-group-item d-flex justify-content-between align-items-center"
+              class="list-group-item d-flex justify-content-between align-items-center p-2"
               *ngFor="let proyecto of proyectosFiltrados"
             >
               <span
-                (click)="seleccionarProyecto(proyecto)"
-                style="cursor: pointer"
+                (click)="
+                  seleccionarProyecto(proyecto); $event.stopPropagation()
+                "
+                style="cursor: pointer; flex-grow: 1"
+                class="text-decoration-none"
               >
                 {{ proyecto.NombreProyecto }}
               </span>
 
               <button
-                class="btn btn-sm btn-primary"
+                class="btn btn-sm btn-primary ms-2"
                 type="button"
-                (click)="duplicarProyecto(proyecto, $event)"
+                (click)="
+                  duplicarProyecto(proyecto, $event); $event.stopPropagation()
+                "
                 title="Duplicar proyecto"
               >
                 <img
                   src="https://cdn-icons-png.flaticon.com/128/3384/3384831.png"
                   class="img-fluid"
-                  style="width: 40px; height: 40px"
+                  style="width: 20px; height: 20px"
+                  alt="Duplicar"
                 />
                 Duplicar
               </button>
@@ -351,31 +362,148 @@
           />
           <small>Actualizar Proyecto</small>
         </button>
-        <button
-          class="btn d-flex flex-column align-items-center no-export"
-          (click)="exportPDF()"
-          title="Exportar a PDF"
-        >
-          <img
-            src="https://cdn-icons-png.flaticon.com/128/6968/6968842.png"
-            class="img-fluid"
-            style="width: 40px; height: 40px"
-          />
-          <small>Descargar PDF</small>
-        </button>
 
-        <button
-          class="btn d-flex flex-column align-items-center no-export"
-          (click)="exportWORD()"
-          title="Exportar a Word"
-        >
-          <img
-            src="https://cdn-icons-png.flaticon.com/128/888/888883.png"
-            class="img-fluid"
-            style="width: 40px; height: 40px"
-          />
-          <small>Descargar Word</small>
-        </button>
+        <div class="dropdown ms-2">
+          <button
+            class="btn d-flex flex-column align-items-center no-export dropdown-toggle"
+            type="button"
+            id="dropdownReportesPDF"
+            data-bs-toggle="dropdown"
+            aria-expanded="false"
+            title="Descargar PDF"
+          >
+            <img
+              src="https://cdn-icons-png.flaticon.com/128/337/337946.png"
+              class="img-fluid"
+              style="width: 40px; height: 40px"
+            />
+            <small>Reportes PDF</small>
+          </button>
+
+          <ul
+            class="dropdown-menu dropdown-menu-end"
+            aria-labelledby="dropdownReportesPDF"
+          >
+            <li>
+              <a class="dropdown-item" (click)="exportPDFGeneral()">
+                Reportes Proyecto General
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item" (click)="generarReporteGeneralPDF()"
+                >Reporte Financiero General</a
+              >
+            </li>
+            <!-- Submenú Reportes Gastos De Operacion Por Item -->
+            <li class="dropend">
+              <a
+                class="dropdown-item dropdown-toggle"
+                href="#"
+                id="dropdownFinanciero"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+                role="button"
+                data-bs-auto-close="outside"
+              >
+                Reportes Financiero Por Item
+              </a>
+              <ul class="dropdown-menu" style="z-index: 1060">
+                <ng-container
+                  *ngIf="getGastosRegistrados().length > 0; else noGastos"
+                >
+                  <li
+                    *ngFor="let item of getGastosRegistrados(); let i = index"
+                  >
+                    <a
+                      class="dropdown-item"
+                      href="#"
+                      (click)="
+                        generarReporteFinanciero(item);
+                        $event.preventDefault();
+                        $event.stopPropagation()
+                      "
+                      style="white-space: normal"
+                    >
+                      <i class="bi bi-file-earmark-text me-2"></i>
+                      {{ obtenerNumeroParaGasto(i) }} -
+                      {{
+                        item.descripcion?.substring(0, 50) || "Sin descripción"
+                      }}{{ (item.descripcion?.length || 0) > 50 ? "..." : "" }}
+                    </a>
+                  </li>
+                </ng-container>
+                <ng-template #noGastos>
+                  <li class="px-3 py-2 text-muted small">
+                    No hay gastos registrados. <br />
+                    <small class="text-info"
+                      >Selecciona un proyecto con gastos o agrega uno.</small
+                    >
+                  </li>
+                </ng-template>
+              </ul>
+            </li>
+
+            <li class="dropend">
+              <a
+                class="dropdown-item dropdown-toggle"
+                href="#"
+                id="dropdownReportesTipo"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+                role="button"
+                data-bs-auto-close="outside"
+              >
+                Reportes por Tipo de Gasto
+              </a>
+              <ul
+                class="dropdown-menu"
+                aria-labelledby="dropdownReportesTipo"
+                style="z-index: 1060"
+              >
+                <li>
+                  <a
+                    class="dropdown-item"
+                    (click)="
+                      generarPDFMaterialesProyecto();
+                      $event.preventDefault();
+                      $event.stopPropagation()
+                    "
+                    href="#"
+                  >
+                    <i class="bi bi-file-earmark-pdf me-2"></i> PDF Materiales
+                  </a>
+                </li>
+                <li>
+                  <a
+                    class="dropdown-item"
+                    (click)="
+                      generatePDFManoDeObraProyecto();
+                      $event.preventDefault();
+                      $event.stopPropagation()
+                    "
+                    href="#"
+                  >
+                    <i class="bi bi-file-earmark-pdf me-2"></i> PDF Mano de Obra
+                  </a>
+                </li>
+                <li>
+                  <a
+                    class="dropdown-item"
+                    (click)="
+                      generatePDFEquipoHerramientaProyecto();
+                      $event.preventDefault();
+                      $event.stopPropagation()
+                    "
+                    href="#"
+                  >
+                    <i class="bi bi-file-earmark-pdf me-2"></i> PDF Equipo y
+                    Herramientas
+                  </a>
+                </li>
+              </ul>
+            </li>
+          </ul>
+        </div>
       </div>
     </div>
   </div>
@@ -590,32 +718,42 @@
             </td>
 
             <!-- Unidad -->
-            <td>
-              <ng-container
-                *ngIf="item.esNuevo || item.editarUnidad; else verUnidad"
-              >
-                <select
-                  class="form-select"
+            <!-- Columna Unidad (reemplaza solo la <ul> dentro de la <td>; resto igual) -->
+            <td class="input-cell">
+              <div class="position-relative">
+                <input
+                  type="text"
+                  class="form-control form-control-sm input-unidad"
+                  placeholder="Seleccione o escriba una unidad"
                   [(ngModel)]="item.unidad"
+                  (input)="filtrarUnidades(i, $event)"
+                  (focus)="mostrarUnidadesFila(i)"
+                  (blur)="guardarUnidadPersonalizada(i, $event)"
                   (ngModelChange)="actualizarItemEnTiempoReal(item)"
-                  (blur)="item.editarUnidad = false"
-                >
-                  <option value="">Seleccione unidad</option>
-                  <option *ngFor="let unidad of unidades" [value]="unidad">
-                    {{ unidad }}
-                  </option>
-                </select>
-              </ng-container>
+                />
 
-              <ng-template #verUnidad>
-                <p
-                  (click)="item.editarUnidad = true"
-                  class="mb-0"
-                  style="cursor: pointer"
+                <ul
+                  *ngIf="unidadesFiltradas[i]?.length && mostrarLista[i]"
+                  class="list-group position-absolute w-100 unidad-list"
+                  style="z-index: 1000; max-height: 150px; overflow-y: auto"
                 >
-                  {{ unidadTexto(item.unidad ?? "") }}
-                </p>
-              </ng-template>
+                  <li
+                    *ngFor="let u of unidadesFiltradas[i]"
+                    class="list-group-item list-group-item-action p-1"
+                    (click)="seleccionarUnidad(i, u); $event.stopPropagation()"
+                    style="cursor: pointer"
+                  >
+                    {{ u }}
+                  </li>
+                </ul>
+
+                <div
+                  *ngIf="!item.unidad && item.esNuevo"
+                  class="text-danger small"
+                >
+                  Campo requerido.
+                </div>
+              </div>
             </td>
 
             <!-- Cantidad -->
@@ -740,7 +878,6 @@
           </td>
         </tr>
       </tbody>
-
       <tfoot class="table-light">
         <tr>
           <td
@@ -749,10 +886,8 @@
           >
             TOTALES
           </td>
-          <!-- Ajustado dinámicamente: 5 columnas con módulo, 4 sin módulo -->
           <td class="fw-bold text-center">
             {{ formatearNumero(totalGastosOperacionGeneral) }}
-            
           </td>
           <td class="fw-bold text-center">
             {{ formatearNumero(totalValorAgregado) }}
@@ -760,7 +895,7 @@
           <td colspan="2" class="text-end fw-bold"></td>
           <td class="fw-bold text-center">{{ formatearNumero(total) }}</td>
           <td class="no-export">
-             <button
+            <button
               class="btn btn-success btn-sm ms-2 no-export"
               (click)="enviarTotalesAFactura()"
               title="Reporte General de Gasto de Operaciones"

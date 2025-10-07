@@ -1,8 +1,8 @@
 .fondo {
-    background-image: url("https://fotos.perfil.com/2024/07/05/trim/987/555/asesores-financieros-1831461.jpg");
-    background-size: cover;
+    background-image: url("https://res.cloudinary.com/dz45dhxii/image/upload/v1759714209/lf1_wrpxmx.png");
+    background-size: contain; /* Ajusta la imagen completa dentro del contenedor */
     background-repeat: no-repeat;
     background-position: center center;
-    background-attachment: fixed;
-    image-rendering: auto;
+    height: 100vh;
+    width: 100vw;
 }

@@ -29,44 +29,75 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let trabajo of manoObra.controls; let i = index" [formGroupName]="i">
-            
+          <tr
+            *ngFor="let trabajo of manoObra.controls; let i = index"
+            [formGroupName]="i"
+          >
             <!-- Descripción -->
             <td>
-              <input
-                class="form-control"
-                formControlName="descripcion"
-                placeholder="Ej. Albañil"
-              />
-              <div *ngIf="trabajo.get('descripcion')?.errors?.['required']" class="text-danger small">
-                Campo requerido.
+              <div class="position-relative">
+                <input
+                  type="text"
+                  class="form-control input-descripcion"
+                  placeholder="Ej. Cemento"
+                  [formControl]="getDescripcionControl(i)"
+                  (input)="filtrarDescripciones(i, $event)"
+                  (focus)="mostrarDescripcionesFila(i)"
+                  (blur)="guardarDescripcionPersonalizada(i, $event)"
+                />
+                <ul
+                  *ngIf="
+                    descripcionesFiltradas[i]?.length &&
+                    mostrarListaDescripcion[i]
+                  "
+                  class="list-group position-absolute w-100 descripcion-list"
+                  style="z-index: 1000; max-height: 150px; overflow-y: auto"
+                >
+                  <li
+                    *ngFor="let d of descripcionesFiltradas[i]"
+                    class="list-group-item list-group-item-action p-1"
+                    (mousedown)="seleccionarDescripcion(i, d)"
+                    style="cursor: pointer"
+                  >
+                    {{ d }}
+                  </li>
+                </ul>
+                <div
+                  *ngIf="trabajo.get('descripcion')?.errors?.['required']"
+                  class="text-danger small"
+                >
+                  Campo requerido.
+                </div>
               </div>
             </td>
 
             <!-- Unidad -->
             <td>
-              <ng-container *ngIf="trabajo.get('esNuevo')?.value || trabajo.get('editarUnidad')?.value; else verUnidad">
-                <select
-                  class="form-select"
-                  formControlName="unidad"
-                  (blur)="trabajo.get('editarUnidad')?.setValue(false)"
+              <div class="position-relative">
+                <input
+                  type="text"
+                  class="form-control form-control-sm input-unidad"
+                  placeholder="Seleccione o escriba una unidad"
+                  [formControl]="getUnidadControl(i)"
+                  (input)="filtrarUnidades(i, $event)"
+                  (focus)="mostrarUnidadesFila(i)"
+                  (blur)="guardarUnidadPersonalizada(i, $event)"
+                />
+                <ul
+                  *ngIf="unidadesFiltradas[i]?.length && mostrarLista[i]"
+                  class="list-group position-absolute w-100 unidad-list"
+                  style="z-index: 1000; max-height: 150px; overflow-y: auto"
                 >
-                  <option value="">Seleccione unidad</option>
-                  <option *ngFor="let unidad of unidades" [value]="unidad">
-                    {{ unidadTexto(unidad) }}
-                  </option>
-                </select>
-              </ng-container>
-
-              <ng-template #verUnidad>
-                <p
-                  (click)="trabajo.get('editarUnidad')?.setValue(true)"
-                  class="mb-0"
-                  style="cursor: pointer;"
-                >
-                  {{ unidadTexto(trabajo.get('unidad')?.value) }}
-                </p>
-              </ng-template>
+                  <li
+                    *ngFor="let u of unidadesFiltradas[i]"
+                    class="list-group-item list-group-item-action p-1"
+                    (mousedown)="seleccionarUnidad(i, u)"
+                    style="cursor: pointer"
+                  >
+                    {{ u }}
+                  </li>
+                </ul>
+              </div>
             </td>
 
             <!-- Cantidad -->
@@ -104,26 +135,39 @@
             <!-- Acción -->
             <td class="text-center no-export">
               <div class="d-flex justify-content-center gap-2">
-                <ng-container *ngIf="trabajo.get('esNuevo')?.value; else accionesExistente">
-                  <button class="btn btn-success btn-sm" (click)="registrarItem(i)">
+                <ng-container
+                  *ngIf="trabajo.get('esNuevo')?.value; else accionesExistente"
+                >
+                  <button
+                    class="btn btn-success btn-sm"
+                    (click)="registrarItem(i)"
+                  >
                     <i class="bi bi-check2-circle me-1"></i> Registrar
                   </button>
-                  <button class="btn btn-danger btn-sm" (click)="eliminarItem(i)">
+                  <button
+                    class="btn btn-danger btn-sm"
+                    (click)="eliminarItem(i)"
+                  >
                     <i class="bi bi-trash"></i> Eliminar
                   </button>
                 </ng-container>
 
                 <ng-template #accionesExistente>
-                  <button class="btn btn-primary btn-sm" (click)="actualizarItem(i)">
+                  <button
+                    class="btn btn-primary btn-sm"
+                    (click)="actualizarItem(i)"
+                  >
                     <i class="bi bi-pencil"></i> Actualizar
                   </button>
-                  <button class="btn btn-danger btn-sm" (click)="eliminarItem(i)">
+                  <button
+                    class="btn btn-danger btn-sm"
+                    (click)="eliminarItem(i)"
+                  >
                     <i class="bi bi-trash"></i> Eliminar
                   </button>
                 </ng-template>
               </div>
             </td>
-
           </tr>
         </tbody>
       </table>
@@ -161,5 +205,13 @@
   (cancelar)="manejarCancelar()"
 ></app-confirmacion>
 
-<app-ok *ngIf="mensajeExito" [mensaje]="mensajeExito" (close)="manejarOk()"></app-ok>
-<app-error *ngIf="mensajeError" [mensaje]="mensajeError" (close)="manejarError()"></app-error>
+<app-ok
+  *ngIf="mensajeExito"
+  [mensaje]="mensajeExito"
+  (close)="manejarOk()"
+></app-ok>
+<app-error
+  *ngIf="mensajeError"
+  [mensaje]="mensajeError"
+  (close)="manejarError()"
+></app-error>

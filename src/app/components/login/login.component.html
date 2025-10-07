@@ -2,129 +2,370 @@
   class="container-fluid vh-100 d-flex align-items-center justify-content-center fondo"
 >
   <div class="row w-100 justify-content-center g-0">
-    <!-- Formulario -->
     <div
       class="col-10 col-md-6 col-lg-4 col-xl-3 d-flex align-items-center position-relative"
     >
-      <!-- Botón Volver a Inicio -->
-      <a
-        class="btn btn-sm btn-success position-absolute top-0 end-0 m-2 z-1"
-        (click)="navigateToHome()"
-        title="Volver a Inicio"
-      >
-        <i class="bi bi-door-open me-1"></i> Inicio
-      </a>
-
       <div
-        class="card p-4 rounded w-100 d-flex flex-column bg-light bg-opacity-80 shadow"
+        class="card p-4 rounded w-100 d-flex flex-column bg-dark bg-opacity-75 shadow text-white"
       >
-        <!-- Logo -->
-        <div class="d-flex justify-content-center mb-3">
-          <img
-            src="https://res.cloudinary.com/dexggkhkd/image/upload/v1750767599/logoMallaPNG_g2ta8p.png"
-            alt="Logo Malla Finita"
-            class="img-fluid"
-            style="max-width: 100%; height: auto; max-height: 200px"
-          />
-        </div>
-
-        <h2 class="text-center mb-3">Iniciar Sesión</h2>
-
-        <form (ngSubmit)="onSubmit(loginForm)" #loginForm="ngForm" class="mt-3">
-          <!-- Campo Correo (CORREGIDO: tag completo en una línea para evitar errores de cierre) -->
-          <div class="mb-3">
-            <label for="correo" class="form-label">Correo Electrónico</label>
-            <input
-              type="email"
-              class="form-control rounded-3"
-              id="correo"
-              name="correo"
-              placeholder="you@example.com"
-              autocomplete="username"
-              required
-              pattern="^[^\s@]+@[^\s@]+\.[^\s@]+$"
-              [(ngModel)]="correo"
-              [ngClass]="{
-                'is-invalid':
-                  loginForm.controls['correo'] &&
-                  (loginForm.controls['correo'].invalid || !isFormValid()) &&
-                  loginForm.controls['correo'].touched
-              }"
-            />
-            <div
-              *ngIf="
-                loginForm.controls['correo']?.invalid &&
-                loginForm.controls['correo']?.touched
-              "
-              class="invalid-feedback"
-            >
-              Por favor, ingrese un correo electrónico válido.
-            </div>
-          </div>
-
-          <!-- Campo Contraseña (CORREGIDO: tag completo) -->
-          <div class="mb-3">
-            <label for="password" class="form-label">Contraseña</label>
-            <div class="input-group">
+        <!-- LOGIN -->
+        <div *ngIf="vistaActual === 'login'">
+          <h2 class="text-center mb-3">Iniciar Sesión</h2>
+          <form
+            (ngSubmit)="onSubmit(loginForm)"
+            #loginForm="ngForm"
+            class="mt-3"
+          >
+            <div class="mb-3">
+              <label for="correo" class="fs-5">Correo</label>
               <input
-                [type]="showPassword ? 'text' : 'password'"
-                class="form-control rounded-start-3"
-                id="password"
-                name="password"
-                placeholder="Ingrese su contraseña (mín. 6 caracteres)"
-                autocomplete="current-password"
-                [(ngModel)]="password"
+                id="correo"
+                name="correo"
+                class="form-control"
+                [(ngModel)]="correo"
+                type="email"
                 required
-                minlength="6"
-                [ngClass]="{
-                  'is-invalid':
-                    loginForm.controls['password'] &&
-                    (loginForm.controls['password'].invalid ||
-                      !isFormValid()) &&
-                    loginForm.controls['password'].touched
-                }"
               />
+            </div>
+            <div class="mb-3">
+              <label for="password" class="fs-5">Contraseña</label>
+              <div class="input-group">
+                <input
+                  id="password"
+                  name="password"
+                  class="form-control border-end-0"
+                  [(ngModel)]="password"
+                  [type]="showPassword ? 'text' : 'password'"
+                  required
+                />
+
+                <button
+                  type="button"
+                  class="btn border border-start-0 bg-white text-dark"
+                  (click)="togglePasswordVisibility()"
+                >
+                  <i
+                    class="bi fs-5"
+                    [class.bi-eye]="!showPassword"
+                    [class.text-danger]="!showPassword"
+                    [class.bi-eye-slash]="showPassword"
+                    [class.text-success]="showPassword"
+                  ></i>
+                </button>
+              </div>
+            </div>
+            <div class="d-flex justify-content-center">
               <button
-                type="button"
-                class="btn rounded-end-3"
-                [ngClass]="showPassword ? 'btn-success' : 'btn-danger'"
-                (click)="togglePasswordVisibility()"
+                type="submit"
+                class="btn btn-success"
+                [disabled]="isLoading"
               >
-                <i
-                  [ngClass]="showPassword ? 'bi bi-eye' : 'bi bi-eye-slash'"
-                ></i>
+                <span *ngIf="!isLoading" class="fs-5">Iniciar Sesión</span>
+                <span *ngIf="isLoading">
+                  <i class="bi bi-arrow-repeat spin"></i> Cargando...
+                </span>
               </button>
             </div>
-            <div
-              *ngIf="
-                loginForm.controls['password']?.invalid &&
-                loginForm.controls['password']?.touched
-              "
-              class="invalid-feedback"
-            >
-              La contraseña debe tener al menos 6 caracteres.
+
+            <div class="d-flex justify-content-center mt-3">
+              <button
+                type="button"
+                class="btn btn-info fs-5"
+                (click)="irAOlvide()"
+              >
+                <i class="bi bi-question-circle-fill me-2"></i>
+                ¿Olvidó la contraseña?
+              </button>
             </div>
+          </form>
+        </div>
+
+        <!-- OLVIDE -->
+        <!-- OLVIDE (MODIFICADA: Sin botón "continuar"; éxito cambia vista en TS) -->
+        <div *ngIf="vistaActual === 'olvide'">
+          <h2 class="text-center mb-3">Restablecer Contraseña</h2>
+          <form (ngSubmit)="enviarCorreoReset()" #resetForm="ngForm">
+            <div class="mb-3">
+              <label for="correoReset">Correo Electrónico</label>
+              <!-- ← CAMBIADO: Específico para correo -->
+              <input
+                id="correoReset"
+                name="correoReset"
+                class="form-control"
+                [(ngModel)]="correoReset"
+                type="email"
+                required
+                placeholder="Ingrese el correo al que enviar la
+              contraseña temporal"
+              />
+            </div>
+            <button
+              class="btn btn-primary w-100"
+              type="submit"
+              [disabled]="isLoading || !correoReset.trim()"
+            >
+              <span *ngIf="!isLoading">Enviar Contraseña Temporal</span>
+              <!-- ← CAMBIADO: Texto claro -->
+              <span *ngIf="isLoading">
+                <i class="bi bi-arrow-repeat spin"></i> Enviando...
+              </span>
+            </button>
+            <button
+              type="button"
+              class="btn btn-secondary w-100 mt-2"
+              (click)="volverLogin()"
+            >
+              Volver al Login
+            </button>
+          </form>
+          <!-- ← ELIMINADO: Botón "continuarConTempPass" (no se necesita) -->
+        </div>
+
+        <!-- SELECCIÓN DE MÉTODO 2FA (NUEVA SECCIÓN) -->
+        <div *ngIf="vistaActual === 'seleccion_2fa'">
+          <h2 class="text-center mb-3">Seleccione Método de Verificación</h2>
+          <p class="text-center mb-4">
+            Para completar el inicio de sesión, elija un método de autenticación
+            en dos pasos.
+          </p>
+          <div class="d-grid gap-2 mb-3">
+            <button
+              class="btn btn-outline-primary"
+              (click)="seleccionarMetodo('correo')"
+              [disabled]="loading"
+            >
+              <i class="bi bi-envelope"></i> Código por Correo Electrónico
+            </button>
+            <button
+              class="btn btn-outline-success"
+              (click)="seleccionarMetodo('totp')"
+              [disabled]="loading"
+            >
+              <i class="bi bi-phone"></i> Google Authenticator (App)
+            </button>
+          </div>
+          <button
+            type="button"
+            class="btn btn-secondary w-100"
+            (click)="volverLogin()"
+          >
+            Cancelar y Volver al Login
+          </button>
+        </div>
+
+        <!-- 2FA (ACTUALIZADA: Sin botones de selección, input siempre visible) -->
+        <div *ngIf="vistaActual === '2fa'">
+          <!-- Título dinámico basado en método -->
+          <h2 class="text-center mb-3">
+            Verificación por
+            {{
+              metodoSeleccionado === "correo"
+                ? "Correo"
+                : "Google Authenticator"
+            }}
+          </h2>
+
+          <!-- Mensaje específico por método -->
+          <div
+            *ngIf="metodoSeleccionado === 'correo'"
+            class="alert alert-info mb-3"
+          >
+            <p *ngIf="codigoEnviado">
+              Se ha enviado un código de 6 dígitos a su correo. Revise su
+              bandeja de entrada (incluyendo spam).
+            </p>
+            <p *ngIf="!codigoEnviado">
+              Se enviará un código de verificación a su correo. Ingrese el
+              código recibido.
+            </p>
           </div>
 
-          <!-- Botón Iniciar Sesión -->
-          <button
-            type="submit"
-            class="btn w-100 mt-3 fw-bold rounded-3"
-            [ngClass]="{
-              'btn-danger': !isFormValid() || loginForm.invalid,
-              'btn-success': isFormValid() && loginForm.valid
-            }"
-            [disabled]="!isFormValid() || loginForm.invalid || isLoading"
+          <div
+            *ngIf="metodoSeleccionado === 'totp'"
+            class="alert alert-info mb-3"
           >
-            <span
-              *ngIf="isLoading"
-              class="spinner-border spinner-border-sm me-2"
-              role="status"
-              aria-hidden="true"
-            ></span>
-            Iniciar Sesión
+            <p>
+              Abra la app Google Authenticator en su dispositivo y genere el
+              código para "{{ tempNombreUsuario }}".
+            </p>
+          </div>
+
+          <!-- Input para código (siempre visible) -->
+          <div class="mb-3">
+            <label for="codigo2FA">Código de Verificación (6 dígitos)</label>
+            <input
+              id="codigo2FA"
+              name="codigo2FA"
+              class="form-control"
+              [(ngModel)]="codigo2FA"
+              type="text"
+              maxlength="6"
+              inputmode="numeric"
+              pattern="[0-9]*"
+              placeholder="Ej: 123456"
+              [disabled]="loading"
+            />
+          </div>
+
+          <!-- QR para TOTP (solo si existe y es el método seleccionado) -->
+          <div
+            *ngIf="qrBase64 && metodoSeleccionado === 'totp'"
+            class="text-center mb-3"
+          >
+            <p class="small text-muted">
+              Escanee este código QR con Google Authenticator (solo la primera
+              vez):
+            </p>
+            <img
+              [src]="qrBase64"
+              alt="QR Code para Google Authenticator"
+              width="200"
+              height="200"
+              class="border rounded"
+            />
+            <p class="small text-muted mt-2">
+              Una vez escaneado, ingrese el código generado por la app.
+            </p>
+          </div>
+
+          <!-- Botón Verificar -->
+          <button
+            class="btn btn-success w-100 mb-2"
+            [disabled]="!codigo2FA.trim() || loading"
+            (click)="verificarCodigo()"
+          >
+            <span *ngIf="!loading">Verificar Código</span>
+            <span *ngIf="loading">
+              <i class="bi bi-arrow-repeat spin"></i> Verificando...
+            </span>
           </button>
-        </form>
+
+          <button
+            type="button"
+            class="btn btn-secondary w-100"
+            (click)="volverLogin()"
+          >
+            Cancelar
+          </button>
+        </div>
+
+        <!-- CAMBIAR PASSWORD TEMPORAL (NUEVA SECCIÓN) -->
+        <div *ngIf="vistaActual === 'cambiar_password_temp'">
+          <h2 class="text-center mb-3">Restablecer Contraseña</h2>
+          <p class="text-center mb-4">
+            Revise su correo para la contraseña temporal y continúe.
+          </p>
+
+          <!-- Input para temp_pass (siempre visible inicialmente) -->
+          <div class="mb-3" *ngIf="!tempVerificado">
+            <label for="tempPass">Contraseña Temporal (del correo)</label>
+            <input
+              id="tempPass"
+              name="tempPass"
+              class="form-control"
+              [(ngModel)]="tempPass"
+              type="password"
+              [type]="showPassword ? 'text' : 'password'"
+              placeholder="Ingrese la contraseña temporal recibida"
+              required
+            />
+            <button
+              type="button"
+              class="btn btn-link p-0 mt-1"
+              (click)="togglePasswordVisibility()"
+            >
+              {{ showPassword ? "Ocultar" : "Mostrar" }}
+            </button>
+          </div>
+
+          <!-- Campos nueva/confirmar (solo si verificada) -->
+          <div *ngIf="tempVerificado" class="mb-3">
+            <label for="nuevaPassword">Nueva Contraseña</label>
+            <input
+              id="nuevaPassword"
+              name="nuevaPassword"
+              class="form-control"
+              [(ngModel)]="nuevaPassword"
+              type="password"
+              placeholder="Nueva contraseña (mín. 8 caracteres)"
+              required
+            />
+          </div>
+          <!-- En sección 'cambiar_password_temp', modifica el input de confirmarPassword -->
+          <div *ngIf="tempVerificado" class="mb-3">
+            <label for="confirmarPassword">Confirmar Nueva Contraseña</label>
+            <input
+              id="confirmarPassword"
+              name="confirmarPassword"
+              class="form-control"
+              [(ngModel)]="confirmarPassword"
+              type="password"
+              [type]="showPassword ? 'text' : 'password'"
+            />
+          </div>
+
+          <!-- Botones dinámicos -->
+          <button
+            *ngIf="!tempVerificado"
+            class="btn btn-primary w-100 mb-2"
+            (click)="verificarTempPassword()"
+            [disabled]="!tempPass.trim() || loading"
+          >
+            <span *ngIf="!loading">Verificar Contraseña Temporal</span>
+            <span *ngIf="loading">
+              <i class="bi bi-arrow-repeat spin"></i> Verificando...
+            </span>
+          </button>
+          <button
+            *ngIf="tempVerificado"
+            class="btn btn-success w-100 mb-2"
+            (click)="cambiarPasswordTemp()"
+            [disabled]="
+              !nuevaPassword || nuevaPassword !== confirmarPassword || loading
+            "
+          >
+            <span *ngIf="!loading">Cambiar Contraseña</span>
+            <span *ngIf="loading">
+              <i class="bi bi-arrow-repeat spin"></i> Actualizando...
+            </span>
+          </button>
+
+          <button
+            type="button"
+            class="btn btn-secondary w-100"
+            (click)="volverLogin()"
+          >
+            Volver al Login
+          </button>
+        </div>
+
+        <!-- ... resto de mensajes y modales sin cambios ... -->
+
+        <!-- Mensajes (visibles en todas las vistas del card) -->
+        <div *ngIf="mensajeError" class="alert alert-danger mt-3">
+          {{ mensajeError }}
+          <button
+            type="button"
+            class="btn-close float-end"
+            (click)="manejarError()"
+          ></button>
+        </div>
+        <div *ngIf="mensajeExito" class="alert alert-success mt-3">
+          {{ mensajeExito }}
+          <button
+            type="button"
+            class="btn-close float-end"
+            (click)="manejarOk()"
+          ></button>
+        </div>
+        <div *ngIf="mensajeAdvertencia" class="alert alert-warning mt-3">
+          {{ mensajeAdvertencia }}
+          <button
+            type="button"
+            class="btn-close float-end"
+            (click)="manejarAdvertencia()"
+          ></button>
+        </div>
       </div>
     </div>
   </div>
@@ -144,7 +385,7 @@
   (close)="manejarError()"
 ></app-error>
 
-<!-- Modal de Advertencia (CORREGIDO: selector correcto y *ngIf simple) -->
+<!-- Modal de Advertencia -->
 <app-advertencia
   *ngIf="mensajeAdvertencia"
   [mensaje]="mensajeAdvertencia"

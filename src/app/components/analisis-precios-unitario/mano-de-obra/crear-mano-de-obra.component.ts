@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, HostListener, OnInit } from '@angular/core';
 import {
   FormArray,
   FormBuilder,
@@ -7,16 +7,17 @@ import {
   ReactiveFormsModule,
   AbstractControl,
   FormsModule,
+  FormControl,
 } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 
 import { ServiciosService } from '../../../services/servicios.service';
 import { ManoDeObra } from '../../../models/models';
-import { UNIDADES, unidadTexto } from '../../../models/unidades';
 import { ConfirmacionComponent } from '../../mensajes/confirmacion/confirmacion/confirmacion.component';
 import { OkComponent } from '../../mensajes/ok/ok.component';
 import { ErrorComponent } from '../../mensajes/error/error.component';
+import { forkJoin } from 'rxjs';
 
 @Component({
   selector: 'app-crear-mano-de-obra',
@@ -38,7 +39,6 @@ export class CrearManoDeObraComponent implements OnInit {
   roles: string[] = [];
   permisos: string[] = [];
 
-  unidades = UNIDADES;
 
   // ✅ Mensajes y estado UI
   mostrarConfirmacion = false;
@@ -48,6 +48,16 @@ export class CrearManoDeObraComponent implements OnInit {
   mensajeExito = '';
   mensajeError = '';
 
+  unidadesUsadas: string[] = [];
+  unidadesFiltradas: string[][] = [];
+  mostrarLista: boolean[] = [];
+  descripcionesUsadas: string[] = [];
+  descripcionesFiltradas: string[][] = [];
+  mostrarListaDescripcion: boolean[] = [];
+  catalogoManodeObra: { descripcion: string; ultimo_precio: number }[] = [];
+
+
+  
   constructor(
     private fb: FormBuilder,
     private servicio: ServiciosService,
@@ -58,7 +68,9 @@ export class CrearManoDeObraComponent implements OnInit {
       cargasSociales: [null, [Validators.required, Validators.min(0.55), Validators.max(0.7118)]],
       iva: [null, [Validators.required, Validators.min(0.01), Validators.max(1)]],
     });
-
+    this.formulario = this.fb.group({
+      manoObra: this.fb.array([]),
+    });
     this.agregarManoDeObra();
   }
 
@@ -74,13 +86,88 @@ export class CrearManoDeObraComponent implements OnInit {
       this.formulario.get('cargasSociales')?.setValue(this.carga_social);
       this.formulario.get('iva')?.setValue(this.iva_efectiva);
 
-      if (this.id_gasto_operaciones) this.cargarManoDeObraExistente();
+ 
+      this.cargarCatalogoManoDeObra();
+
+      this.route.queryParams.subscribe((params) => {
+      this.id_gasto_operaciones = Number(params['id_gasto_operaciones']) || 0;
+      if (this.id_gasto_operaciones) {
+        this.cargarManoDeObraExistente();
+        this.cargarUnidades();
+      }
+    });
     });
   }
 
   formatearNumero(valor: number): string {
     return new Intl.NumberFormat('es-BO', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(valor);
   }
+getDescripcionControl(index: number): FormControl {
+  return this.manoObra.at(index).get('descripcion') as FormControl;
+}
+  // Filtrar mientras escribe
+filtrarDescripciones(index: number, event: Event): void {
+  const valor = (event.target as HTMLInputElement).value.toLowerCase();
+  this.descripcionesFiltradas[index] = this.descripcionesUsadas.filter(d =>
+    d.toLowerCase().includes(valor)
+  );
+  this.manoObra.at(index).get('descripcion')?.setValue((event.target as HTMLInputElement).value);
+}
+  // Mostrar descripciones al hacer focus en la fila
+mostrarDescripcionesFila(index: number): void {
+  this.mostrarListaDescripcion = this.mostrarListaDescripcion.map(() => false);
+  this.mostrarListaDescripcion[index] = true;
+  this.descripcionesFiltradas[index] = [...this.descripcionesUsadas];
+}
+
+seleccionarDescripcion(i: number, descripcion: string) {
+  const control = this.manoObra.at(i);
+  control.get("descripcion")?.setValue(descripcion);
+  // Buscar el último precio en el catálogo y asignar precio unitario
+  const item = this.catalogoManodeObra.find(m => m.descripcion === descripcion);
+  if (item) {
+    control.get("precio_unitario")?.setValue(item.ultimo_precio);
+    this.actualizarPrecioParcial(control);
+  }
+  this.mostrarListaDescripcion[i] = false;
+}
+cargarUnidades(): void {
+  this.servicio.getUnidadesManoDeObra().subscribe({
+    next: (res) => {
+      this.unidadesUsadas = res || [];
+    },
+    error: (err) => {
+      console.error("Error cargando unidades:", err);
+    },
+  });
+}
+
+guardarDescripcionPersonalizada(index: number, event: Event): void {
+  const input = event.target as HTMLInputElement;
+  const valor = input.value.trim();
+  if (valor) {
+    this.manoObra.at(index).get('descripcion')?.setValue(valor);
+    this.agregarDescripcionSiNoExiste(valor);
+  } else {
+    this.manoObra.at(index).get('descripcion')?.setValue('');
+  }
+}
+cargarCatalogoManoDeObra(): void {
+  this.servicio.getManoDeObra().subscribe({
+    next: (manoObra) => {
+      this.catalogoManodeObra = manoObra.map(m => ({
+        descripcion: m.descripcion.trim(),
+        ultimo_precio: m.precio_unitario
+      }));
+      this.descripcionesUsadas = [...new Set(manoObra.map(m => m.descripcion.trim()))];
+      this.descripcionesFiltradas = this.manoObra.controls.map(() => [...this.descripcionesUsadas]);
+      this.mostrarListaDescripcion = this.manoObra.controls.map(() => false);
+    },
+    error: (err) => console.error("Error cargando catálogo de mano de obra:", err),
+  });
+}
+
+
 
   // 🔹 Helpers
   get manoObra(): FormArray {
@@ -139,17 +226,164 @@ export class CrearManoDeObraComponent implements OnInit {
       editarUnidad: [esNuevo],
     });
   }
+agregarManoDeObra(): void {
+  this.manoObra.push(this.crearManoDeObraForm());
+  this.unidadesFiltradas.push([...this.unidadesUsadas]);
+  this.mostrarLista.push(false);
+  
+  this.descripcionesFiltradas.push([...this.descripcionesUsadas]);
+  this.mostrarListaDescripcion.push(false);
+}
 
-  agregarManoDeObra(): void {
-    this.manoObra.push(this.crearManoDeObraForm());
-  }
+cargarManoDeObraExistente(): void {
+  this.servicio.getManoDeObraIDGasto(this.id_gasto_operaciones).subscribe((manoObra) => {
+    this.manoObra.clear();
+    this.unidadesFiltradas = [];
+    this.mostrarLista = [];
+    this.descripcionesFiltradas = [];
+    this.mostrarListaDescripcion = [];
 
-  cargarManoDeObraExistente(): void {
-    this.servicio.getManoDeObraIDGasto(this.id_gasto_operaciones).subscribe((manoObra) => {
-      this.manoObra.clear();
-      manoObra.forEach((trabajo) => this.manoObra.push(this.crearManoDeObraForm(trabajo, false)));
+    manoObra.forEach((trabajo) => {
+      this.manoObra.push(this.crearManoDeObraForm(trabajo, false));
+      this.agregarUnidadSiNoExiste(trabajo.unidad);
+      this.agregarDescripcionSiNoExiste(trabajo.descripcion);
+
+      this.unidadesFiltradas.push([...this.unidadesUsadas]);
+      this.mostrarLista.push(false);
+
+      this.descripcionesFiltradas.push([...this.descripcionesUsadas]);
+      this.mostrarListaDescripcion.push(false);
     });
+  });
+}
+
+
+
+// Agregar unidad si no existe en la lista global
+private agregarUnidadSiNoExiste(unidad: string) {
+  const normalizado = unidad.trim();
+  if (normalizado && !this.unidadesUsadas.includes(normalizado)) {
+    this.unidadesUsadas.push(normalizado);
   }
+}
+
+
+
+private agregarDescripcionSiNoExiste(descripcion: string) {
+  const normalizado = descripcion.trim();
+  if (normalizado && !this.descripcionesUsadas.includes(normalizado)) {
+    this.descripcionesUsadas.push(normalizado);
+  }
+}
+
+
+filtrarUnidades(index: number, event: Event): void {
+  const valor = (event.target as HTMLInputElement).value.toLowerCase();
+  this.unidadesFiltradas[index] = this.unidadesUsadas.filter(u =>
+    u.toLowerCase().includes(valor)
+  );
+  this.manoObra.at(index).get('unidad')?.setValue((event.target as HTMLInputElement).value);
+}
+
+mostrarTodasUnidades(index: number): void {
+  this.unidadesFiltradas[index] = [...this.unidadesUsadas];
+}
+
+mostrarUnidadesFila(index: number): void {
+  this.mostrarLista = this.mostrarLista.map(() => false);
+  this.mostrarLista[index] = true;
+  this.unidadesFiltradas[index] = [...this.unidadesUsadas];
+}
+
+seleccionarUnidad(index: number, unidad: string): void {
+  this.manoObra.at(index).get('unidad')?.setValue(unidad);
+  this.mostrarLista[index] = false;
+}
+
+guardarUnidadPersonalizada(index: number, event: Event): void {
+  const input = event.target as HTMLInputElement;
+  const valor = input.value.trim();
+
+  if (valor) {
+    this.manoObra.at(index).get('unidad')?.setValue(valor);
+    this.agregarUnidadSiNoExiste(valor);
+  } else {
+    this.manoObra.at(index).get('unidad')?.setValue('');
+  }
+}
+
+
+actualizarPrecioPorDescripcion(descripcion: string, nuevoPrecio: number) {
+  descripcion = descripcion.trim().toLowerCase();
+  this.manoObra.controls.forEach(control => {
+    const descControl = control.get('descripcion')?.value.trim().toLowerCase();
+    if (descControl === descripcion) {
+      control.get('precio_unitario')?.setValue(nuevoPrecio, { emitEvent: false });
+      this.actualizarPrecioParcial(control);
+    }
+  });
+}
+
+
+// Método que se llama al cambiar el precio unitario en la UI
+onPrecioUniChange(control: AbstractControl): void {
+  control.get('precio_unitario')?.markAsTouched();
+  this.actualizarPrecioParcial(control);
+  const descripcion = control.get('descripcion')?.value;
+  const nuevoPrecio = control.get('precio_unitario')?.value;
+  if (!descripcion || nuevoPrecio <= 0) return;
+  // Actualiza localmente todos los precios unitarios con la misma descripción
+  this.actualizarPrecioPorDescripcionManoDeObra(descripcion, nuevoPrecio);
+  // Actualiza en backend todos los registros del proyecto con esa descripción
+  const id_gasto_operacion = this.id_gasto_operaciones;
+  this.servicio.actualizarPrecioDescripcionManoDeObra(id_gasto_operacion, descripcion, nuevoPrecio)
+    .subscribe({
+      next: (res) => {
+        this.mensajeExito = `Precio actualizado correctamente en ${res.actualizados} registros.`;
+      },
+      error: () => {
+        this.mensajeError = "No se pudo actualizar el precio en el backend.";
+      }
+    });
+}
+
+
+@HostListener('document:click', ['$event'])
+handleClickOutside(event: Event) {
+  const target = event.target as HTMLElement;
+
+  const listaUnidades = document.querySelectorAll('.unidad-list');
+  const listaDescripciones = document.querySelectorAll('.descripcion-list');
+
+  const esDentroUnidad = Array.from(listaUnidades).some(el => el.contains(target));
+  const esDentroDescripcion = Array.from(listaDescripciones).some(el => el.contains(target));
+  const esInputUnidad = target.classList.contains('input-unidad');
+  const esInputDescripcion = target.classList.contains('input-descripcion');
+
+  if (!esDentroUnidad && !esInputUnidad) {
+    this.mostrarLista = this.mostrarLista.map(() => false);
+  }
+
+  if (!esDentroDescripcion && !esInputDescripcion) {
+    this.mostrarListaDescripcion = this.mostrarListaDescripcion.map(() => false);
+  }
+}
+
+getUnidadControl(index: number): FormControl {
+  return this.manoObra.at(index).get('unidad') as FormControl;
+}
+
+// Actualiza el precio unitario en todos los controles con la misma descripción
+private actualizarPrecioPorDescripcionManoDeObra(descripcion: string, nuevoPrecio: number) {
+  descripcion = descripcion.trim().toLowerCase();
+  this.manoObra.controls.forEach(control => {
+    const descControl = control.get('descripcion')?.value.trim().toLowerCase();
+    if (descControl === descripcion) {
+      control.get('precio_unitario')?.setValue(nuevoPrecio, { emitEvent: false });
+      this.actualizarPrecioParcial(control);
+    }
+  });
+}
 
   registrarItem(index: number): void {
     const trabajo = this.manoObra.at(index);
@@ -247,21 +481,19 @@ export class CrearManoDeObraComponent implements OnInit {
     };
   }
 
-  actualizarPrecioParcial(control: AbstractControl): void {
-    const cantidad = control.get('cantidad')?.value || 0;
-    const precio = control.get('precio_unitario')?.value || 0;
-    control.get('total')?.setValue(cantidad * precio, { emitEvent: false });
-  }
+
+actualizarPrecioParcial(control: AbstractControl): void {
+  const cantidad = control.get('cantidad')?.value || 0;
+  const precio = control.get('precio_unitario')?.value || 0;
+  control.get('total')?.setValue(cantidad * precio, { emitEvent: false });
+}
 
   onCantidadChange(control: AbstractControl): void {
     control.get('cantidad')?.markAsTouched();
     this.actualizarPrecioParcial(control);
   }
 
-  onPrecioUniChange(control: AbstractControl): void {
-    control.get('precio_unitario')?.markAsTouched();
-    this.actualizarPrecioParcial(control);
-  }
+
 
   onUnidadChange(control: AbstractControl): void {
     control.get('unidad')?.markAsTouched();
@@ -271,5 +503,4 @@ export class CrearManoDeObraComponent implements OnInit {
     if (['e', 'E', '+', '-'].includes(event.key)) event.preventDefault();
   }
 
-  unidadTexto = unidadTexto;
 }

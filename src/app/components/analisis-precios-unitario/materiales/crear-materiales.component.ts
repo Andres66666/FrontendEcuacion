@@ -12,7 +12,6 @@ import { ActivatedRoute } from '@angular/router';
 
 import { ServiciosService } from '../../../services/servicios.service';
 import { Materiales } from '../../../models/models';
-import { UNIDADES, unidadTexto } from '../../../models/unidades';
 import { ConfirmacionComponent } from '../../mensajes/confirmacion/confirmacion/confirmacion.component';
 import { OkComponent } from '../../mensajes/ok/ok.component';
 import { ErrorComponent } from '../../mensajes/error/error.component';
@@ -37,7 +36,6 @@ export class CrearMaterialesComponent implements OnInit {
   permisos: string[] = [];
   unidadesUsadas: string[] = [];
 
-  unidades = UNIDADES; // importadas del archivo externo
   
   // ✅ Mensajes y estado UI
   formatoInvalido = false;
@@ -57,6 +55,8 @@ export class CrearMaterialesComponent implements OnInit {
   descripcionesFiltradas: string[][] = []; // filtrado por fila
   mostrarListaDescripcion: boolean[] = []; // mostrar lista por fila
 
+  catalogoMateriales: { descripcion: string; ultimo_precio: number }[] = [];
+
   constructor(
     private fb: FormBuilder,
     private servicio: ServiciosService,
@@ -75,10 +75,11 @@ export class CrearMaterialesComponent implements OnInit {
       if (this.id_gasto_operaciones) this.cargarMaterialesExistentes();
     });
     this.cargarUnidades();
+    this.cargarCatalogoMateriales(); 
   }
   getUnidadControl(index: number): FormControl {
-  return this.materiales.at(index).get('unidad') as FormControl;
-}
+    return this.materiales.at(index).get('unidad') as FormControl;
+  }
   cargarUnidades(): void {
     this.servicio.getUnidadesMateriales().subscribe({
       next: (res) => {
@@ -87,6 +88,20 @@ export class CrearMaterialesComponent implements OnInit {
       error: (err) => {
         console.error("Error cargando unidades:", err);
       },
+    });
+  }
+  private cargarCatalogoMateriales(): void {
+    this.servicio.getMateriales().subscribe({
+      next: (materiales) => {
+        this.catalogoMateriales = materiales.map(m => ({
+          descripcion: m.descripcion.trim(),
+          ultimo_precio: m.precio_unitario
+        }));
+        this.descripcionesUsadas = [...new Set(materiales.map(m => m.descripcion.trim()))];
+      },
+      error: (err) => {
+        console.error("Error cargando catálogo de materiales:", err);
+      }
     });
   }
   formatearNumero(valor: number): string {
@@ -110,7 +125,6 @@ export class CrearMaterialesComponent implements OnInit {
   }
 
 
-  unidadTexto = unidadTexto; // usamos la función importada
 
   // 🔹 Métodos de usuario
   private recuperarUsuarioLocalStorage() {
@@ -208,10 +222,17 @@ mostrarDescripcionesFila(index: number): void {
   this.descripcionesFiltradas[index] = [...this.descripcionesUsadas];
 }
 
-// Seleccionar descripción de la lista
-seleccionarDescripcion(index: number, descripcion: string): void {
-  this.materiales.at(index).get('descripcion')?.setValue(descripcion);
-  this.mostrarListaDescripcion[index] = false;
+seleccionarDescripcion(i: number, descripcion: string) {
+  const control = this.materiales.at(i);
+  control.get("descripcion")?.setValue(descripcion);
+
+  // Buscar el último precio en el catálogo
+  const material = this.catalogoMateriales.find(m => m.descripcion === descripcion);
+  if (material) {
+    control.get("precio_unitario")?.setValue(material.ultimo_precio);
+  }
+
+  this.mostrarListaDescripcion[i] = false;
 }
 
 // Guardar nueva descripción al perder focus
@@ -302,6 +323,17 @@ actualizarItem(index: number): void {
     const total = this.totalMateriales;
     this.servicio.setTotalMateriales(total);
   }
+private actualizarPrecioPorDescripcion(descripcion: string, nuevoPrecio: number) {
+  descripcion = descripcion.trim().toLowerCase();
+  this.materiales.controls.forEach(control => {
+    const descControl = control.get('descripcion')?.value.trim().toLowerCase();
+    if (descControl === descripcion) {
+      control.get('precio_unitario')?.setValue(nuevoPrecio, { emitEvent: false });
+      this.actualizarPrecioParcial(control);
+    }
+  });
+}
+
 // Agregar unidad si no existe
 // Agregar unidad si no existe en la lista global
 private agregarUnidadSiNoExiste(unidad: string) {
@@ -438,10 +470,31 @@ handleClickOutside(event: Event) {
     control.get('cantidad')?.markAsTouched();
     this.actualizarPrecioParcial(control);
   }
+  onPrecioUniChange(control: AbstractControl, index: number): void {
+    const descripcion = control.get('descripcion')?.value;
+    const nuevoPrecio = control.get('precio_unitario')?.value;
 
-  onPrecioUniChange(control: AbstractControl): void {
-    control.get('precio_unitario')?.markAsTouched();
-    this.actualizarPrecioParcial(control);
+    if (!descripcion || nuevoPrecio <= 0) return;
+
+    // Actualiza solo el frontend
+    this.actualizarPrecioPorDescripcion(descripcion, nuevoPrecio);
+
+    // Solo actualizar en backend si el material ya existe
+    const materialId = control.get('id')?.value;
+    if (materialId) {
+      this.servicio.actualizarPrecioDescripcion(
+        this.id_gasto_operaciones,
+        descripcion,
+        nuevoPrecio
+      ).subscribe({
+        next: (res) => {
+          this.mensajeExito = `Precio actualizado correctamente en ${res.actualizados} registros.`;
+        },
+        error: () => {
+          this.mensajeError = "No se pudo actualizar el precio en el backend.";
+        }
+      });
+    }
   }
 
   blockE(event: KeyboardEvent): void {

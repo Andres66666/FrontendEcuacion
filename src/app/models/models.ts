@@ -35,6 +35,13 @@ export interface RolPermiso {
   permiso: Permiso;
 }
 
+export interface Codigo2FA {
+  id: number;
+  usuario: Usuario;
+  codigo: string;
+  creado_en: Date;
+  expirado: Date;
+}
   //  ================  seccion 2    ======================
 
   export interface Proyecto {
