@@ -22,7 +22,9 @@ import {
   providedIn: 'root',
 })
 export class ServiciosService {
-  private apiUrl = environment.apiUrl;
+/*   private apiUrl = environment.apiUrl; */
+  /* private apiUrl = 'http://localhost:8000/api/'; */
+  private apiUrl = 'https://backendecuacion.onrender.com/api/';
   constructor(private http: HttpClient) {
      console.log('API URL en servicio:', this.apiUrl);
   }
