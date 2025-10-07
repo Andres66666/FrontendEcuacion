@@ -22,12 +22,8 @@ import {
   providedIn: 'root',
 })
 export class ServiciosService {
-/*   private apiUrl = environment.apiUrl; */
-  /* private apiUrl = 'http://localhost:8000/api/'; */
-  private apiUrl = 'https://backendecuacion.onrender.com/api/';
-  constructor(private http: HttpClient) {
-     console.log('API URL en servicio:', this.apiUrl);
-  }
+  private apiUrl = environment.apiUrl;
+  constructor(private http: HttpClient) {}
 
   login(correo: string, password: string): Observable<any> {
     const loginData = { correo: correo, password: password };
@@ -56,8 +52,6 @@ export class ServiciosService {
       temp_pass: tempPass 
     });
   }
-  // ← NUEVO: Cambiar password temp (agrega al final)
-  // ← MODIFICADO: Agrega confirmar_password al body del POST
   cambiarPasswordTemp(usuarioId: number, tempToken: string, nuevaPassword: string, confirmarPassword: string): Observable<any> {
     return this.http.post(`${this.apiUrl}cambiar-password-temp/`, { 
       usuario_id: usuarioId, 
@@ -66,31 +60,29 @@ export class ServiciosService {
       confirmar_password: confirmarPassword  // ← AGREGADO: Envía confirmación para validación backend
     });
   }
-
-
-getAtaquesDB(): Observable<Atacante[]> {
-  return this.http.get<any[]>(`${this.apiUrl}auditoria_db/`).pipe(
-    map((ataques: any[]) =>
-      ataques.map((a) => ({
-        ...a,
-        tipos: Array.isArray(a.tipos) 
-          ? a.tipos 
-          : (a.tipos ? a.tipos.split(",") : []), // 👈 conversión segura
-      }))
-    )
-  );
-}
-updateAtacanteBloqueo(id: number, bloqueado: boolean): Observable<any> {
-  return this.http.patch(`${this.apiUrl}auditoria_db/${id}/`, { bloqueado });
-}
-getRolesFromLocalStorage(): string[] {
-  const usuario = localStorage.getItem('usuarioLogueado');
-  if (usuario) {
-    const userObj = JSON.parse(usuario);
-    return userObj.roles || [];
+  getAtaquesDB(): Observable<Atacante[]> {
+    return this.http.get<any[]>(`${this.apiUrl}auditoria_db/`).pipe(
+      map((ataques: any[]) =>
+        ataques.map((a) => ({
+          ...a,
+          tipos: Array.isArray(a.tipos) 
+            ? a.tipos 
+            : (a.tipos ? a.tipos.split(",") : []), // 👈 conversión segura
+        }))
+      )
+    );
   }
-  return [];
-}
+  updateAtacanteBloqueo(id: number, bloqueado: boolean): Observable<any> {
+    return this.http.patch(`${this.apiUrl}auditoria_db/${id}/`, { bloqueado });
+  }
+  getRolesFromLocalStorage(): string[] {
+    const usuario = localStorage.getItem('usuarioLogueado');
+    if (usuario) {
+      const userObj = JSON.parse(usuario);
+      return userObj.roles || [];
+    }
+    return [];
+  }
 
   verificarUsuario(usuario_id: number): Observable<Usuario> {
     return this.http.get<Usuario>(`${this.apiUrl}usuario/${usuario_id}`);

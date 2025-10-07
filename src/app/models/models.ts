@@ -42,6 +42,17 @@ export interface Codigo2FA {
   creado_en: Date;
   expirado: Date;
 }
+export interface Atacante {
+  id?: number;
+  ip: string;
+  tipos: string[]; 
+  descripcion: string;
+  payload: string;
+  user_agent: string;
+  fecha: string;
+  bloqueado: boolean;
+}
+
   //  ================  seccion 2    ======================
 
   export interface Proyecto {
@@ -127,13 +138,3 @@ export interface GastosGenerales {
   modificado_por: number;
 }
 
-export interface Atacante {
-  id?: number;
-  ip: string;
-  tipos: string[]; 
-  descripcion: string;
-  payload: string;
-  user_agent: string;
-  fecha: string;
-  bloqueado: boolean;
-}

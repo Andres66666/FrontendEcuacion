@@ -1,10 +1,7 @@
-<div class="container my-4">
+<div>
   <div class="d-flex justify-content-between align-items-center mb-3">
     <div>
       <h3 class="mb-0">Panel de Bloqueo de Atacantes</h3>
-      <small class="text-muted"
-        >Interfaz visual (Bootstrap) — funcionalidad simulada</small
-      >
     </div>
     <div>
       <div class="btn-group me-2" role="group">
@@ -18,7 +15,7 @@
           <img
             [src]="tipoIconos[tipo]"
             alt="{{ tipo }}"
-            style="width: 20px; height: 20px; margin-right: 6px"
+            style="width: 50px; height: 50px; margin-right: 6px"
           />
           {{ tipo }}
         </button>
@@ -103,14 +100,17 @@
   </div>
 </div>
 
-<div class="container my-4">
-  <div class="d-flex justify-content-between align-items-center mb-3">
-    <div>
+<div>
+  <div class="row align-items-center mb-4">
+    <div class="col-md-auto me-auto mb-3 mb-md-0">
       <h3 class="mb-0">Panel de Auditoría</h3>
       <small class="text-muted">Evolución de ataques detectados</small>
     </div>
-    <div>
+
+    <div class="col-6 col-md-3 col-lg-2 ms-auto">
+      <label for="rangeSelect" class="form-label mb-1">Rango:</label>
       <select
+        id="rangeSelect"
         class="form-select"
         [(ngModel)]="selectedRange"
         (change)="onRangeChange()"
@@ -120,10 +120,9 @@
         <option value="anio">Por año</option>
       </select>
     </div>
-    <div class="mb-3">
-      <label for="tipoSelect" class="form-label"
-        >Filtrar por tipo de ataque:</label
-      >
+
+    <div class="col-6 col-md-3 col-lg-3">
+      <label for="tipoSelect" class="form-label mb-1">Tipo de ataque:</label>
       <select
         id="tipoSelect"
         class="form-select"
@@ -138,50 +137,30 @@
     </div>
   </div>
 
-  <div id="chartsCarousel" class="carousel slide" data-bs-ride="carousel">
-    <div class="carousel-inner">
-      <div class="carousel-item active">
-        <div class="card">
-          <div class="card-body">
-            <h5>Gráfico de Líneas - Evolución ataques</h5>
-            <div id="myChart" style="height: 400px; width: 100%"></div>
-          </div>
-        </div>
-      </div>
-
-      <div class="carousel-item">
-        <div class="card">
-          <div class="card-body">
-            <h5>Pie Chart - Distribución por tipo</h5>
-            <div id="myPieChart" style="height: 300px; width: 100%"></div>
-          </div>
-        </div>
-      </div>
-      <div class="carousel-item">
-        <div class="card">
-          <div class="card-body">
-            <h5>Gráfico Adicional - Bloqueados vs Activos</h5>
-            <div id="myExtraChart" style="height: 300px; width: 100%"></div>
-          </div>
+  <div class="row">
+    <div class="col-lg-8 mb-3">
+      <div class="card h-100">
+        <div class="card-body">
+          <h5>Gráfico de Líneas - Evolución ataques</h5>
+          <div id="myChart" style="height: 400px; width: 100%"></div>
         </div>
       </div>
     </div>
 
-    <button
-      class="carousel-control-prev custom-carousel-btn"
-      type="button"
-      data-bs-target="#chartsCarousel"
-      data-bs-slide="prev"
-    >
-      <span class="carousel-control-prev-icon"></span>
-    </button>
-    <button
-      class="carousel-control-next custom-carousel-btn"
-      type="button"
-      data-bs-target="#chartsCarousel"
-      data-bs-slide="next"
-    >
-      <span class="carousel-control-next-icon"></span>
-    </button>
+    <div class="col-lg-4">
+      <div class="card mb-3">
+        <div class="card-body">
+          <h5>Resumen: Distribución por Tipo</h5>
+          <p class="mb-0" [innerHTML]="tipoResumen"></p>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-body">
+          <h5>Resumen: Bloqueados vs Activos</h5>
+          <p class="mb-0">{{ estadoResumen }}</p>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
