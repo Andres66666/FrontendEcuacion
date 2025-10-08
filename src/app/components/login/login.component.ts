@@ -15,11 +15,12 @@ import { Advertencia } from '../mensajes/advertencia/advertencia';
     FormsModule, 
     ErrorComponent, 
     OkComponent, 
-    Advertencia  // ← CORREGIDO
+    Advertencia 
   ],
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.css']
 })
+
 
 export class LoginComponent {
   correo: string = '';
@@ -28,17 +29,18 @@ export class LoginComponent {
   isLoading: boolean = false;
   mensajeExito: string = '';
   mensajeError: string = '';
-  mensajeAdvertencia: string = '';  // Para warnings
-
+  mensajeAdvertencia: string = ''; 
   correoReset: string = '';
   usuarioId: number | null = null;
   codigo2FA: string = '';
   codigoEnviado = false;
   loading: boolean = false;
   qrBase64: string | null = null;
-  metodoSeleccionado: 'correo' | 'totp' | null = null;  // ← NUEVO: Rastrear método elegido
+  metodoSeleccionado: 'correo' | 'totp' | null = null; 
 
-  // ← NUEVO: Variables temporales para datos del login (usadas después de 2FA)
+  // NUEVO: Array para manejar los 6 inputs de forma separada
+  codigoInputs: string[] = ['', '', '', '', '', ''];
+
   tempRoles: string[] = [];
   tempPermisos: string[] = [];
   tempNombreUsuario: string = '';
@@ -50,31 +52,114 @@ export class LoginComponent {
   tempRequiereCambioPassword: boolean = false;
   tempMensajeUrgente: boolean = false;
 
-  // En LoginComponent (agrega al enum y variables)
-  vistaActual: 'login' | 'olvide' | 'cambiar_password_temp' | 'seleccion_2fa' | '2fa' = 'login';  // ← AGREGADO: 'cambiar_password_temp'
-  tempToken: string = '';  // ← NUEVO: Token del reset
-  tempPass: string = '';   // ← NUEVO: Input para temp_pass
-  nuevaPassword: string = '';  // ← NUEVO: Nueva password
-  confirmarPassword: string = '';  // ← NUEVO: Confirmación
-  tempVerificado: boolean = false;  // ← NUEVO: Si temp_pass verificada
+  vistaActual: 'login' | 'olvide' | 'cambiar_password_temp' | 'seleccion_2fa' | '2fa' = 'login'; 
+  tempToken: string = ''; 
+  tempPass: string = ''; 
+  nuevaPassword: string = ''; 
+  confirmarPassword: string = ''; 
+  tempVerificado: boolean = false; 
 
   constructor(
     public router: Router,
     private service: ServiciosService,
   ) { }
 
+// ... (otras propiedades y métodos del componente)
+
+  // NUEVO: Función para manejar la entrada, incluyendo la funcionalidad de pegado (Paste)
+   onInputCode(event: Event, index: number, nextInput: HTMLInputElement | null): void {
+     const input = event.target as HTMLInputElement;
+     let value = input.value;
+
+     // Limpieza: Solo permite dígitos, y limita a 1 char (comportamiento manual)
+     value = value.replace(/[^0-9]/g, '');
+     if (value.length > 1) {
+       value = value.charAt(0); // En caso de que se cuele algo, trunca
+     }
+
+     this.codigoInputs[index] = value;
+     this.codigo2FA = this.codigoInputs.join('');
+
+     // Avanza al siguiente campo si se ingresó un dígito válido
+     if (value && value.length === 1 && index < 5 && nextInput) {
+       nextInput.focus();
+     }
+   }
+   
+  // ** FUNCIÓN para Backspace (Se mantiene para la interacción con los 6 inputs) **
+  onBackspace(event: any, index: number, prevInput: HTMLInputElement | null): void {
+    const input = event.target as HTMLInputElement;
+
+    if (input.value === '' && index > 0 && prevInput) {
+      
+      event.preventDefault(); 
+      
+      this.codigoInputs[index - 1] = '';
+      
+      this.codigo2FA = this.codigoInputs.join('');
+      
+      prevInput.focus();
+    }
+  }
+   onPaste(event: ClipboardEvent, startIndex: number): void {
+  event.preventDefault(); // Previene que el navegador inserte el texto directamente (que se truncaría por maxlength=1)
+
+  const clipboardData = event.clipboardData;
+  if (!clipboardData) return;
+
+  const pastedText = clipboardData.getData('text/plain');
+  // Extrae solo dígitos numéricos, toma hasta 6
+  const digits = pastedText.replace(/[^0-9]/g, '').substring(0, 6).split('');
+
+  // Limpia todos los campos y rellena desde el inicio (índice 0) con los dígitos pegados
+  // (Esto asegura que siempre se distribuyan correctamente, incluso si se pega en un campo intermedio)
+  this.codigoInputs = ['', '', '', '', '', '']; // Limpia primero
+  for (let i = 0; i < digits.length && i < 6; i++) {
+    this.codigoInputs[i] = digits[i];
+  }
+
+  // Actualiza la variable principal unificada
+  this.codigo2FA = this.codigoInputs.join('');
+
+  // CORRECCIÓN: Fuerza la actualización del DOM en todos los inputs para evitar desfases con ngModel
+  // Esto asegura que el primer dígito (y todos) se muestren inmediatamente en la UI
+  for (let i = 0; i < 6; i++) {
+    const inputEl = document.getElementById(`input${i}`) as HTMLInputElement | null;
+    if (inputEl) {
+      inputEl.value = this.codigoInputs[i]; // Setea directamente el value en el DOM
+    }
+  }
+
+  // Enfoca el campo después del último dígito llenado (o el último campo si completo)
+  const lastFilledIndex = Math.min(digits.length - 1, 5); // Corrige: -1 para índice válido, min 5
+  const nextFocusIndex = Math.min(lastFilledIndex + 1, 5);
+  const nextInputEl = document.getElementById(`input${nextFocusIndex}`) as HTMLInputElement | null;
+  if (nextInputEl) {
+    nextInputEl.focus();
+    if (digits.length < 6) {
+      nextInputEl.select(); // Selecciona para fácil edición si es parcial
+    }
+  }
+
+  // REMOVIDO: No disparar 'input' aquí para evitar conflictos con onInputCode y sobrescrituras
+  // El ngModel y la actualización manual del DOM ya manejan la UI y la validación del botón
+}
+
+   
+// ... (El resto de métodos no se modifica)
+
   togglePasswordVisibility(): void {
     this.showPassword = !this.showPassword;
   }
 
-  // Validación mejorada
   isFormValid(): boolean {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return this.correo.trim() !== '' && 
-           this.password.trim().length >= 6 && 
-           emailRegex.test(this.correo.trim());
+             this.password.trim().length >= 6 && 
+             emailRegex.test(this.correo.trim());
   }
-
+  
+  // Asumo que el resto de onSubmit es correcto y no requiere cambios
   onSubmit(form: NgForm) {
     this.mensajeError = '';
     if (!form.valid) {
@@ -88,7 +173,6 @@ export class LoginComponent {
         this.isLoading = false;
 
         if (res.requiere_2fa) {
-          // ← NUEVO: Almacenar datos temporales del login
           this.usuarioId = res.usuario_id;
           this.tempRoles = res.roles || [];
           this.tempPermisos = res.permisos || [];
@@ -101,7 +185,6 @@ export class LoginComponent {
           this.tempRequiereCambioPassword = res.requiere_cambio_password || false;
           this.tempMensajeUrgente = res.mensaje_urgente || false;
 
-          // ← NUEVO: Manejar mensajes inmediatamente (se muestran en selección o 2FA)
           const mensajePrincipal = res.mensaje || '¡Inicio de sesión exitoso!';
           let mensajeCompleto = mensajePrincipal;
           if (this.tempMensajeAdicional) {
@@ -116,23 +199,19 @@ export class LoginComponent {
           } else if (this.tempTipoMensaje === 'advertencia' || this.tempTipoMensaje === 'advertencia_urgente') {
             this.mensajeAdvertencia = mensajeCompleto;
             if (this.tempMensajeUrgente || this.tempRequiereCambioPassword) {
-              // Espera cierre manual para urgentes
               console.log('Mensaje urgente: Esperando clic del usuario...');
             } else {
-              // Auto-cierra en 7s para warnings normales
               setTimeout(() => {
                 this.mensajeAdvertencia = '';
               }, 7000);
             }
           }
 
-          // ← NUEVO: Cambiar a vista de selección de método 2FA
           this.vistaActual = 'seleccion_2fa';
           this.codigoEnviado = false;
           this.qrBase64 = null;
           this.metodoSeleccionado = null;
         } else {
-          // Caso sin 2FA (raro, pero por si acaso)
           this.guardarSesionYRedirigir(res);
         }
       },
@@ -143,12 +222,14 @@ export class LoginComponent {
     });
   }
 
-  // ← NUEVO: Método para seleccionar método 2FA
+  // El resto de métodos del componente (seleccionarMetodo, usarCorreo, etc.) siguen igual.
+
   seleccionarMetodo(metodo: 'correo' | 'totp'): void {
     this.metodoSeleccionado = metodo;
     this.vistaActual = '2fa';
     this.mensajeError = '';
     this.codigo2FA = '';
+    this.codigoInputs = ['', '', '', '', '', '']; // Importante resetear aquí
     this.codigoEnviado = false;
     this.qrBase64 = null;
     this.loading = true;
@@ -160,14 +241,13 @@ export class LoginComponent {
     }
   }
 
-  // ← CORREGIDO: Enviar código por correo (sin tempToken)
   usarCorreo(): void {
     if (!this.usuarioId) {
       this.mensajeError = 'No hay usuario para enviar código';
       this.loading = false;
       return;
     }
-    this.service.enviarCodigoCorreo(this.usuarioId).subscribe({  // ← CORREGIDO: Solo 1 argumento
+    this.service.enviarCodigoCorreo(this.usuarioId).subscribe({ 
       next: () => {
         this.mensajeExito = 'Código enviado a su correo. Ingréselo abajo.';
         this.codigoEnviado = true;
@@ -180,7 +260,6 @@ export class LoginComponent {
     });
   }
 
-  // ← CORREGIDO: Usar Authenticator (llama a generarQR)
   usarAuthenticator(): void {
     if (!this.usuarioId) {
       this.mensajeError = 'No hay usuario para generar QR';
@@ -204,15 +283,15 @@ export class LoginComponent {
     });
   }
 
-  // ← CORREGIDO: Verificar código 2FA (envía metodo)
   verificarCodigo(): void {
     this.mensajeError = '';
     if (!this.usuarioId) {
       this.mensajeError = 'Usuario no definido';
       return;
     }
-    if (!this.codigo2FA.trim()) {
-      this.mensajeError = 'Ingrese el código recibido o generado';
+    // VALIDACIÓN ACTUALIZADA: Asegura que la cadena unificada tenga exactamente 6 dígitos
+    if (this.codigo2FA.length !== 6) { 
+      this.mensajeError = 'Ingrese los 6 dígitos del código de verificación';
       return;
     }
     if (!this.metodoSeleccionado) {
@@ -221,10 +300,10 @@ export class LoginComponent {
     }
 
     this.loading = true;
-    this.service.verificar2FA(this.usuarioId, this.codigo2FA, this.metodoSeleccionado).subscribe({  // ← CORREGIDO: 3 argumentos
+    this.service.verificar2FA(this.usuarioId, this.codigo2FA, this.metodoSeleccionado).subscribe({ 
       next: (res: any) => {
         this.loading = false;
-        // ← NUEVO: Usar datos temporales para completar la sesión
+        
         const usuarioData = {
           id: res.usuario_id || this.usuarioId!,
           nombre: this.tempNombreUsuario,
@@ -239,19 +318,15 @@ export class LoginComponent {
 
         this.mensajeExito = 'Autenticación 2FA exitosa';
 
-        // ← NUEVO: Manejar redirección basada en datos temporales
         if (this.tempRequiereCambioPassword && this.tempMensajeUrgente) {
-          // Caso urgente: Redirigir a cambio de password
           setTimeout(() => {
             this.router.navigate(['/cambiar-password']);
           }, 2000);
         } else if (this.tempRequiereCambioPassword) {
-          // Cambio obligatorio sin urgencia
           setTimeout(() => {
             this.router.navigate(['/cambiar-password']);
           }, 5000);
         } else {
-          // Redirección normal
           setTimeout(() => {
             this.router.navigate(['/panel-control']);
           }, 2000);
@@ -264,7 +339,6 @@ export class LoginComponent {
     });
   }
 
-  // ← NUEVO: Método helper para guardar sesión y redirigir (usado en casos sin 2FA)
   private guardarSesionYRedirigir(res: any): void {
     localStorage.setItem('access_token', JSON.stringify(res.access_token));
     const usuario = {
@@ -278,7 +352,6 @@ export class LoginComponent {
     };
     localStorage.setItem('usuarioLogueado', JSON.stringify(usuario));
 
-    // Manejo de redirección
     if (res.requiere_cambio_password && res.mensaje_urgente) {
       setTimeout(() => {
         this.router.navigate(['/cambiar-password']);
@@ -294,7 +367,6 @@ export class LoginComponent {
     }
   }
 
-  // ← MODIFICADO: enviarCorreoReset (cambia vista y setea token)
   enviarCorreoReset() {
     this.mensajeError = '';
     if (!this.correoReset.trim()) {
@@ -310,11 +382,11 @@ export class LoginComponent {
     this.service.resetPassword(this.correoReset).subscribe({
       next: (res: any) => {
         this.isLoading = false;
-        this.usuarioId = res.usuario_id;  // Setea ID para cambio
-        this.tempToken = res.temp_token;  // Setea token para validación en backend
+        this.usuarioId = res.usuario_id; 
+        this.tempToken = res.temp_token; 
         this.mensajeExito = `Contraseña temporal enviada a ${this.correoReset}. Revise su correo (incluyendo spam). Ahora ingrese su nueva contraseña.`;
-        this.vistaActual = 'cambiar_password_temp';  // ← CAMBIADO: Directo a nueva/confirmar
-        this.correoReset = '';  // Limpia input
+        this.vistaActual = 'cambiar_password_temp'; 
+        this.correoReset = ''; 
       },
       error: (err: any) => {
         this.isLoading = false;
@@ -323,8 +395,6 @@ export class LoginComponent {
     });
   }
 
-
-  // ← NUEVO: Verificar temp_pass
   verificarTempPassword(): void {
       if (!this.usuarioId || !this.tempToken || !this.tempPass.trim()) {
         this.mensajeError = 'Ingrese la contraseña temporal recibida';
@@ -337,8 +407,8 @@ export class LoginComponent {
           if (res.valid) {
             this.tempVerificado = true;
             this.mensajeExito = res.mensaje || 'Contraseña temporal verificada correctamente.';
-            this.tempPass = '';  // Limpia input
-            this.mensajeError = '';  // Limpia errores previos
+            this.tempPass = ''; 
+            this.mensajeError = ''; 
           } else {
             this.mensajeError = res.error || 'Contraseña temporal incorrecta. Revise el correo.';
           }
@@ -350,7 +420,6 @@ export class LoginComponent {
       });
     }
 
-  // ← MODIFICADO: Llama service con 4 params (incluye confirmarPassword)
   cambiarPasswordTemp(): void {
     if (!this.usuarioId || !this.tempToken || !this.nuevaPassword || !this.confirmarPassword) {
       this.mensajeError = 'Complete nueva contraseña y confirmación';
@@ -365,16 +434,16 @@ export class LoginComponent {
       return;
     }
     this.loading = true;
-    // ← CAMBIADO: Pasa confirmarPassword al service
+    
     this.service.cambiarPasswordTemp(this.usuarioId, this.tempToken, this.nuevaPassword, this.confirmarPassword).subscribe({
       next: (res: any) => {
         this.loading = false;
         this.mensajeExito = res.mensaje || 'Contraseña actualizada exitosamente. Ahora inicie sesión con su nueva contraseña.';
         this.nuevaPassword = '';
         this.confirmarPassword = '';
-        this.tempVerificado = false;  // Reset (si usas)
+        this.tempVerificado = false; 
         setTimeout(() => {
-          this.volverLogin();  // Vuelve a login
+          this.volverLogin(); 
         }, 3000);
       },
       error: (err: any) => {
@@ -385,10 +454,9 @@ export class LoginComponent {
   }
 
 
-  // ← MODIFICADO: irAOlvide (sin resetExitoso)
   irAOlvide(): void {
     this.vistaActual = 'olvide';
-    this.correoReset = this.correo;  // Prellena opcional
+    this.correoReset = this.correo; 
     this.mensajeExito = '';
     this.mensajeError = '';
   }
@@ -399,18 +467,18 @@ export class LoginComponent {
     this.mensajeExito = '';
     this.mensajeAdvertencia = '';
     this.codigo2FA = '';
+    this.codigoInputs = ['', '', '', '', '', '']; // Reset de los inputs separados
     this.codigoEnviado = false;
     this.qrBase64 = null;
     this.metodoSeleccionado = null;
     this.loading = false;
-    this.tempVerificado = false;  // ← QUITAR si no usas, pero mantén por compatibilidad
-    this.tempPass = '';  // ← AGREGADO: Limpia (aunque no se usa)
+    this.tempVerificado = false; 
+    this.tempPass = ''; 
     this.nuevaPassword = '';
     this.confirmarPassword = '';
     this.tempToken = '';
     this.usuarioId = null;
     this.correoReset = '';
-    // ← NUEVO: Resetear temporales del login (para 2FA)
     this.tempRoles = [];
     this.tempPermisos = [];
     this.tempNombreUsuario = '';
@@ -421,7 +489,7 @@ export class LoginComponent {
     this.tempDiasTranscurridos = 0;
     this.tempRequiereCambioPassword = false;
     this.tempMensajeUrgente = false;
-    this.correoReset = '';  // ← AGREGADO: Limpia correo de reset
+    this.correoReset = ''; 
   }
 
   // Manejo de modales
@@ -431,7 +499,6 @@ export class LoginComponent {
 
   manejarAdvertencia() {
     this.mensajeAdvertencia = '';
-    // ← NUEVO: Si es urgente, redirigir a cambio de password (para casos de 2FA)
     if (this.tempMensajeUrgente && this.tempRequiereCambioPassword) {
       this.router.navigate(['/cambiar-password']);
     }
