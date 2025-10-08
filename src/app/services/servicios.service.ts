@@ -24,27 +24,31 @@ import {
 export class ServiciosService {
   private apiUrl = environment.apiUrl;
   constructor(private http: HttpClient) {}
+  // =====================================================
+  // 🧩 SECCIÓN 1: Autenticación y Seguridad
+  // =====================================================
 
   login(correo: string, password: string): Observable<any> {
-    const loginData = { correo: correo, password: password };
-    return this.http.post<any>(`${this.apiUrl}login/`, loginData);  // ← Sin cambios: Funciona
+    const loginData = { correo, password };
+    return this.http.post<any>(`${this.apiUrl}login/`, loginData);
   }
+
   resetPassword(correo: string): Observable<any> {
-    return this.http.post<any>(`${this.apiUrl}reset-password/`, { correo });  // ← Sin cambios: Funciona
+    return this.http.post<any>(`${this.apiUrl}reset-password/`, { correo });
   }
-  // ← CORREGIDO: Quitar '/' inicial en la ruta para evitar doble slash
+
   enviarCodigoCorreo(usuarioId: number): Observable<any> {
     return this.http.post(`${this.apiUrl}enviar-codigo/`, { usuario_id: usuarioId });
   }
-  // ← CORREGIDO: Igual para generarQR
+
   generarQR(usuarioId: number): Observable<any> {
     return this.http.post(`${this.apiUrl}generar-qr/`, { usuario_id: usuarioId });
   }
-  // ← CORREGIDO: Igual para verificar2FA
+
   verificar2FA(usuarioId: number, codigo: string, metodo: 'correo' | 'totp'): Observable<any> {
     return this.http.post(`${this.apiUrl}verificar-2fa/`, { usuario_id: usuarioId, codigo, metodo });
   }
-  // ← NUEVO: Verificar temp_pass (agrega al final)
+
   verificarTempPassword(usuarioId: number, tempToken: string, tempPass: string): Observable<any> {
     return this.http.post(`${this.apiUrl}verificar-temp/`, { 
       usuario_id: usuarioId, 
@@ -52,29 +56,136 @@ export class ServiciosService {
       temp_pass: tempPass 
     });
   }
+
   cambiarPasswordTemp(usuarioId: number, tempToken: string, nuevaPassword: string, confirmarPassword: string): Observable<any> {
     return this.http.post(`${this.apiUrl}cambiar-password-temp/`, { 
       usuario_id: usuarioId, 
       temp_token: tempToken, 
       nueva_password: nuevaPassword,
-      confirmar_password: confirmarPassword  // ← AGREGADO: Envía confirmación para validación backend
+      confirmar_password: confirmarPassword
     });
   }
+
+  // =====================================================
+  // 🔒 SECCIÓN 2: Auditoría y Seguridad del Sistema
+  // =====================================================
+
   getAtaquesDB(): Observable<Atacante[]> {
     return this.http.get<any[]>(`${this.apiUrl}auditoria_db/`).pipe(
       map((ataques: any[]) =>
         ataques.map((a) => ({
           ...a,
-          tipos: Array.isArray(a.tipos) 
-            ? a.tipos 
-            : (a.tipos ? a.tipos.split(",") : []), // 👈 conversión segura
+          tipos: Array.isArray(a.tipos)
+            ? a.tipos
+            : (a.tipos ? a.tipos.split(",") : []),
         }))
       )
     );
   }
+
   updateAtacanteBloqueo(id: number, bloqueado: boolean): Observable<any> {
     return this.http.patch(`${this.apiUrl}auditoria_db/${id}/`, { bloqueado });
   }
+
+  // =====================================================
+  // 👤 SECCIÓN 3: Gestión de Usuarios, Roles y Permisos
+  // =====================================================
+
+  // --- Roles ---
+  getRoles(): Observable<Rol[]> {
+    return this.http.get<Rol[]>(`${this.apiUrl}rol/`);
+  }
+
+  getRolID(id: number): Observable<Rol> {
+    return this.http.get<Rol>(`${this.apiUrl}rol/${id}/`);
+  }
+
+  createRol(rol: Rol): Observable<Rol> {
+    return this.http.post<Rol>(`${this.apiUrl}rol/`, rol);
+  }
+
+  updateRol(rol: Rol): Observable<Rol> {
+    return this.http.put<Rol>(`${this.apiUrl}rol/${rol.id}/`, rol);
+  }
+
+  // --- Permisos ---
+  getPermisos(): Observable<Permiso[]> {
+    return this.http.get<Permiso[]>(`${this.apiUrl}permiso/`);
+  }
+
+  getPermisoID(id: number): Observable<Permiso> {
+    return this.http.get<Permiso>(`${this.apiUrl}permiso/${id}/`);
+  }
+
+  createPermiso(p: Permiso): Observable<Permiso> {
+    return this.http.post<Permiso>(`${this.apiUrl}permiso/`, p);
+  }
+
+  updatePermiso(p: Permiso): Observable<Permiso> {
+    return this.http.put<Permiso>(`${this.apiUrl}permiso/${p.id}/`, p);
+  }
+
+  // --- Usuarios ---
+  getUsuarios(): Observable<Usuario[]> {
+    return this.http.get<Usuario[]>(`${this.apiUrl}usuario/`);
+  }
+
+  getUsuarioID(id: number): Observable<Usuario> {
+    return this.http.get<Usuario>(`${this.apiUrl}usuario/${id}/`);
+  }
+
+  createUsuario(usuario: Usuario): Observable<Usuario> {
+    return this.http.post<Usuario>(`${this.apiUrl}usuario/`, usuario);
+  }
+
+  editarUsuario(id: number, usuario: FormData): Observable<Usuario> {
+    return this.http.put<Usuario>(`${this.apiUrl}usuario/${id}/`, usuario);
+  }
+
+  getUsuariosDesactivados(): Observable<any[]> {
+    return this.getUsuarios().pipe(
+      map(usuarios => usuarios.filter(usuario => !usuario.estado))
+    );
+  }
+
+  // --- UsuarioRol ---
+  getUsuarioRoles(): Observable<UsuarioRol[]> {
+    return this.http.get<UsuarioRol[]>(`${this.apiUrl}usuario_rol/`);
+  }
+
+  getUsuarioRolID(id: number): Observable<UsuarioRol> {
+    return this.http.get<UsuarioRol>(`${this.apiUrl}usuario_rol/${id}/`);
+  }
+
+  createUsuarioRol(ur: UsuarioRol): Observable<UsuarioRol> {
+    return this.http.post<UsuarioRol>(`${this.apiUrl}usuario_rol/`, ur);
+  }
+
+  updateUsuarioRol(ur: UsuarioRol): Observable<UsuarioRol> {
+    return this.http.put<UsuarioRol>(`${this.apiUrl}usuario_rol/${ur.id}/`, ur);
+  }
+
+  // --- RolPermiso ---
+  getRolPermiso(): Observable<RolPermiso[]> {
+    return this.http.get<RolPermiso[]>(`${this.apiUrl}rol_permiso/`);
+  }
+
+  getRolPermisoID(id: number): Observable<RolPermiso> {
+    return this.http.get<RolPermiso>(`${this.apiUrl}rol_permiso/${id}/`);
+  }
+
+  createRolPermiso(rolPermiso: RolPermiso): Observable<RolPermiso> {
+    return this.http.post<RolPermiso>(`${this.apiUrl}rol_permiso/`, rolPermiso);
+  }
+
+  updateRolPermiso(rolPermiso: RolPermiso): Observable<RolPermiso> {
+    return this.http.put<RolPermiso>(
+      `${this.apiUrl}rol_permiso/${rolPermiso.id}/`,
+      rolPermiso
+    );
+  }
+
+  // --- Métodos auxiliares ---
   getRolesFromLocalStorage(): string[] {
     const usuario = localStorage.getItem('usuarioLogueado');
     if (usuario) {
@@ -87,175 +198,87 @@ export class ServiciosService {
   verificarUsuario(usuario_id: number): Observable<Usuario> {
     return this.http.get<Usuario>(`${this.apiUrl}usuario/${usuario_id}`);
   }
-  getRoles(): Observable<Rol[]> {
-    return this.http.get<Rol[]>(`${this.apiUrl}rol/`);
-  }
-  getRolID(id: number): Observable<Rol> {
-    return this.http.get<Rol>(`${this.apiUrl}rol/${id}/`);
-  }
-  createRol(rol: Rol): Observable<Rol> {
-    return this.http.post<Rol>(`${this.apiUrl}rol/`, rol);
-  }
-  updateRol(rol: Rol): Observable<Rol> {
-    return this.http.put<Rol>(`${this.apiUrl}rol/${rol.id}/`, rol);
-  }
 
-  // === Permiso ===
-  getPermisos(): Observable<Permiso[]> {
-    return this.http.get<Permiso[]>(`${this.apiUrl}permiso/`);
-  }
-  getPermisoID(id: number): Observable<Permiso> {
-    return this.http.get<Permiso>(`${this.apiUrl}permiso/${id}/`);
-  }
-  createPermiso(p: Permiso): Observable<Permiso> {
-    return this.http.post<Permiso>(`${this.apiUrl}permiso/`, p);
-  }
-  updatePermiso(p: Permiso): Observable<Permiso> {
-    return this.http.put<Permiso>(`${this.apiUrl}permiso/${p.id}/`, p);
-  }
+  // =====================================================
+  // 🧱 SECCIÓN 4: Identificadores Generales y Operaciones
+  // =====================================================
 
-  // === Usuario ===
-  getUsuarios(): Observable<Usuario[]> {
-    return this.http.get<Usuario[]>(`${this.apiUrl}usuario/`);
-  }
-  getUsuarioID(id: number): Observable<Usuario> {
-    return this.http.get<Usuario>(`${this.apiUrl}usuario/${id}/`);
-  }
-  createUsuario(usuario: Usuario): Observable<Usuario> {
-    return this.http.post<Usuario>(`${this.apiUrl}usuario/`, usuario);
-  }
-  editarUsuario(id: number, usuario: FormData): Observable<Usuario> {
-    return this.http.put<Usuario>(`${this.apiUrl}usuario/${id}/`, usuario);
-  }
-  getUsuariosDesactivados(): Observable<any[]> {
-    return this.getUsuarios().pipe(  
-      map(usuarios => usuarios.filter(usuario => !usuario.estado))  
-    );
-  }
-  // === UsuarioRol ===
-  getUsuarioRoles(): Observable<UsuarioRol[]> {
-    return this.http.get<UsuarioRol[]>(`${this.apiUrl}usuario_rol/`);
-  }
-  getUsuarioRolID(id: number): Observable<UsuarioRol> {
-    return this.http.get<UsuarioRol>(`${this.apiUrl}usuario_rol/${id}/`);
-  }
-  createUsuarioRol(ur: UsuarioRol): Observable<UsuarioRol> {
-    return this.http.post<UsuarioRol>(`${this.apiUrl}usuario_rol/`, ur);
-  }
-  updateUsuarioRol(ur: UsuarioRol): Observable<UsuarioRol> {
-    return this.http.put<UsuarioRol>(`${this.apiUrl}usuario_rol/${ur.id}/`, ur);
-  }
-
-  // === RolPermiso ===
-  getRolPermiso(): Observable<RolPermiso[]> {
-    return this.http.get<RolPermiso[]>(`${this.apiUrl}rol_permiso/`);
-  }
-  getRolPermisoID(id: number): Observable<RolPermiso> {
-    return this.http.get<RolPermiso>(`${this.apiUrl}rol_permiso/${id}/`);
-  }
-  createRolPermiso(rolPermiso: RolPermiso): Observable<RolPermiso> {
-    return this.http.post<RolPermiso>(`${this.apiUrl}rol_permiso/`, rolPermiso);
-  }
-  updateRolPermiso(rolPermiso: RolPermiso): Observable<RolPermiso> {
-    return this.http.put<RolPermiso>(
-      `${this.apiUrl}rol_permiso/${rolPermiso.id}/`,
-      rolPermiso
-    );
-  }
-  //  =====================================================
-  //  ================  seccion 2    ======================
-  //  =====================================================
-  
   getIdentificadorGeneral(): Observable<Proyecto[]> {
     return this.http.get<Proyecto[]>(`${this.apiUrl}IdGeneral/`);
   }
 
   getIdentificadorGeneralID(id: number): Observable<Proyecto> {
-    return this.http.get<Proyecto>(
-      `${this.apiUrl}IdGeneral/${id}/`
-    );
+    return this.http.get<Proyecto>(`${this.apiUrl}IdGeneral/${id}/`);
   }
 
-  createIdentificadorGeneral(
-    gasto: Partial<Proyecto>
-  ): Observable<Proyecto> {
-    return this.http.post<Proyecto>(
-      `${this.apiUrl}IdGeneral/`,
-      gasto
-    );
+  createIdentificadorGeneral(gasto: Partial<Proyecto>): Observable<Proyecto> {
+    return this.http.post<Proyecto>(`${this.apiUrl}IdGeneral/`, gasto);
   }
-  updateIdentificadorGeneral(
-    identificador: Proyecto
-  ): Observable<Proyecto> {
-    return this.http.put<Proyecto>(
-      `${this.apiUrl}IdGeneral/${identificador.id_general}/`,
-      identificador
-    );
+
+  updateIdentificadorGeneral(identificador: Proyecto): Observable<Proyecto> {
+    return this.http.put<Proyecto>(`${this.apiUrl}IdGeneral/${identificador.id_general}/`, identificador);
   }
+
   deleteIdentificadorGeneral(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}IdGeneral/${id}/`);
   }
 
-  // === Gasto de Operación ===
+  // --- Gastos de Operación ---
   getGastosOperacion(): Observable<GastoOperacion[]> {
     return this.http.get<GastoOperacion[]>(`${this.apiUrl}GastosOperaciones/`);
   }
 
   getGastoOperacionID(id: number): Observable<GastoOperacion[]> {
-    return this.http.get<GastoOperacion[]>(
-      `${this.apiUrl}GastosOperaciones/?identificador=${id}`
-    );
+    return this.http.get<GastoOperacion[]>(`${this.apiUrl}GastosOperaciones/?identificador=${id}`);
   }
-  // Para unidades únicas de GastoOperacion (endpoint /gasto_operacion/unidades/)
+
   getUnidadesGastoOperacion(): Observable<string[]> {
     return this.http.get<string[]>(`${this.apiUrl}gasto_operacion/unidades/`);
   }
-/* getUnidadesGastoOperacion(): Observable<string[]> {
-  return this.http.get<string[]>(`${this.apiUrl}gasto_operacion/unidades/`);  // Endpoint de tu ViewSet
-} */
 
-
-
-
-  // Sección 2 (después de métodos de GastoOperacion)
-  // Nuevos métodos para Módulo
+  // --- Módulos ---
   getModulosPorProyecto(idProyecto: number): Observable<Modulo[]> {
     return this.http.get<Modulo[]>(`${this.apiUrl}modulos/?proyecto=${idProyecto}`);
   }
+
   createModulo(modulo: Partial<Modulo>): Observable<Modulo> {
     return this.http.post<Modulo>(`${this.apiUrl}modulos/`, modulo);
   }
-  // En ServiciosService
-  deleteModulo(id: number): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/modulos/${id}/`);
-  }
+
   updateModulo(id: number, modulo: Partial<Modulo>): Observable<Modulo> {
     return this.http.put<Modulo>(`${this.apiUrl}/modulos/${id}/`, modulo);
   }
-  // Si no tienes deleteGastoOperacion
-  deleteGastoOperacion(id: number): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/GastosOperaciones/${id}/`);
-  }
-  moverGastoAModulo(gastoId: number, moduloId: number | null): Observable<GastoOperacion> {
-    const payload = { modulo_id: moduloId };  // Envía solo ID o null
-    return this.http.patch<GastoOperacion>(`${this.apiUrl}GastosOperaciones/${gastoId}/`, payload);
+
+  deleteModulo(id: number): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/modulos/${id}/`);
   }
 
-  // Ajusta createGastoOperacion para aceptar modulo_id (extiende tipo)
+  // --- Gastos y módulos ---
   createGastoOperacion(gastos: (Partial<GastoOperacion> & { modulo_id?: number | null })[]): Observable<{
     mensaje: string;
     identificador_general: number;
     gastos: GastoOperacion[];
   }> {
-    return this.http.post<{ mensaje: string; identificador_general: number; gastos: GastoOperacion[] }>(`${this.apiUrl}GastosOperaciones/`, gastos);
+    return this.http.post<{ mensaje: string; identificador_general: number; gastos: GastoOperacion[] }>(
+      `${this.apiUrl}GastosOperaciones/`,
+      gastos
+    );
   }
 
-  // Ajusta updateGastoOperacion para aceptar modulo_id
   updateGastoOperacion(gasto: Partial<GastoOperacion> & { modulo_id?: number | null }): Observable<GastoOperacion> {
     const payload = { ...gasto };
-    // Django mapeará modulo_id a modulo si lo configuras en serializer
     return this.http.put<GastoOperacion>(`${this.apiUrl}GastosOperaciones/${gasto.id}/`, payload);
   }
+
+  deleteGastoOperacion(id: number): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/GastosOperaciones/${id}/`);
+  }
+
+  moverGastoAModulo(gastoId: number, moduloId: number | null): Observable<GastoOperacion> {
+    const payload = { modulo_id: moduloId };
+    return this.http.patch<GastoOperacion>(`${this.apiUrl}GastosOperaciones/${gastoId}/`, payload);
+  }
+
   //  =====================================================
   //  ================  seccion 3    ======================
   //  =====================================================
