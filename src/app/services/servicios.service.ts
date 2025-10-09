@@ -24,8 +24,8 @@ import {
 export class ServiciosService {
   /* private apiUrl = environment.apiUrl; */
   /* private apiUrl = 'http://localhost:8000/api/'; */
-  private apiUrl = 'https://backendecuacion-1.onrender.com/api/';
-  
+  private apiUrl = 'https://backendecuacion.onrender.com/api/';
+
   constructor(private http: HttpClient) {}
   // =====================================================
   // 🧩 SECCIÓN 1: Autenticación y Seguridad
@@ -41,31 +41,52 @@ export class ServiciosService {
   }
 
   enviarCodigoCorreo(usuarioId: number): Observable<any> {
-    return this.http.post(`${this.apiUrl}enviar-codigo/`, { usuario_id: usuarioId });
-  }
-
-  generarQR(usuarioId: number): Observable<any> {
-    return this.http.post(`${this.apiUrl}generar-qr/`, { usuario_id: usuarioId });
-  }
-
-  verificar2FA(usuarioId: number, codigo: string, metodo: 'correo' | 'totp'): Observable<any> {
-    return this.http.post(`${this.apiUrl}verificar-2fa/`, { usuario_id: usuarioId, codigo, metodo });
-  }
-
-  verificarTempPassword(usuarioId: number, tempToken: string, tempPass: string): Observable<any> {
-    return this.http.post(`${this.apiUrl}verificar-temp/`, { 
-      usuario_id: usuarioId, 
-      temp_token: tempToken, 
-      temp_pass: tempPass 
+    return this.http.post(`${this.apiUrl}enviar-codigo/`, {
+      usuario_id: usuarioId,
     });
   }
 
-  cambiarPasswordTemp(usuarioId: number, tempToken: string, nuevaPassword: string, confirmarPassword: string): Observable<any> {
-    return this.http.post(`${this.apiUrl}cambiar-password-temp/`, { 
-      usuario_id: usuarioId, 
-      temp_token: tempToken, 
+  generarQR(usuarioId: number): Observable<any> {
+    return this.http.post(`${this.apiUrl}generar-qr/`, {
+      usuario_id: usuarioId,
+    });
+  }
+
+  verificar2FA(
+    usuarioId: number,
+    codigo: string,
+    metodo: 'correo' | 'totp'
+  ): Observable<any> {
+    return this.http.post(`${this.apiUrl}verificar-2fa/`, {
+      usuario_id: usuarioId,
+      codigo,
+      metodo,
+    });
+  }
+
+  verificarTempPassword(
+    usuarioId: number,
+    tempToken: string,
+    tempPass: string
+  ): Observable<any> {
+    return this.http.post(`${this.apiUrl}verificar-temp/`, {
+      usuario_id: usuarioId,
+      temp_token: tempToken,
+      temp_pass: tempPass,
+    });
+  }
+
+  cambiarPasswordTemp(
+    usuarioId: number,
+    tempToken: string,
+    nuevaPassword: string,
+    confirmarPassword: string
+  ): Observable<any> {
+    return this.http.post(`${this.apiUrl}cambiar-password-temp/`, {
+      usuario_id: usuarioId,
+      temp_token: tempToken,
       nueva_password: nuevaPassword,
-      confirmar_password: confirmarPassword
+      confirmar_password: confirmarPassword,
     });
   }
 
@@ -80,7 +101,9 @@ export class ServiciosService {
           ...a,
           tipos: Array.isArray(a.tipos)
             ? a.tipos
-            : (a.tipos ? a.tipos.split(",") : []),
+            : a.tipos
+            ? a.tipos.split(',')
+            : [],
         }))
       )
     );
@@ -147,7 +170,7 @@ export class ServiciosService {
 
   getUsuariosDesactivados(): Observable<any[]> {
     return this.getUsuarios().pipe(
-      map(usuarios => usuarios.filter(usuario => !usuario.estado))
+      map((usuarios) => usuarios.filter((usuario) => !usuario.estado))
     );
   }
 
@@ -219,7 +242,10 @@ export class ServiciosService {
   }
 
   updateIdentificadorGeneral(identificador: Proyecto): Observable<Proyecto> {
-    return this.http.put<Proyecto>(`${this.apiUrl}IdGeneral/${identificador.id_general}/`, identificador);
+    return this.http.put<Proyecto>(
+      `${this.apiUrl}IdGeneral/${identificador.id_general}/`,
+      identificador
+    );
   }
 
   deleteIdentificadorGeneral(id: number): Observable<void> {
@@ -232,7 +258,9 @@ export class ServiciosService {
   }
 
   getGastoOperacionID(id: number): Observable<GastoOperacion[]> {
-    return this.http.get<GastoOperacion[]>(`${this.apiUrl}GastosOperaciones/?identificador=${id}`);
+    return this.http.get<GastoOperacion[]>(
+      `${this.apiUrl}GastosOperaciones/?identificador=${id}`
+    );
   }
 
   getUnidadesGastoOperacion(): Observable<string[]> {
@@ -241,7 +269,9 @@ export class ServiciosService {
 
   // --- Módulos ---
   getModulosPorProyecto(idProyecto: number): Observable<Modulo[]> {
-    return this.http.get<Modulo[]>(`${this.apiUrl}modulos/?proyecto=${idProyecto}`);
+    return this.http.get<Modulo[]>(
+      `${this.apiUrl}modulos/?proyecto=${idProyecto}`
+    );
   }
 
   createModulo(modulo: Partial<Modulo>): Observable<Modulo> {
@@ -257,29 +287,43 @@ export class ServiciosService {
   }
 
   // --- Gastos y módulos ---
-  createGastoOperacion(gastos: (Partial<GastoOperacion> & { modulo_id?: number | null })[]): Observable<{
+  createGastoOperacion(
+    gastos: (Partial<GastoOperacion> & { modulo_id?: number | null })[]
+  ): Observable<{
     mensaje: string;
     identificador_general: number;
     gastos: GastoOperacion[];
   }> {
-    return this.http.post<{ mensaje: string; identificador_general: number; gastos: GastoOperacion[] }>(
-      `${this.apiUrl}GastosOperaciones/`,
-      gastos
-    );
+    return this.http.post<{
+      mensaje: string;
+      identificador_general: number;
+      gastos: GastoOperacion[];
+    }>(`${this.apiUrl}GastosOperaciones/`, gastos);
   }
 
-  updateGastoOperacion(gasto: Partial<GastoOperacion> & { modulo_id?: number | null }): Observable<GastoOperacion> {
+  updateGastoOperacion(
+    gasto: Partial<GastoOperacion> & { modulo_id?: number | null }
+  ): Observable<GastoOperacion> {
     const payload = { ...gasto };
-    return this.http.put<GastoOperacion>(`${this.apiUrl}GastosOperaciones/${gasto.id}/`, payload);
+    return this.http.put<GastoOperacion>(
+      `${this.apiUrl}GastosOperaciones/${gasto.id}/`,
+      payload
+    );
   }
 
   deleteGastoOperacion(id: number): Observable<any> {
     return this.http.delete(`${this.apiUrl}/GastosOperaciones/${id}/`);
   }
 
-  moverGastoAModulo(gastoId: number, moduloId: number | null): Observable<GastoOperacion> {
+  moverGastoAModulo(
+    gastoId: number,
+    moduloId: number | null
+  ): Observable<GastoOperacion> {
     const payload = { modulo_id: moduloId };
-    return this.http.patch<GastoOperacion>(`${this.apiUrl}GastosOperaciones/${gastoId}/`, payload);
+    return this.http.patch<GastoOperacion>(
+      `${this.apiUrl}GastosOperaciones/${gastoId}/`,
+      payload
+    );
   }
 
   //  =====================================================
@@ -296,16 +340,29 @@ export class ServiciosService {
     return this.http.get<Materiales>(`${this.apiUrl}materiales/${id}/`);
   }
   getMaterialesIDGasto(id_gasto_operacion: number): Observable<Materiales[]> {
-    return this.http.get<Materiales[]>(`${this.apiUrl}materiales/?id_gasto_operacion=${id_gasto_operacion}`);
+    return this.http.get<Materiales[]>(
+      `${this.apiUrl}materiales/?id_gasto_operacion=${id_gasto_operacion}`
+    );
   }
   getUnidadesMateriales(): Observable<string[]> {
     return this.http.get<string[]>(`${this.apiUrl}materiales/unidades/`);
   }
-  getCatalogoMaterialesPorProyecto(id_gasto_operacion: number): Observable<Materiales[]> {
-    return this.http.get<Materiales[]>(`${this.apiUrl}materiales/catalogo/?id_gasto_operacion=${id_gasto_operacion}`);
+  getCatalogoMaterialesPorProyecto(
+    id_gasto_operacion: number
+  ): Observable<Materiales[]> {
+    return this.http.get<Materiales[]>(
+      `${this.apiUrl}materiales/catalogo/?id_gasto_operacion=${id_gasto_operacion}`
+    );
   }
-  actualizarPrecioDescripcion(id_gasto_operacion: number,descripcion: string,precio_unitario: number): Observable<any> {
-    return this.http.post<any>(`${this.apiUrl}materiales/actualizar_precio_descripcion/`,{ id_gasto_operacion, descripcion, precio_unitario });
+  actualizarPrecioDescripcion(
+    id_gasto_operacion: number,
+    descripcion: string,
+    precio_unitario: number
+  ): Observable<any> {
+    return this.http.post<any>(
+      `${this.apiUrl}materiales/actualizar_precio_descripcion/`,
+      { id_gasto_operacion, descripcion, precio_unitario }
+    );
   }
   createMaterial(m: Materiales): Observable<Materiales> {
     return this.http.post<Materiales>(`${this.apiUrl}materiales/`, m);
@@ -326,16 +383,29 @@ export class ServiciosService {
     return this.http.get<ManoDeObra>(`${this.apiUrl}mano_de_obra/${id}/`);
   }
   getManoDeObraIDGasto(id_gasto_operacion: number): Observable<ManoDeObra[]> {
-    return this.http.get<ManoDeObra[]>(`${this.apiUrl}mano_de_obra/?id_gasto_operacion=${id_gasto_operacion}`);
+    return this.http.get<ManoDeObra[]>(
+      `${this.apiUrl}mano_de_obra/?id_gasto_operacion=${id_gasto_operacion}`
+    );
   }
   getUnidadesManoDeObra(): Observable<string[]> {
     return this.http.get<string[]>(`${this.apiUrl}mano_de_obra/unidades/`);
   }
-  getCatalogoManoDeObraPorProyecto(id_gasto_operacion: number): Observable<ManoDeObra[]> {
-    return this.http.get<ManoDeObra[]>(`${this.apiUrl}mano_de_obra/catalogo/?id_gasto_operacion=${id_gasto_operacion}`);
+  getCatalogoManoDeObraPorProyecto(
+    id_gasto_operacion: number
+  ): Observable<ManoDeObra[]> {
+    return this.http.get<ManoDeObra[]>(
+      `${this.apiUrl}mano_de_obra/catalogo/?id_gasto_operacion=${id_gasto_operacion}`
+    );
   }
-  actualizarPrecioDescripcionManoDeObra(id_gasto_operacion: number,descripcion: string,precio_unitario: number): Observable<any> {
-    return this.http.post<any>(`${this.apiUrl}mano_de_obra/actualizar_precio_descripcion/`,{ id_gasto_operacion, descripcion, precio_unitario });
+  actualizarPrecioDescripcionManoDeObra(
+    id_gasto_operacion: number,
+    descripcion: string,
+    precio_unitario: number
+  ): Observable<any> {
+    return this.http.post<any>(
+      `${this.apiUrl}mano_de_obra/actualizar_precio_descripcion/`,
+      { id_gasto_operacion, descripcion, precio_unitario }
+    );
   }
   createManoDeObra(m: ManoDeObra): Observable<ManoDeObra> {
     return this.http.post<ManoDeObra>(`${this.apiUrl}mano_de_obra/`, m);
@@ -350,46 +420,72 @@ export class ServiciosService {
   // === Equipo Herramienta ===
   // ==========================
   getEquiposHerramientas(): Observable<EquipoHerramienta[]> {
-    return this.http.get<EquipoHerramienta[]>(`${this.apiUrl}equipo_herramienta/`);
+    return this.http.get<EquipoHerramienta[]>(
+      `${this.apiUrl}equipo_herramienta/`
+    );
   }
   getEquipoHerramientaID(id: number): Observable<EquipoHerramienta> {
-    return this.http.get<EquipoHerramienta>(`${this.apiUrl}equipo_herramienta/${id}/`);
+    return this.http.get<EquipoHerramienta>(
+      `${this.apiUrl}equipo_herramienta/${id}/`
+    );
   }
-  
-  getEquipoHerramientas(id_gasto_operacion: number): Observable<EquipoHerramienta[]> {
-    return this.http.get<EquipoHerramienta[]>(`${this.apiUrl}equipo_herramienta/?id_gasto_operacion=${id_gasto_operacion}`);
+
+  getEquipoHerramientas(
+    id_gasto_operacion: number
+  ): Observable<EquipoHerramienta[]> {
+    return this.http.get<EquipoHerramienta[]>(
+      `${this.apiUrl}equipo_herramienta/?id_gasto_operacion=${id_gasto_operacion}`
+    );
   }
   getUnidadesEquipoHerramienta(): Observable<string[]> {
-    return this.http.get<string[]>(`${this.apiUrl}equipo_herramienta/unidades/`);
+    return this.http.get<string[]>(
+      `${this.apiUrl}equipo_herramienta/unidades/`
+    );
   }
 
-  getCatalogoEquipoHerramientaPorProyecto(id_gasto_operacion: number): Observable<EquipoHerramienta[]> {
-    return this.http.get<EquipoHerramienta[]>(`${this.apiUrl}equipo_herramienta/catalogo/?id_gasto_operacion=${id_gasto_operacion}`);
+  getCatalogoEquipoHerramientaPorProyecto(
+    id_gasto_operacion: number
+  ): Observable<EquipoHerramienta[]> {
+    return this.http.get<EquipoHerramienta[]>(
+      `${this.apiUrl}equipo_herramienta/catalogo/?id_gasto_operacion=${id_gasto_operacion}`
+    );
   }
 
-  
-  actualizarPrecioDescripcionEquipoHerramienta(id_gasto_operacion: number,descripcion: string,precio_unitario: number): Observable<any> {
-    return this.http.post<any>(`${this.apiUrl}equipo_herramienta/actualizar_precio_descripcion/`,{ id_gasto_operacion, descripcion, precio_unitario });
+  actualizarPrecioDescripcionEquipoHerramienta(
+    id_gasto_operacion: number,
+    descripcion: string,
+    precio_unitario: number
+  ): Observable<any> {
+    return this.http.post<any>(
+      `${this.apiUrl}equipo_herramienta/actualizar_precio_descripcion/`,
+      { id_gasto_operacion, descripcion, precio_unitario }
+    );
   }
   createEquipoHerramienta(e: EquipoHerramienta): Observable<EquipoHerramienta> {
-    return this.http.post<EquipoHerramienta>(`${this.apiUrl}equipo_herramienta/`,e);
+    return this.http.post<EquipoHerramienta>(
+      `${this.apiUrl}equipo_herramienta/`,
+      e
+    );
   }
   updateEquipoHerramienta(e: EquipoHerramienta): Observable<EquipoHerramienta> {
-    return this.http.put<EquipoHerramienta>(`${this.apiUrl}equipo_herramienta/${e.id}/`,e);
+    return this.http.put<EquipoHerramienta>(
+      `${this.apiUrl}equipo_herramienta/${e.id}/`,
+      e
+    );
   }
   deleteEquipoHerramienta(id: number): Observable<EquipoHerramienta> {
-    return this.http.delete<EquipoHerramienta>(`${this.apiUrl}equipo_herramienta/${id}/`);
+    return this.http.delete<EquipoHerramienta>(
+      `${this.apiUrl}equipo_herramienta/${id}/`
+    );
   }
 
-
-
-  // === Gastos Generales y Administrativos === suma de 1+2+3 * 0.12 % 
+  // === Gastos Generales y Administrativos === suma de 1+2+3 * 0.12 %
   getGastos(): Observable<GastosGenerales[]> {
-    return this.http.get<GastosGenerales[]>(
-      `${this.apiUrl}gastos_generales/`
-    );
-  }  
-  getGastosGenerales(id_gasto_operacion: number): Observable<GastosGenerales[]> {
+    return this.http.get<GastosGenerales[]>(`${this.apiUrl}gastos_generales/`);
+  }
+  getGastosGenerales(
+    id_gasto_operacion: number
+  ): Observable<GastosGenerales[]> {
     return this.http.get<GastosGenerales[]>(
       `${this.apiUrl}gastos_generales/?id_gasto_operacion=${id_gasto_operacion}`
     );
@@ -418,38 +514,42 @@ export class ServiciosService {
   private totalEquiposSubject = new BehaviorSubject<number>(0);
   totalEquipos$ = this.totalEquiposSubject.asObservable();
   // === Materiales ===
-  setTotalMateriales(total: number) {this.totalMaterialesSubject.next(total);}
+  setTotalMateriales(total: number) {
+    this.totalMaterialesSubject.next(total);
+  }
   // === Mano de Obra ===
-  setTotalManoObra(total: number) {this.totalManoObraSubject.next(total);}
+  setTotalManoObra(total: number) {
+    this.totalManoObraSubject.next(total);
+  }
   // === Equipos y Herramientas ===
-  setTotalEquipos(total: number) {this.totalEquiposSubject.next(total);}
+  setTotalEquipos(total: number) {
+    this.totalEquiposSubject.next(total);
+  }
 
   //  =====================================================
   //  ================  seccion 5    ======================
   //  =====================================================
-// Materiales
-createMateriales(materiales: Materiales[]): Observable<Materiales[]> {
-  return forkJoin(materiales.map(m => this.createMaterial(m)));
-}
+  // Materiales
+  createMateriales(materiales: Materiales[]): Observable<Materiales[]> {
+    return forkJoin(materiales.map((m) => this.createMaterial(m)));
+  }
 
-// Mano de Obra
-createManoDeObraLista(manos: ManoDeObra[]): Observable<ManoDeObra[]> {
-  return forkJoin(manos.map(m => this.createManoDeObra(m)));
-}
+  // Mano de Obra
+  createManoDeObraLista(manos: ManoDeObra[]): Observable<ManoDeObra[]> {
+    return forkJoin(manos.map((m) => this.createManoDeObra(m)));
+  }
 
-// Equipo/Herramienta
-createEquipoHerramientaLista(equipos: EquipoHerramienta[]): Observable<EquipoHerramienta[]> {
-  return forkJoin(equipos.map(e => this.createEquipoHerramienta(e)));
-}
+  // Equipo/Herramienta
+  createEquipoHerramientaLista(
+    equipos: EquipoHerramienta[]
+  ): Observable<EquipoHerramienta[]> {
+    return forkJoin(equipos.map((e) => this.createEquipoHerramienta(e)));
+  }
 
-// Gastos Generales
-createGastosGeneralesLista(gastos: GastosGenerales[]): Observable<GastosGenerales[]> {
-  return forkJoin(gastos.map(g => this.createGasto(g)));
-}
-
-
-
-
-
-
+  // Gastos Generales
+  createGastosGeneralesLista(
+    gastos: GastosGenerales[]
+  ): Observable<GastosGenerales[]> {
+    return forkJoin(gastos.map((g) => this.createGasto(g)));
+  }
 }
