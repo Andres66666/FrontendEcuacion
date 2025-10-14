@@ -21,8 +21,8 @@ import {
   providedIn: 'root',
 })
 export class ServiciosService {
-  /*   private apiUrl = 'http://localhost:8000/api/'; */
-  private apiUrl = 'https://backendecuacion.onrender.com/api/';
+  private apiUrl = 'http://localhost:8000/api/';
+  /* private apiUrl = 'https://backendecuacion.onrender.com/api/'; */
 
   constructor(private http: HttpClient) {}
   // =====================================================

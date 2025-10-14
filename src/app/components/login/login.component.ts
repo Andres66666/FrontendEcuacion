@@ -11,17 +11,15 @@ import { Advertencia } from '../mensajes/advertencia/advertencia';
   selector: 'app-login',
   standalone: true,
   imports: [
-    CommonModule, 
-    FormsModule, 
-    ErrorComponent, 
-    OkComponent, 
-    Advertencia 
+    CommonModule,
+    FormsModule,
+    ErrorComponent,
+    OkComponent,
+    Advertencia,
   ],
   templateUrl: './login.component.html',
-  styleUrls: ['./login.component.css']
+  styleUrls: ['./login.component.css'],
 })
-
-
 export class LoginComponent {
   correo: string = '';
   password: string = '';
@@ -29,14 +27,14 @@ export class LoginComponent {
   isLoading: boolean = false;
   mensajeExito: string = '';
   mensajeError: string = '';
-  mensajeAdvertencia: string = ''; 
+  mensajeAdvertencia: string = '';
   correoReset: string = '';
   usuarioId: number | null = null;
   codigo2FA: string = '';
   codigoEnviado = false;
   loading: boolean = false;
   qrBase64: string | null = null;
-  metodoSeleccionado: 'correo' | 'totp' | null = null; 
+  metodoSeleccionado: 'correo' | 'totp' | null = null;
 
   // NUEVO: Array para manejar los 6 inputs de forma separada
   codigoInputs: string[] = ['', '', '', '', '', ''];
@@ -52,101 +50,116 @@ export class LoginComponent {
   tempRequiereCambioPassword: boolean = false;
   tempMensajeUrgente: boolean = false;
 
-  vistaActual: 'login' | 'olvide' | 'cambiar_password_temp' | 'seleccion_2fa' | '2fa' = 'login'; 
-  tempToken: string = ''; 
-  tempPass: string = ''; 
-  nuevaPassword: string = ''; 
-  confirmarPassword: string = ''; 
-  tempVerificado: boolean = false; 
+  vistaActual:
+    | 'login'
+    | 'olvide'
+    | 'cambiar_password_temp'
+    | 'seleccion_2fa'
+    | '2fa' = 'login';
+  tempToken: string = '';
+  tempPass: string = '';
+  nuevaPassword: string = '';
+  confirmarPassword: string = '';
+  tempVerificado: boolean = false;
 
-  constructor(
-    public router: Router,
-    private service: ServiciosService,
-  ) { }
+  constructor(public router: Router, private service: ServiciosService) {}
 
-// ... (otras propiedades y métodos del componente)
+  // ... (otras propiedades y métodos del componente)
 
   // NUEVO: Función para manejar la entrada, incluyendo la funcionalidad de pegado (Paste)
-   onInputCode(event: Event, index: number, nextInput: HTMLInputElement | null): void {
-     const input = event.target as HTMLInputElement;
-     let value = input.value;
+  onInputCode(
+    event: Event,
+    index: number,
+    nextInput: HTMLInputElement | null
+  ): void {
+    const input = event.target as HTMLInputElement;
+    let value = input.value;
 
-     // Limpieza: Solo permite dígitos, y limita a 1 char (comportamiento manual)
-     value = value.replace(/[^0-9]/g, '');
-     if (value.length > 1) {
-       value = value.charAt(0); // En caso de que se cuele algo, trunca
-     }
+    // Limpieza: Solo permite dígitos, y limita a 1 char (comportamiento manual)
+    value = value.replace(/[^0-9]/g, '');
+    if (value.length > 1) {
+      value = value.charAt(0); // En caso de que se cuele algo, trunca
+    }
 
-     this.codigoInputs[index] = value;
-     this.codigo2FA = this.codigoInputs.join('');
+    this.codigoInputs[index] = value;
+    this.codigo2FA = this.codigoInputs.join('');
 
-     // Avanza al siguiente campo si se ingresó un dígito válido
-     if (value && value.length === 1 && index < 5 && nextInput) {
-       nextInput.focus();
-     }
-   }
-   
+    // Avanza al siguiente campo si se ingresó un dígito válido
+    if (value && value.length === 1 && index < 5 && nextInput) {
+      nextInput.focus();
+    }
+  }
+
   // ** FUNCIÓN para Backspace (Se mantiene para la interacción con los 6 inputs) **
-  onBackspace(event: any, index: number, prevInput: HTMLInputElement | null): void {
+  onBackspace(
+    event: any,
+    index: number,
+    prevInput: HTMLInputElement | null
+  ): void {
     const input = event.target as HTMLInputElement;
 
     if (input.value === '' && index > 0 && prevInput) {
-      
-      event.preventDefault(); 
-      
+      event.preventDefault();
+
       this.codigoInputs[index - 1] = '';
-      
+
       this.codigo2FA = this.codigoInputs.join('');
-      
+
       prevInput.focus();
     }
   }
-   onPaste(event: ClipboardEvent, startIndex: number): void {
-  event.preventDefault(); // Previene que el navegador inserte el texto directamente (que se truncaría por maxlength=1)
+  onPaste(event: ClipboardEvent, startIndex: number): void {
+    event.preventDefault(); // Previene que el navegador inserte el texto directamente (que se truncaría por maxlength=1)
 
-  const clipboardData = event.clipboardData;
-  if (!clipboardData) return;
+    const clipboardData = event.clipboardData;
+    if (!clipboardData) return;
 
-  const pastedText = clipboardData.getData('text/plain');
-  // Extrae solo dígitos numéricos, toma hasta 6
-  const digits = pastedText.replace(/[^0-9]/g, '').substring(0, 6).split('');
+    const pastedText = clipboardData.getData('text/plain');
+    // Extrae solo dígitos numéricos, toma hasta 6
+    const digits = pastedText
+      .replace(/[^0-9]/g, '')
+      .substring(0, 6)
+      .split('');
 
-  // Limpia todos los campos y rellena desde el inicio (índice 0) con los dígitos pegados
-  // (Esto asegura que siempre se distribuyan correctamente, incluso si se pega en un campo intermedio)
-  this.codigoInputs = ['', '', '', '', '', '']; // Limpia primero
-  for (let i = 0; i < digits.length && i < 6; i++) {
-    this.codigoInputs[i] = digits[i];
-  }
-
-  // Actualiza la variable principal unificada
-  this.codigo2FA = this.codigoInputs.join('');
-
-  // CORRECCIÓN: Fuerza la actualización del DOM en todos los inputs para evitar desfases con ngModel
-  // Esto asegura que el primer dígito (y todos) se muestren inmediatamente en la UI
-  for (let i = 0; i < 6; i++) {
-    const inputEl = document.getElementById(`input${i}`) as HTMLInputElement | null;
-    if (inputEl) {
-      inputEl.value = this.codigoInputs[i]; // Setea directamente el value en el DOM
+    // Limpia todos los campos y rellena desde el inicio (índice 0) con los dígitos pegados
+    // (Esto asegura que siempre se distribuyan correctamente, incluso si se pega en un campo intermedio)
+    this.codigoInputs = ['', '', '', '', '', '']; // Limpia primero
+    for (let i = 0; i < digits.length && i < 6; i++) {
+      this.codigoInputs[i] = digits[i];
     }
-  }
 
-  // Enfoca el campo después del último dígito llenado (o el último campo si completo)
-  const lastFilledIndex = Math.min(digits.length - 1, 5); // Corrige: -1 para índice válido, min 5
-  const nextFocusIndex = Math.min(lastFilledIndex + 1, 5);
-  const nextInputEl = document.getElementById(`input${nextFocusIndex}`) as HTMLInputElement | null;
-  if (nextInputEl) {
-    nextInputEl.focus();
-    if (digits.length < 6) {
-      nextInputEl.select(); // Selecciona para fácil edición si es parcial
+    // Actualiza la variable principal unificada
+    this.codigo2FA = this.codigoInputs.join('');
+
+    // CORRECCIÓN: Fuerza la actualización del DOM en todos los inputs para evitar desfases con ngModel
+    // Esto asegura que el primer dígito (y todos) se muestren inmediatamente en la UI
+    for (let i = 0; i < 6; i++) {
+      const inputEl = document.getElementById(
+        `input${i}`
+      ) as HTMLInputElement | null;
+      if (inputEl) {
+        inputEl.value = this.codigoInputs[i]; // Setea directamente el value en el DOM
+      }
     }
+
+    // Enfoca el campo después del último dígito llenado (o el último campo si completo)
+    const lastFilledIndex = Math.min(digits.length - 1, 5); // Corrige: -1 para índice válido, min 5
+    const nextFocusIndex = Math.min(lastFilledIndex + 1, 5);
+    const nextInputEl = document.getElementById(
+      `input${nextFocusIndex}`
+    ) as HTMLInputElement | null;
+    if (nextInputEl) {
+      nextInputEl.focus();
+      if (digits.length < 6) {
+        nextInputEl.select(); // Selecciona para fácil edición si es parcial
+      }
+    }
+
+    // REMOVIDO: No disparar 'input' aquí para evitar conflictos con onInputCode y sobrescrituras
+    // El ngModel y la actualización manual del DOM ya manejan la UI y la validación del botón
   }
 
-  // REMOVIDO: No disparar 'input' aquí para evitar conflictos con onInputCode y sobrescrituras
-  // El ngModel y la actualización manual del DOM ya manejan la UI y la validación del botón
-}
-
-   
-// ... (El resto de métodos no se modifica)
+  // ... (El resto de métodos no se modifica)
 
   togglePasswordVisibility(): void {
     this.showPassword = !this.showPassword;
@@ -154,11 +167,13 @@ export class LoginComponent {
 
   isFormValid(): boolean {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return this.correo.trim() !== '' && 
-             this.password.trim().length >= 6 && 
-             emailRegex.test(this.correo.trim());
+    return (
+      this.correo.trim() !== '' &&
+      this.password.trim().length >= 6 &&
+      emailRegex.test(this.correo.trim())
+    );
   }
-  
+
   // Asumo que el resto de onSubmit es correcto y no requiere cambios
   onSubmit(form: NgForm) {
     this.mensajeError = '';
@@ -182,7 +197,8 @@ export class LoginComponent {
           this.tempMensajeAdicional = res.mensaje_adicional || '';
           this.tempTipoMensaje = res.tipo_mensaje || 'exito';
           this.tempDiasTranscurridos = res.dias_transcurridos || 0;
-          this.tempRequiereCambioPassword = res.requiere_cambio_password || false;
+          this.tempRequiereCambioPassword =
+            res.requiere_cambio_password || false;
           this.tempMensajeUrgente = res.mensaje_urgente || false;
 
           const mensajePrincipal = res.mensaje || '¡Inicio de sesión exitoso!';
@@ -196,7 +212,10 @@ export class LoginComponent {
             setTimeout(() => {
               this.mensajeExito = '';
             }, 5000);
-          } else if (this.tempTipoMensaje === 'advertencia' || this.tempTipoMensaje === 'advertencia_urgente') {
+          } else if (
+            this.tempTipoMensaje === 'advertencia' ||
+            this.tempTipoMensaje === 'advertencia_urgente'
+          ) {
             this.mensajeAdvertencia = mensajeCompleto;
             if (this.tempMensajeUrgente || this.tempRequiereCambioPassword) {
               console.log('Mensaje urgente: Esperando clic del usuario...');
@@ -217,8 +236,9 @@ export class LoginComponent {
       },
       error: (err: any) => {
         this.isLoading = false;
-        this.mensajeError = err.error?.error || 'Correo o contraseña incorrectos.';
-      }
+        this.mensajeError =
+          err.error?.error || 'Correo o contraseña incorrectos.';
+      },
     });
   }
 
@@ -247,7 +267,7 @@ export class LoginComponent {
       this.loading = false;
       return;
     }
-    this.service.enviarCodigoCorreo(this.usuarioId).subscribe({ 
+    this.service.enviarCodigoCorreo(this.usuarioId).subscribe({
       next: () => {
         this.mensajeExito = 'Código enviado a su correo. Ingréselo abajo.';
         this.codigoEnviado = true;
@@ -256,7 +276,7 @@ export class LoginComponent {
       error: (err: any) => {
         this.mensajeError = err.error?.error || 'No se pudo enviar el código';
         this.loading = false;
-      }
+      },
     });
   }
 
@@ -268,18 +288,19 @@ export class LoginComponent {
     }
     this.service.generarQR(this.usuarioId).subscribe({
       next: (res: any) => {
-        this.mensajeAdvertencia = 'Escanee este código QR con Google Authenticator.';
         if (res.qr_base64) {
           this.qrBase64 = 'data:image/png;base64,' + res.qr_base64;
         } else {
-          this.mensajeError = 'No se pudo generar el código QR. Intente nuevamente.';
+          this.mensajeError =
+            'No se pudo generar el código QR. Intente nuevamente.';
         }
         this.loading = false;
       },
       error: (err: any) => {
-        this.mensajeError = err.error?.error || 'No se pudo generar el código QR';
+        this.mensajeError =
+          err.error?.error || 'No se pudo generar el código QR';
         this.loading = false;
-      }
+      },
     });
   }
 
@@ -290,7 +311,7 @@ export class LoginComponent {
       return;
     }
     // VALIDACIÓN ACTUALIZADA: Asegura que la cadena unificada tenga exactamente 6 dígitos
-    if (this.codigo2FA.length !== 6) { 
+    if (this.codigo2FA.length !== 6) {
       this.mensajeError = 'Ingrese los 6 dígitos del código de verificación';
       return;
     }
@@ -300,43 +321,49 @@ export class LoginComponent {
     }
 
     this.loading = true;
-    this.service.verificar2FA(this.usuarioId, this.codigo2FA, this.metodoSeleccionado).subscribe({ 
-      next: (res: any) => {
-        this.loading = false;
-        
-        const usuarioData = {
-          id: res.usuario_id || this.usuarioId!,
-          nombre: this.tempNombreUsuario,
-          apellido: this.tempApellido,
-          imagen_url: this.tempImagenUrl,
-          roles: res.roles || this.tempRoles,
-          permisos: this.tempPermisos,
-          dias_transcurridos: this.tempDiasTranscurridos
-        };
-        localStorage.setItem('access_token', JSON.stringify(res.access_token));
-        localStorage.setItem('usuarioLogueado', JSON.stringify(usuarioData));
+    this.service
+      .verificar2FA(this.usuarioId, this.codigo2FA, this.metodoSeleccionado)
+      .subscribe({
+        next: (res: any) => {
+          this.loading = false;
 
-        this.mensajeExito = 'Autenticación 2FA exitosa';
+          const usuarioData = {
+            id: res.usuario_id || this.usuarioId!,
+            nombre: this.tempNombreUsuario,
+            apellido: this.tempApellido,
+            imagen_url: this.tempImagenUrl,
+            roles: res.roles || this.tempRoles,
+            permisos: this.tempPermisos,
+            dias_transcurridos: this.tempDiasTranscurridos,
+          };
+          localStorage.setItem(
+            'access_token',
+            JSON.stringify(res.access_token)
+          );
+          localStorage.setItem('usuarioLogueado', JSON.stringify(usuarioData));
 
-        if (this.tempRequiereCambioPassword && this.tempMensajeUrgente) {
-          setTimeout(() => {
-            this.router.navigate(['/cambiar-password']);
-          }, 2000);
-        } else if (this.tempRequiereCambioPassword) {
-          setTimeout(() => {
-            this.router.navigate(['/cambiar-password']);
-          }, 5000);
-        } else {
-          setTimeout(() => {
-            this.router.navigate(['/panel-control']);
-          }, 2000);
-        }
-      },
-      error: (err: any) => {
-        this.loading = false;
-        this.mensajeError = err.error?.error || 'Código incorrecto o caducado';
-      }
-    });
+          this.mensajeExito = 'Autenticación 2FA exitosa';
+
+          if (this.tempRequiereCambioPassword && this.tempMensajeUrgente) {
+            setTimeout(() => {
+              this.router.navigate(['/cambiar-password']);
+            }, 2000);
+          } else if (this.tempRequiereCambioPassword) {
+            setTimeout(() => {
+              this.router.navigate(['/cambiar-password']);
+            }, 5000);
+          } else {
+            setTimeout(() => {
+              this.router.navigate(['/panel-control']);
+            }, 2000);
+          }
+        },
+        error: (err: any) => {
+          this.loading = false;
+          this.mensajeError =
+            err.error?.error || 'Código incorrecto o caducado';
+        },
+      });
   }
 
   private guardarSesionYRedirigir(res: any): void {
@@ -348,7 +375,7 @@ export class LoginComponent {
       imagen_url: res.imagen_url,
       roles: res.roles,
       permisos: res.permisos,
-      dias_transcurridos: res.dias_transcurridos
+      dias_transcurridos: res.dias_transcurridos,
     };
     localStorage.setItem('usuarioLogueado', JSON.stringify(usuario));
 
@@ -370,7 +397,8 @@ export class LoginComponent {
   enviarCorreoReset() {
     this.mensajeError = '';
     if (!this.correoReset.trim()) {
-      this.mensajeError = 'Ingrese su correo para enviar la contraseña temporal';
+      this.mensajeError =
+        'Ingrese su correo para enviar la contraseña temporal';
       return;
     }
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -382,46 +410,59 @@ export class LoginComponent {
     this.service.resetPassword(this.correoReset).subscribe({
       next: (res: any) => {
         this.isLoading = false;
-        this.usuarioId = res.usuario_id; 
-        this.tempToken = res.temp_token; 
+        this.usuarioId = res.usuario_id;
+        this.tempToken = res.temp_token;
         this.mensajeExito = `Contraseña temporal enviada a ${this.correoReset}. Revise su correo (incluyendo spam). Ahora ingrese su nueva contraseña.`;
-        this.vistaActual = 'cambiar_password_temp'; 
-        this.correoReset = ''; 
+        this.vistaActual = 'cambiar_password_temp';
+        this.correoReset = '';
       },
       error: (err: any) => {
         this.isLoading = false;
-        this.mensajeError = err.error?.error || 'No se pudo enviar el correo. Verifique el correo ingresado.';
-      }
+        this.mensajeError =
+          err.error?.error ||
+          'No se pudo enviar el correo. Verifique el correo ingresado.';
+      },
     });
   }
 
   verificarTempPassword(): void {
-      if (!this.usuarioId || !this.tempToken || !this.tempPass.trim()) {
-        this.mensajeError = 'Ingrese la contraseña temporal recibida';
-        return;
-      }
-      this.loading = true;
-      this.service.verificarTempPassword(this.usuarioId, this.tempToken, this.tempPass).subscribe({
+    if (!this.usuarioId || !this.tempToken || !this.tempPass.trim()) {
+      this.mensajeError = 'Ingrese la contraseña temporal recibida';
+      return;
+    }
+    this.loading = true;
+    this.service
+      .verificarTempPassword(this.usuarioId, this.tempToken, this.tempPass)
+      .subscribe({
         next: (res: any) => {
           this.loading = false;
           if (res.valid) {
             this.tempVerificado = true;
-            this.mensajeExito = res.mensaje || 'Contraseña temporal verificada correctamente.';
-            this.tempPass = ''; 
-            this.mensajeError = ''; 
+            this.mensajeExito =
+              res.mensaje || 'Contraseña temporal verificada correctamente.';
+            this.tempPass = '';
+            this.mensajeError = '';
           } else {
-            this.mensajeError = res.error || 'Contraseña temporal incorrecta. Revise el correo.';
+            this.mensajeError =
+              res.error || 'Contraseña temporal incorrecta. Revise el correo.';
           }
         },
         error: (err: any) => {
           this.loading = false;
-          this.mensajeError = err.error?.error || 'Error en verificación. Intente reenviar el correo.';
-        }
+          this.mensajeError =
+            err.error?.error ||
+            'Error en verificación. Intente reenviar el correo.';
+        },
       });
-    }
+  }
 
   cambiarPasswordTemp(): void {
-    if (!this.usuarioId || !this.tempToken || !this.nuevaPassword || !this.confirmarPassword) {
+    if (
+      !this.usuarioId ||
+      !this.tempToken ||
+      !this.nuevaPassword ||
+      !this.confirmarPassword
+    ) {
       this.mensajeError = 'Complete nueva contraseña y confirmación';
       return;
     }
@@ -434,29 +475,39 @@ export class LoginComponent {
       return;
     }
     this.loading = true;
-    
-    this.service.cambiarPasswordTemp(this.usuarioId, this.tempToken, this.nuevaPassword, this.confirmarPassword).subscribe({
-      next: (res: any) => {
-        this.loading = false;
-        this.mensajeExito = res.mensaje || 'Contraseña actualizada exitosamente. Ahora inicie sesión con su nueva contraseña.';
-        this.nuevaPassword = '';
-        this.confirmarPassword = '';
-        this.tempVerificado = false; 
-        setTimeout(() => {
-          this.volverLogin(); 
-        }, 3000);
-      },
-      error: (err: any) => {
-        this.loading = false;
-        this.mensajeError = err.error?.error || 'Error al cambiar contraseña. Intente de nuevo.';
-      }
-    });
-  }
 
+    this.service
+      .cambiarPasswordTemp(
+        this.usuarioId,
+        this.tempToken,
+        this.nuevaPassword,
+        this.confirmarPassword
+      )
+      .subscribe({
+        next: (res: any) => {
+          this.loading = false;
+          this.mensajeExito =
+            res.mensaje ||
+            'Contraseña actualizada exitosamente. Ahora inicie sesión con su nueva contraseña.';
+          this.nuevaPassword = '';
+          this.confirmarPassword = '';
+          this.tempVerificado = false;
+          setTimeout(() => {
+            this.volverLogin();
+          }, 3000);
+        },
+        error: (err: any) => {
+          this.loading = false;
+          this.mensajeError =
+            err.error?.error ||
+            'Error al cambiar contraseña. Intente de nuevo.';
+        },
+      });
+  }
 
   irAOlvide(): void {
     this.vistaActual = 'olvide';
-    this.correoReset = this.correo; 
+    this.correoReset = this.correo;
     this.mensajeExito = '';
     this.mensajeError = '';
   }
@@ -472,8 +523,8 @@ export class LoginComponent {
     this.qrBase64 = null;
     this.metodoSeleccionado = null;
     this.loading = false;
-    this.tempVerificado = false; 
-    this.tempPass = ''; 
+    this.tempVerificado = false;
+    this.tempPass = '';
     this.nuevaPassword = '';
     this.confirmarPassword = '';
     this.tempToken = '';
@@ -489,7 +540,7 @@ export class LoginComponent {
     this.tempDiasTranscurridos = 0;
     this.tempRequiereCambioPassword = false;
     this.tempMensajeUrgente = false;
-    this.correoReset = ''; 
+    this.correoReset = '';
   }
 
   // Manejo de modales
