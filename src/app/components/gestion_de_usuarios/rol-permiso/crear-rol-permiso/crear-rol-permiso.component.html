@@ -1,62 +1,112 @@
 <div class="container py-4">
-    <div class="card shadow rounded-4 mx-auto" style="max-width: 600px">
-        <div class="card-body">
-            <h3 class="card-title mb-4 text-center text-primary">
-                Registrar Rol - Permiso
-            </h3>
+  <div class="card shadow rounded-4 mx-auto" style="max-width: 600px">
+    <div class="card-body">
+      <h3 class="card-title mb-4 text-center text-primary">
+        Registrar Rol - Permiso
+      </h3>
 
-            <form [formGroup]="form" (ngSubmit)="registrar()">
-                <!-- Rol -->
-                <div class="mb-3">
-                    <label class="form-label fw-semibold">Rol</label>
-                    <select class="form-select" formControlName="rol" required>
-                        <option value="">Seleccione un rol</option>
-                        <option *ngFor="let r of roles" [value]="r.id">
-                            {{ r.nombre }}
-                        </option>
-                    </select>
-                </div>
-
-               
-                <!-- Permisos Múltiples -->
-                <div class="mb-3">
-                <label class="form-label fw-semibold">Permisos</label>
-                <div *ngFor="let p of permisos" class="form-check">
-                    <input
-                    class="form-check-input"
-                    type="checkbox"
-                    [value]="p.id"
-                    (change)="onPermisoChange($event)"
-                    [checked]="isChecked(p.id)"
-                    />
-                    <label class="form-check-label">
-                    {{ p.nombre }}
-                    </label>
-                </div>
-                </div>
-
-
-
-                <!-- Botones -->
-                <div class="d-flex flex-column flex-md-row justify-content-between gap-2">
-                    <button class="btn btn-outline-secondary w-100" type="button" (click)="volver()">
-                        <i class="bi bi-arrow-left-circle me-2"></i> Volver
-                    </button>
-
-                    <button class="btn btn-warning w-100" type="button" (click)="limpiarFormulario()">
-                        <i class="bi bi-eraser me-2"></i> Limpiar
-                    </button>
-
-                    <button class="btn btn-primary w-100" type="submit" [disabled]="form.invalid">
-                        <i class="bi bi-save me-2"></i> Registrar
-                    </button>
-                </div>
-            </form>
+      <form [formGroup]="form" (ngSubmit)="registrar()">
+        <!-- Rol -->
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Rol</label>
+          <select
+            class="form-select"
+            formControlName="rol"
+            (change)="onRolChange()"
+            required
+          >
+            <option value="">Seleccione un rol</option>
+            <option *ngFor="let r of roles" [value]="r.id">
+              {{ r.nombre }}
+            </option>
+          </select>
         </div>
+
+        <!-- SOLO mostrar permisos disponibles (los que NO tiene el rol) -->
+        <div class="mb-3" *ngIf="permisosDisponibles.length > 0">
+          <label class="form-label fw-semibold">
+            Permisos Disponibles para Asignar
+          </label>
+          <div class="border rounded p-3 bg-light">
+            <div *ngFor="let p of permisosDisponibles" class="form-check">
+              <input
+                class="form-check-input"
+                type="checkbox"
+                [value]="p.id"
+                (change)="onPermisoChange($event)"
+                [checked]="isChecked(p.id)"
+                id="permiso-{{ p.id }}"
+              />
+              <label class="form-check-label" for="permiso-{{ p.id }}">
+                {{ p.nombre }}
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Mensaje cuando el rol ya tiene todos los permisos -->
+        <div
+          class="alert alert-warning mb-3"
+          *ngIf="
+            permisosDisponibles.length === 0 &&
+            form.get('rol')?.value &&
+            permisos.length > 0
+          "
+        >
+          <i class="bi bi-exclamation-triangle me-2"></i>
+          Este rol ya tiene todos los permisos asignados. No hay permisos
+          disponibles para agregar.
+        </div>
+
+        <!-- Mensaje cuando no hay permisos en el sistema -->
+        <div class="alert alert-info mb-3" *ngIf="permisos.length === 0">
+          <i class="bi bi-info-circle me-2"></i>
+          No hay permisos disponibles en el sistema.
+        </div>
+
+        <!-- Botones -->
+        <div
+          class="d-flex flex-column flex-md-row justify-content-between gap-2"
+        >
+          <button
+            class="btn btn-outline-secondary w-100"
+            type="button"
+            (click)="volver()"
+          >
+            <i class="bi bi-arrow-left-circle me-2"></i> Volver
+          </button>
+
+          <button
+            class="btn btn-warning w-100"
+            type="button"
+            (click)="limpiarFormulario()"
+          >
+            <i class="bi bi-eraser me-2"></i> Limpiar
+          </button>
+
+          <button
+            class="btn btn-primary w-100"
+            type="submit"
+            [disabled]="form.invalid"
+          >
+            <i class="bi bi-save me-2"></i> Registrar
+          </button>
+        </div>
+      </form>
     </div>
+  </div>
 </div>
+
 <!-- Modal de Éxito -->
-<app-ok *ngIf="mensajeExito" [mensaje]="mensajeExito" (close)="manejarOk()"></app-ok>
+<app-ok
+  *ngIf="mensajeExito"
+  [mensaje]="mensajeExito"
+  (close)="manejarOk()"
+></app-ok>
 
 <!-- Modal de Error -->
-<app-error *ngIf="mensajeError" [mensaje]="mensajeError" (close)="manejarError()"></app-error>
+<app-error
+  *ngIf="mensajeError"
+  [mensaje]="mensajeError"
+  (close)="manejarError()"
+></app-error>

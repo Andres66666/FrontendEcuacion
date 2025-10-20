@@ -1,17 +1,23 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  FormBuilder,
+  FormGroup,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
 import { OkComponent } from '../../../mensajes/ok/ok.component';
 import { ErrorComponent } from '../../../mensajes/error/error.component';
 import { ServiciosService } from '../../../../services/servicios.service';
 import { ActivatedRoute, Router } from '@angular/router';
+import { CustomValidatorsService } from '../../../../../validators/custom-validators.service';
 
 @Component({
   selector: 'app-editar-rol',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, OkComponent, ErrorComponent],
   templateUrl: './editar-rol.component.html',
-  styleUrl: './editar-rol.component.css'
+  styleUrl: './editar-rol.component.css',
 })
 export class EditarRolComponent implements OnInit {
   form!: FormGroup;
@@ -24,6 +30,7 @@ export class EditarRolComponent implements OnInit {
     private rolService: ServiciosService,
     private route: ActivatedRoute,
     private router: Router,
+    private customValidators: CustomValidatorsService
   ) {}
   ngOnInit(): void {
     this.form = this.fb.group({
@@ -34,6 +41,7 @@ export class EditarRolComponent implements OnInit {
           Validators.required,
           Validators.minLength(3),
           Validators.maxLength(20),
+          this.customValidators.soloTexto(),
         ],
       ],
     });
@@ -41,13 +49,24 @@ export class EditarRolComponent implements OnInit {
     const id = Number(this.route.snapshot.paramMap.get('id'));
     this.rolService.getRolID(id).subscribe((data) => {
       this.rolOriginal = data;
+
+      // ✅ Aplicar validador asíncrono rolUnico con el id actual
+      this.form
+        .get('nombre')
+        ?.setAsyncValidators(this.customValidators.rolUnico(id));
+
       this.form.patchValue(data);
     });
   }
 
   onSubmit(): void {
     if (this.form.valid) {
-      this.rolService.updateRol(this.form.value).subscribe({
+      let nombre = this.form.value.nombre.trim().replace(/\s+/g, ' ');
+      nombre = nombre.charAt(0).toUpperCase() + nombre.slice(1).toLowerCase();
+
+      const rolActualizado = { ...this.form.value, nombre };
+
+      this.rolService.updateRol(rolActualizado).subscribe({
         next: () => {
           this.mensajeExito = 'Rol editado con éxito';
         },
@@ -57,7 +76,7 @@ export class EditarRolComponent implements OnInit {
         },
       });
     } else {
-      this.form.markAllAsTouched(); // <- esto es correcto y necesario
+      this.form.markAllAsTouched();
     }
   }
 
@@ -79,5 +98,4 @@ export class EditarRolComponent implements OnInit {
   manejarError() {
     this.mensajeError = '';
   }
-
 }

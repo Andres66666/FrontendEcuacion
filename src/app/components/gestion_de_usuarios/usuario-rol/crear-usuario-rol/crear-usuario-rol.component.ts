@@ -1,11 +1,22 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
-import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  FormBuilder,
+  FormGroup,
+  FormsModule,
+  ReactiveFormsModule,
+  Validators,
+  AbstractControl,
+  AsyncValidatorFn,
+  ValidationErrors,
+} from '@angular/forms';
 import { OkComponent } from '../../../mensajes/ok/ok.component';
 import { ErrorComponent } from '../../../mensajes/error/error.component';
 import { Rol, Usuario } from '../../../../models/models';
 import { ServiciosService } from '../../../../services/servicios.service';
 import { Router } from '@angular/router';
+import { Observable, of } from 'rxjs';
+import { map } from 'rxjs/operators';
 
 @Component({
   selector: 'app-crear-usuario-rol',
@@ -18,7 +29,7 @@ import { Router } from '@angular/router';
     ErrorComponent,
   ],
   templateUrl: './crear-usuario-rol.component.html',
-  styleUrl: './crear-usuario-rol.component.css'
+  styleUrls: ['./crear-usuario-rol.component.css'],
 })
 export class CrearUsuarioRolComponent {
   form: FormGroup;
@@ -31,12 +42,15 @@ export class CrearUsuarioRolComponent {
   constructor(
     private fb: FormBuilder,
     private service: ServiciosService,
-    private router: Router,
+    private router: Router
   ) {
-    this.form = this.fb.group({
-      usuario: ['', Validators.required],
-      rol: ['', Validators.required],
-    });
+    this.form = this.fb.group(
+      {
+        usuario: ['', Validators.required],
+        rol: ['', Validators.required],
+      },
+      { asyncValidators: this.usuarioRolUnico() } // Validación asíncrona de duplicados
+    );
   }
 
   ngOnInit(): void {
@@ -46,40 +60,80 @@ export class CrearUsuarioRolComponent {
 
   loadUsuarios() {
     this.service.getUsuarios().subscribe((data) => {
-      this.usuarios = data.filter((u) => u.estado); // solo usuarios activos
+      this.service.getUsuarioRoles().subscribe((asignaciones) => {
+        const usuariosConRol = asignaciones.map((a) => a.usuario.id);
+        this.usuarios = data.filter(
+          (u) => u.estado && !usuariosConRol.includes(u.id)
+        ); // solo usuarios activos sin rol asignado
+      });
     });
   }
 
   loadRoles() {
     this.service.getRoles().subscribe((data) => {
-      this.roles = data;
+      this.roles = data.filter((r) => r.estado); // solo roles activos
     });
   }
+
+  // Validador asíncrono para evitar duplicados y que un usuario tenga más de un rol
+  usuarioRolUnico(): AsyncValidatorFn {
+    return (control: AbstractControl): Observable<ValidationErrors | null> => {
+      const usuario = control.get('usuario')?.value;
+      const rol = control.get('rol')?.value;
+
+      if (!usuario || !rol) return of(null);
+
+      return this.service.getUsuarioRoles().pipe(
+        map((asignaciones) => {
+          // Verifica si el usuario ya tiene el mismo rol
+          const mismoRol = asignaciones.some(
+            (asig: any) =>
+              asig.usuario.id === usuario.id && asig.rol.id === rol.id
+          );
+
+          if (mismoRol) {
+            return { rolAsignado: true }; // ya tiene este rol
+          }
+
+          // Verifica si el usuario tiene cualquier rol asignado
+          const tieneOtroRol = asignaciones.some(
+            (asig: any) => asig.usuario.id === usuario.id
+          );
+
+          if (tieneOtroRol) {
+            return { usuarioConRol: true }; // ya tiene otro rol
+          }
+
+          return null;
+        })
+      );
+    };
+  }
+
   registrar(): void {
-    if (this.form.valid) {
-      const usuarioSeleccionado: Usuario = this.form.value.usuario;
-
-      this.service.getUsuarioRoles().subscribe((asignaciones) => {
-        const existe = asignaciones.some(
-          (asig: any) => asig.usuario.id === usuarioSeleccionado.id,
-        );
-
-        if (existe) {
-          this.mensajeError =
-            'Este usuario ya tiene asignado un rol.';
-        } else {
-          this.service.createUsuarioRol(this.form.value).subscribe({
-            next: () => {
-              this.mensajeExito =
-                'Usuario Rol registrado correctamente';
-            },
-            error: () => {
-              this.mensajeError = 'Error al registrar el Usuario Rol';
-            },
-          });
-        }
-      });
+    if (this.form.invalid) {
+      if (this.form.errors?.['rolAsignado']) {
+        this.mensajeError =
+          'Este usuario ya tiene asignado el rol seleccionado.';
+      } else if (this.form.errors?.['usuarioConRol']) {
+        this.mensajeError =
+          'Este usuario ya tiene un rol asignado. No puede asignarse otro.';
+      } else {
+        this.mensajeError =
+          'Por favor, complete todos los campos correctamente.';
+      }
+      return;
     }
+
+    this.service.createUsuarioRol(this.form.value).subscribe({
+      next: () => {
+        this.mensajeExito = 'Usuario-Rol registrado correctamente.';
+        this.form.reset();
+      },
+      error: () => {
+        this.mensajeError = 'Error al registrar el Usuario-Rol.';
+      },
+    });
   }
 
   volver(): void {
@@ -87,12 +141,11 @@ export class CrearUsuarioRolComponent {
   }
 
   limpiarFormulario(): void {
-    this.form.reset({
-      usuario: null,
-      rol: null,
-      sucursal: null,
-    });
+    this.form.reset();
+    this.mensajeError = '';
+    this.mensajeExito = '';
   }
+
   manejarOk() {
     this.mensajeExito = '';
     this.router.navigate(['panel-control/listar-usuario-rol']);

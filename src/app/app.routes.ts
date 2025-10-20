@@ -22,29 +22,20 @@ import { PerfilComponent } from './components/perfil/perfil.component';
 
 import { GastosOperacionesComponent } from './components/gastos-operaciones/gastos-operaciones.component';
 
-
-
 import { CrearMaterialesComponent } from './components/analisis-precios-unitario/materiales/crear-materiales.component';
 import { CrearManoDeObraComponent } from './components/analisis-precios-unitario/mano-de-obra/crear-mano-de-obra.component';
 import { CrearEquipoHerramientaComponent } from './components/analisis-precios-unitario/equipo-herramienta/crear-equipo-herramienta.component';
 import { CrearEcuacionComponent } from './components/analisis-precios-unitario/1-2-3-4/crear-ecuacion.component';
 import { CrearGastosGeneralesComponent } from './components/analisis-precios-unitario/gastos-generales/crear-gastos-generales.component';
 import { PrecioFacturaComponent } from './components/analisis-precios-unitario/precio-factura/precio-factura.component';
-import { AccionesSqlComponent } from './components/seguridad/sql/acciones-sql.component';
-import { AccionesXssComponent } from './components/seguridad/xss/acciones-xss.component';
-import { CsrfComponent } from './components/seguridad/csrf/csrf.component';
-import { DosComponent } from './components/seguridad/dos/dos.component';
-import { KeyloggerComponent } from './components/seguridad/keylogger/keylogger.component';
 import { AuditoriaComponent } from './components/seguridad/auditoria/auditoria.component';
-import { IaComponent } from './components/seguridad/ia/ia.component';
-
 
 export const routes: Routes = [
-    { path: '', component: IndexComponent }, // Ruta principal
-    { path: 'login', component: LoginComponent },
-    { path: 'index', component: IndexComponent },
+  { path: '', component: IndexComponent }, // Ruta principal
+  { path: 'login', component: LoginComponent },
+  { path: 'index', component: IndexComponent },
 
-    {
+  {
     path: 'panel-control',
     component: PanelControlComponent,
     canActivate: [authGuard], // ⬅️ Protección con el guard
@@ -53,9 +44,9 @@ export const routes: Routes = [
         path: 'perfil',
         component: PerfilComponent,
       },
-        //  =====================================================
-        //  ================  seccion 1    ======================
-        //  =====================================================
+      //  =====================================================
+      //  ================  seccion 1    ======================
+      //  =====================================================
       // Rol
       { path: 'listar-rol', component: ListarRolComponent },
       { path: 'registrar-rol', component: CrearRolComponent },
@@ -92,16 +83,16 @@ export const routes: Routes = [
         path: 'editar-usuario-rol/:id',
         component: EditarUsuarioRolComponent,
       },
-        //  =====================================================
-        //  ================  seccion 2    ======================
-        //  =====================================================
+      //  =====================================================
+      //  ================  seccion 2    ======================
+      //  =====================================================
       {
         path: 'gastos-operaciones',
         component: GastosOperacionesComponent,
       },
-        //  =====================================================
-        //  ================  seccion 3    ======================
-        //  =====================================================
+      //  =====================================================
+      //  ================  seccion 3    ======================
+      //  =====================================================
       /* crear ecuaciuon */
       { path: 'CrearEcuacion', component: CrearEcuacionComponent },
 
@@ -110,41 +101,33 @@ export const routes: Routes = [
       /* mano de obra */
       { path: 'CrearManoDeObra', component: CrearManoDeObraComponent },
       /* equipo herramienta */
-      { path: 'CrearEquipoHerramienta',component: CrearEquipoHerramientaComponent},
+      {
+        path: 'CrearEquipoHerramienta',
+        component: CrearEquipoHerramientaComponent,
+      },
       /* gastos generales administrativos */
       {
         path: 'CrearGastosGenerales',
         component: CrearGastosGeneralesComponent,
       },
 
-        //  =====================================================
-        //  ================  seccion 4    ======================
-        //  =====================================================
+      //  =====================================================
+      //  ================  seccion 4    ======================
+      //  =====================================================
 
       {
         path: 'PrecioFactura',
         component: PrecioFacturaComponent,
       },
-        //  =====================================================
-        //  ================  seccion 5    ======================
-        //  =====================================================
-      // sql
-      { path: 'sql', component: AccionesSqlComponent },
-      // xss
-      { path: 'xss', component: AccionesXssComponent },
-      // csrf
-      { path: 'csrf', component: CsrfComponent },
-      // ddos
-      { path: 'ddos', component: DosComponent },
-      // keylogger
-      { path: 'keylogger', component: KeyloggerComponent },
+      //  =====================================================
+      //  ================  seccion 5    ======================
+      //  =====================================================
+
       // auditoria
       { path: 'auditoria', component: AuditoriaComponent },
-      // ia
-      { path: 'ia', component: IaComponent },
+
       // Ruta por defecto
       { path: '', redirectTo: 'servicios', pathMatch: 'full' },
     ],
   },
 ];
-

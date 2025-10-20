@@ -15,6 +15,7 @@ import {
   Proyecto,
   Atacante,
   Modulo,
+  AuditoriaEvento,
 } from '../models/models';
 
 @Injectable({
@@ -110,6 +111,9 @@ export class ServiciosService {
   updateAtacanteBloqueo(id: number, bloqueado: boolean): Observable<any> {
     return this.http.patch(`${this.apiUrl}auditoria_db/${id}/`, { bloqueado });
   }
+  getEventosAuditoria(): Observable<AuditoriaEvento[]> {
+    return this.http.get<AuditoriaEvento[]>(`${this.apiUrl}auditoria_eventos/`);
+  }
 
   // =====================================================
   // 👤 SECCIÓN 3: Gestión de Usuarios, Roles y Permisos
@@ -197,6 +201,12 @@ export class ServiciosService {
   getRolPermisoID(id: number): Observable<RolPermiso> {
     return this.http.get<RolPermiso>(`${this.apiUrl}rol_permiso/${id}/`);
   }
+  // Agregar este método al servicio
+  getPermisosPorRol(rolId: number): Observable<number[]> {
+    return this.http.get<number[]>(
+      `${this.apiUrl}rol_permiso/permisos_por_rol/?rol_id=${rolId}`
+    );
+  }
 
   createRolPermiso(rolPermiso: RolPermiso): Observable<RolPermiso> {
     return this.http.post<RolPermiso>(`${this.apiUrl}rol_permiso/`, rolPermiso);
@@ -277,7 +287,7 @@ export class ServiciosService {
   }
 
   updateModulo(id: number, modulo: Partial<Modulo>): Observable<Modulo> {
-    return this.http.put<Modulo>(`${this.apiUrl}/modulos/${id}/`, modulo);
+    return this.http.put<Modulo>(`${this.apiUrl}modulos/${id}/`, modulo); // Agrega / al final para consistencia
   }
 
   deleteModulo(id: number): Observable<any> {

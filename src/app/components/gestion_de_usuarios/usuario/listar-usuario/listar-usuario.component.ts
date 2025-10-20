@@ -10,7 +10,7 @@ import { ServiciosService } from '../../../../services/servicios.service';
   standalone: true,
   imports: [CommonModule, RouterModule, FormsModule],
   templateUrl: './listar-usuario.component.html',
-  styleUrl: './listar-usuario.component.css'
+  styleUrl: './listar-usuario.component.css',
 })
 export class ListarUsuarioComponent {
   usuarios: Usuario[] = [];
@@ -24,7 +24,7 @@ export class ListarUsuarioComponent {
 
   constructor(
     private usuarioService: ServiciosService,
-    private router: Router,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
@@ -51,11 +51,12 @@ export class ListarUsuarioComponent {
     const texto = this.busqueda.trim().toLowerCase();
 
     this.usuariosFiltrados = this.usuarios
-      .filter(({ nombre, apellido, correo, estado }) => {
+      .filter(({ nombre, apellido, correo, ci, estado }) => {
         const coincideTexto =
           nombre.toLowerCase().includes(texto) ||
           apellido.toLowerCase().includes(texto) ||
-          correo.toLowerCase().includes(texto);
+          correo.toLowerCase().includes(texto) ||
+          ci.toLowerCase().includes(texto);
 
         const coincideEstado =
           (this.filtroEstado === 'activos' && estado) ||

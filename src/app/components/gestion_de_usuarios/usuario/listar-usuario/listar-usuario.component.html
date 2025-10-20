@@ -1,71 +1,106 @@
 <h2 class="mb-4 text-primary text-center text-uppercase">Lista de Usuarios</h2>
 
 <!-- Filtros -->
-<div class="mb-4 d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-2">
-    <div class="d-flex flex-row flex-nowrap justify-content-end gap-2 w-100">
-        <input type="text" [(ngModel)]="busqueda" (input)="filtrar()" class="form-control flex-grow-1"
-            placeholder="Buscar por nombre o correo..." />
-        <select [(ngModel)]="filtroEstado" (change)="filtrar()" class="form-select flex-grow-0">
-            <option value="activos">Activos</option>
-            <option value="inactivos">Inactivos</option>
-            <option value="todos">Todos</option>
-        </select>
-    </div>
+<div
+  class="mb-4 d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-2"
+>
+  <div class="d-flex flex-row flex-nowrap justify-content-end gap-2 w-100">
+    <input
+      type="text"
+      [(ngModel)]="busqueda"
+      (input)="filtrar()"
+      class="form-control flex-grow-1"
+      placeholder="Buscar por nombre o correo..."
+    />
+    <select
+      [(ngModel)]="filtroEstado"
+      (change)="filtrar()"
+      class="form-select flex-grow-0"
+    >
+      <option value="activos">Activos</option>
+      <option value="inactivos">Inactivos</option>
+      <option value="todos">Todos</option>
+    </select>
+  </div>
 
-    <button class="btn btn-success" (click)="irARegistrar()">
-        <i class="bi bi-plus-circle me-1"></i> Registrar
-    </button>
+  <button class="btn btn-success" (click)="irARegistrar()">
+    <i class="bi bi-plus-circle me-1"></i> Registrar
+  </button>
 </div>
 
 <!-- Tabla de usuarios -->
-<div class="table-responsive rounded border" style="max-height: 400px; overflow-y: auto" (scroll)="onScroll($event)">
-    <table class="table table-bordered table-hover align-middle text-center mb-0">
-        <thead class="table-primary">
-            <tr>
-                <th>Imagen</th>
-                <th>Nombre Completo</th>
-                <th>Correo</th>
-                <th>Teléfono</th>
-                <th>CI</th>
-                <th>Estado</th>
-                <th>Acciones</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr *ngFor="let usuario of usuariosMostrados" class="border-bottom border-secondary-subtle">
-                <td>
-                    <img [src]="usuario.imagen_url" alt="imagen" width="40" height="40"
-                        class="rounded-circle object-fit-cover" />
-                </td>
-                <td class="text-start">{{ usuario.nombre }} {{ usuario.apellido }}</td>
-                <td>{{ usuario.correo }}</td>
-                <td>{{ usuario.telefono }}</td>
-                <td>{{ usuario.ci }}</td>
-                <td class="fw-bold">
-                    <span style="width: 60px" class="badge" [ngClass]="
+<div
+  class="table-responsive rounded border"
+  style="max-height: 400px; overflow-y: auto"
+  (scroll)="onScroll($event)"
+>
+  <table class="table table-bordered table-hover align-middle text-center mb-0">
+    <thead class="table-primary">
+      <tr>
+        <th>Imagen</th>
+        <th>Nombre Completo</th>
+        <th>Correo</th>
+        <th>Teléfono</th>
+        <th>CI</th>
+        <th>Estado</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr
+        *ngFor="let usuario of usuariosMostrados"
+        class="border-bottom border-secondary-subtle"
+      >
+        <td>
+          <img
+            [src]="usuario.imagen_url"
+            alt="imagen"
+            width="40"
+            height="40"
+            class="rounded-circle object-fit-cover"
+          />
+        </td>
+        <td class="text-start">{{ usuario.nombre }} {{ usuario.apellido }}</td>
+        <td class="text-start">{{ usuario.correo }}</td>
+        <td>{{ usuario.telefono }}</td>
+        <td>{{ usuario.ci }}</td>
+        <td class="fw-bold">
+          <span
+            style="width: 60px"
+            class="badge"
+            [ngClass]="
               usuario.estado ? 'bg-success text-light' : 'bg-danger text-light'
-            ">
-                        {{ usuario.estado ? "Activo" : "Inactivo" }}
-                    </span>
-                </td>
-                <td>
-                    <div class="d-flex justify-content-center gap-2">
-                        <button class="btn btn-warning btn-sm" (click)="irAEditar(usuario.id)">
-                            <i class="bi bi-pencil"></i> Editar
-                        </button>
-                        <button style="width: 100px" class="btn btn-sm" [ngClass]="
+            "
+          >
+            {{ usuario.estado ? "Activo" : "Inactivo" }}
+          </span>
+        </td>
+        <td>
+          <div class="d-flex justify-content-center gap-2">
+            <button
+              class="btn btn-warning btn-sm"
+              (click)="irAEditar(usuario.id)"
+            >
+              <i class="bi bi-pencil"></i> Editar
+            </button>
+            <button
+              style="width: 100px"
+              class="btn btn-sm"
+              [ngClass]="
                 usuario.estado ? 'btn-outline-danger' : 'btn-outline-success'
-              " (click)="cambiarEstado(usuario)">
-                            {{ usuario.estado ? "Desactivar" : "Activar" }}
-                        </button>
-                    </div>
-                </td>
-            </tr>
-            <tr *ngIf="usuariosMostrados.length === 0">
-                <td colspan="7" class="text-center text-muted py-4">
-                    No se encontraron usuarios.
-                </td>
-            </tr>
-        </tbody>
-    </table>
+              "
+              (click)="cambiarEstado(usuario)"
+            >
+              {{ usuario.estado ? "Desactivar" : "Activar" }}
+            </button>
+          </div>
+        </td>
+      </tr>
+      <tr *ngIf="usuariosMostrados.length === 0">
+        <td colspan="7" class="text-center text-muted py-4">
+          No se encontraron usuarios.
+        </td>
+      </tr>
+    </tbody>
+  </table>
 </div>

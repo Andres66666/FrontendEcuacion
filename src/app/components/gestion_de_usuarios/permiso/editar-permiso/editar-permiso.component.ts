@@ -1,32 +1,40 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  FormBuilder,
+  FormGroup,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
 import { OkComponent } from '../../../mensajes/ok/ok.component';
 import { ErrorComponent } from '../../../mensajes/error/error.component';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ServiciosService } from '../../../../services/servicios.service';
+import { CustomValidatorsService } from '../../../../../validators/custom-validators.service';
 
 @Component({
   selector: 'app-editar-permiso',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, OkComponent, ErrorComponent],
   templateUrl: './editar-permiso.component.html',
-  styleUrl: './editar-permiso.component.css'
+  styleUrl: './editar-permiso.component.css',
 })
 export class EditarPermisoComponent implements OnInit {
   form!: FormGroup;
   permisoOriginal: any;
   mensajeExito: string = '';
   mensajeError: string = '';
-  
+
   constructor(
     private fb: FormBuilder,
     private route: ActivatedRoute,
     private router: Router,
     private permisoService: ServiciosService,
+    private customValidators: CustomValidatorsService
   ) {}
 
   ngOnInit(): void {
+    // Crear el formulario
     this.form = this.fb.group({
       id: [null],
       nombre: [
@@ -35,15 +43,25 @@ export class EditarPermisoComponent implements OnInit {
           Validators.required,
           Validators.minLength(3),
           Validators.maxLength(20),
+          this.customValidators.soloTexto(),
         ],
+        [], // Aquí se agregará el asyncValidator después de obtener el permiso
       ],
       estado: [true],
     });
 
+    // Obtener el ID desde la URL
     const id = Number(this.route.snapshot.paramMap.get('id'));
+
+    // Cargar los datos del permiso
     this.permisoService.getPermisoID(id).subscribe((data) => {
       this.permisoOriginal = data;
       this.form.patchValue(data);
+
+      // ✅ Aplicar el validador asíncrono de nombre único (permitiendo el mismo nombre del permiso actual)
+      this.form
+        .get('nombre')
+        ?.setAsyncValidators(this.customValidators.permisoUnico(data.id));
     });
   }
 
@@ -62,18 +80,22 @@ export class EditarPermisoComponent implements OnInit {
       this.form.markAllAsTouched();
     }
   }
+
   volver(): void {
     this.router.navigate(['panel-control/listar-permiso']);
   }
+
   restablecerFormulario(): void {
     if (this.permisoOriginal) {
       this.form.patchValue(this.permisoOriginal);
     }
   }
+
   manejarOk() {
     this.mensajeExito = '';
     this.router.navigate(['panel-control/listar-permiso']);
   }
+
   manejarError() {
     this.mensajeError = '';
   }

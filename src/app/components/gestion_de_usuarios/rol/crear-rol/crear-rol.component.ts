@@ -1,17 +1,23 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  FormBuilder,
+  FormGroup,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
 import { OkComponent } from '../../../mensajes/ok/ok.component';
 import { ErrorComponent } from '../../../mensajes/error/error.component';
 import { ServiciosService } from '../../../../services/servicios.service';
 import { Router } from '@angular/router';
+import { CustomValidatorsService } from '../../../../../validators/custom-validators.service';
 
 @Component({
   selector: 'app-crear-rol',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, OkComponent, ErrorComponent],
   templateUrl: './crear-rol.component.html',
-  styleUrl: './crear-rol.component.css'
+  styleUrl: './crear-rol.component.css',
 })
 export class CrearRolComponent {
   form!: FormGroup;
@@ -22,6 +28,7 @@ export class CrearRolComponent {
     private fb: FormBuilder,
     private rolService: ServiciosService,
     private router: Router,
+    private customValidators: CustomValidatorsService
   ) {}
 
   ngOnInit(): void {
@@ -33,14 +40,22 @@ export class CrearRolComponent {
           Validators.required,
           Validators.minLength(3),
           Validators.maxLength(20),
+          this.customValidators.soloTexto(),
         ],
+        [this.customValidators.rolUnico()],
       ],
     });
   }
 
   onSubmit(): void {
     if (this.form.valid) {
-      this.rolService.createRol(this.form.value).subscribe({
+      // 🔹 Normalizamos el nombre antes de enviar
+      let nombre = this.form.value.nombre.trim().replace(/\s+/g, ' ');
+      nombre = nombre.charAt(0).toUpperCase() + nombre.slice(1).toLowerCase();
+
+      const rolFormateado = { ...this.form.value, nombre };
+
+      this.rolService.createRol(rolFormateado).subscribe({
         next: () => {
           this.mensajeExito = 'Rol registrado con éxito';
         },
@@ -50,9 +65,10 @@ export class CrearRolComponent {
         },
       });
     } else {
-      this.form.markAllAsTouched(); // <- esto es correcto y necesario
+      this.form.markAllAsTouched();
     }
   }
+
   volver(): void {
     this.router.navigate(['panel-control/listar-rol']);
   }

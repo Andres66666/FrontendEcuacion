@@ -1,18 +1,24 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  FormBuilder,
+  FormGroup,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
 import { OkComponent } from '../../../mensajes/ok/ok.component';
 import { ErrorComponent } from '../../../mensajes/error/error.component';
 import { Router } from '@angular/router';
 import { ServiciosService } from '../../../../services/servicios.service';
 import { Usuario } from '../../../../models/models';
+import { CustomValidatorsService } from '../../../../../validators/custom-validators.service';
 
 @Component({
   selector: 'app-crear-usuario',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, OkComponent, ErrorComponent],
   templateUrl: './crear-usuario.component.html',
-  styleUrl: './crear-usuario.component.css'
+  styleUrl: './crear-usuario.component.css',
 })
 export class CrearUsuarioComponent implements OnInit {
   form!: FormGroup;
@@ -24,35 +30,75 @@ export class CrearUsuarioComponent implements OnInit {
   mensajeExito: string = '';
   mensajeError: string = '';
 
-  roles: any[] = []; 
+  roles: any[] = [];
   constructor(
     private fb: FormBuilder,
     private usuarioService: ServiciosService,
     private router: Router,
+    private customValidators: CustomValidatorsService
   ) {}
 
   ngOnInit(): void {
     this.loadRoles();
     this.form = this.fb.group({
-      nombre: ['',[Validators.required,Validators.minLength(3),Validators.maxLength(20),]],
-      apellido: ['',[Validators.required,Validators.minLength(3),Validators.maxLength(20),]],
-      correo: ['',[Validators.required, Validators.email]],
-      telefono: ['',[Validators.required]],
-      ci: ['', [Validators.required]],
-      fecha_nacimiento: ['',[Validators.required]],
-      password: ['',[Validators.required]],
-      imagen_url: [''],
+      nombre: [
+        '',
+        [
+          Validators.required,
+          Validators.minLength(3),
+          Validators.maxLength(20),
+          this.customValidators.soloTexto(),
+          this.customValidators.limpiarEspaciosValidator(),
+        ],
+      ],
+      apellido: [
+        '',
+        [
+          Validators.required,
+          Validators.minLength(3),
+          Validators.maxLength(20),
+          this.customValidators.soloTexto(),
+          this.customValidators.limpiarEspaciosValidator(),
+        ],
+      ],
+      correo: [
+        '',
+        [Validators.required, this.customValidators.correoValido()],
+        [this.customValidators.correoUnico()],
+      ],
+      telefono: [
+        '',
+        [
+          Validators.required,
+          this.customValidators.telefonoValido(),
+          this.customValidators.soloNumeros(),
+        ],
+        [this.customValidators.telefonoUnico()],
+      ],
+      ci: [
+        '',
+        [Validators.required, this.customValidators.ciValido()],
+        [this.customValidators.ciUnico()],
+      ],
+      fecha_nacimiento: [
+        '',
+        [Validators.required, this.customValidators.mayorDeEdad()],
+      ],
+      password: [
+        '',
+        [Validators.required, this.customValidators.passwordSegura()],
+      ],
+      imagen_url: [''], // opcional
       estado: [true],
-      rol: ['', [Validators.required]], 
+      rol: [''], // no requerido
     });
   }
-  
+
   loadRoles(): void {
     this.usuarioService.getRoles().subscribe((data) => {
       this.roles = data.filter((r) => r.estado); // Solo roles activos
     });
   }
-
 
   onSubmit(): void {
     if (this.form.valid) {
@@ -65,16 +111,15 @@ export class CrearUsuarioComponent implements OnInit {
       formData.append('ci', this.form.get('ci')?.value);
       formData.append(
         'fecha_nacimiento',
-        this.form.get('fecha_nacimiento')?.value,
+        this.form.get('fecha_nacimiento')?.value
       );
       formData.append('password', this.form.get('password')?.value);
       formData.append('estado', this.form.get('estado')?.value);
       formData.append('rol', this.form.get('rol')?.value);
 
-
       // Adjuntamos la imagen si existe
       const inputElement = document.getElementById(
-        'imagenInput',
+        'imagenInput'
       ) as HTMLInputElement;
       if (inputElement && inputElement.files && inputElement.files.length > 0) {
         const file = inputElement.files[0];
@@ -102,13 +147,27 @@ export class CrearUsuarioComponent implements OnInit {
   volver(): void {
     this.router.navigate(['panel-control/listar-usuario']);
   }
+  // Agregar este método en la clase CrearUsuarioComponent
+  quitarImagen(): void {
+    this.imagenPreview = null;
+    this.errorMensaje = null;
+    const inputElement = document.getElementById(
+      'imagenInput'
+    ) as HTMLInputElement;
+    if (inputElement) {
+      inputElement.value = '';
+    }
+    this.form.patchValue({
+      imagen_url: null,
+    });
+  }
 
   limpiarFormulario(): void {
     this.form.reset({
       estado: true,
-      imagen_url: null, // Reset to null
+      imagen_url: null,
     });
-    this.imagenPreview = null; // Clear the image preview
+    this.quitarImagen(); // Usar la nueva función para limpiar la imagen
   }
 
   onFileChange(event: any): void {
@@ -150,5 +209,4 @@ export class CrearUsuarioComponent implements OnInit {
   manejarError() {
     this.mensajeError = '';
   }
-
 }

@@ -64,9 +64,6 @@ export class LoginComponent {
 
   constructor(public router: Router, private service: ServiciosService) {}
 
-  // ... (otras propiedades y métodos del componente)
-
-  // NUEVO: Función para manejar la entrada, incluyendo la funcionalidad de pegado (Paste)
   onInputCode(
     event: Event,
     index: number,
@@ -74,23 +71,17 @@ export class LoginComponent {
   ): void {
     const input = event.target as HTMLInputElement;
     let value = input.value;
-
-    // Limpieza: Solo permite dígitos, y limita a 1 char (comportamiento manual)
     value = value.replace(/[^0-9]/g, '');
     if (value.length > 1) {
-      value = value.charAt(0); // En caso de que se cuele algo, trunca
+      value = value.charAt(0);
     }
 
     this.codigoInputs[index] = value;
     this.codigo2FA = this.codigoInputs.join('');
-
-    // Avanza al siguiente campo si se ingresó un dígito válido
     if (value && value.length === 1 && index < 5 && nextInput) {
       nextInput.focus();
     }
   }
-
-  // ** FUNCIÓN para Backspace (Se mantiene para la interacción con los 6 inputs) **
   onBackspace(
     event: any,
     index: number,
@@ -109,41 +100,31 @@ export class LoginComponent {
     }
   }
   onPaste(event: ClipboardEvent, startIndex: number): void {
-    event.preventDefault(); // Previene que el navegador inserte el texto directamente (que se truncaría por maxlength=1)
+    event.preventDefault();
 
     const clipboardData = event.clipboardData;
     if (!clipboardData) return;
 
     const pastedText = clipboardData.getData('text/plain');
-    // Extrae solo dígitos numéricos, toma hasta 6
     const digits = pastedText
       .replace(/[^0-9]/g, '')
       .substring(0, 6)
       .split('');
-
-    // Limpia todos los campos y rellena desde el inicio (índice 0) con los dígitos pegados
-    // (Esto asegura que siempre se distribuyan correctamente, incluso si se pega en un campo intermedio)
-    this.codigoInputs = ['', '', '', '', '', '']; // Limpia primero
+    this.codigoInputs = ['', '', '', '', '', ''];
     for (let i = 0; i < digits.length && i < 6; i++) {
       this.codigoInputs[i] = digits[i];
     }
 
-    // Actualiza la variable principal unificada
     this.codigo2FA = this.codigoInputs.join('');
-
-    // CORRECCIÓN: Fuerza la actualización del DOM en todos los inputs para evitar desfases con ngModel
-    // Esto asegura que el primer dígito (y todos) se muestren inmediatamente en la UI
     for (let i = 0; i < 6; i++) {
       const inputEl = document.getElementById(
         `input${i}`
       ) as HTMLInputElement | null;
       if (inputEl) {
-        inputEl.value = this.codigoInputs[i]; // Setea directamente el value en el DOM
+        inputEl.value = this.codigoInputs[i];
       }
     }
-
-    // Enfoca el campo después del último dígito llenado (o el último campo si completo)
-    const lastFilledIndex = Math.min(digits.length - 1, 5); // Corrige: -1 para índice válido, min 5
+    const lastFilledIndex = Math.min(digits.length - 1, 5);
     const nextFocusIndex = Math.min(lastFilledIndex + 1, 5);
     const nextInputEl = document.getElementById(
       `input${nextFocusIndex}`
@@ -151,16 +132,10 @@ export class LoginComponent {
     if (nextInputEl) {
       nextInputEl.focus();
       if (digits.length < 6) {
-        nextInputEl.select(); // Selecciona para fácil edición si es parcial
+        nextInputEl.select();
       }
     }
-
-    // REMOVIDO: No disparar 'input' aquí para evitar conflictos con onInputCode y sobrescrituras
-    // El ngModel y la actualización manual del DOM ya manejan la UI y la validación del botón
   }
-
-  // ... (El resto de métodos no se modifica)
-
   togglePasswordVisibility(): void {
     this.showPassword = !this.showPassword;
   }
@@ -173,8 +148,6 @@ export class LoginComponent {
       emailRegex.test(this.correo.trim())
     );
   }
-
-  // Asumo que el resto de onSubmit es correcto y no requiere cambios
   onSubmit(form: NgForm) {
     this.mensajeError = '';
     if (!form.valid) {
@@ -200,7 +173,6 @@ export class LoginComponent {
           this.tempRequiereCambioPassword =
             res.requiere_cambio_password || false;
           this.tempMensajeUrgente = res.mensaje_urgente || false;
-
           const mensajePrincipal = res.mensaje || '¡Inicio de sesión exitoso!';
           let mensajeCompleto = mensajePrincipal;
           if (this.tempMensajeAdicional) {
@@ -225,7 +197,6 @@ export class LoginComponent {
               }, 7000);
             }
           }
-
           this.vistaActual = 'seleccion_2fa';
           this.codigoEnviado = false;
           this.qrBase64 = null;
@@ -241,15 +212,12 @@ export class LoginComponent {
       },
     });
   }
-
-  // El resto de métodos del componente (seleccionarMetodo, usarCorreo, etc.) siguen igual.
-
   seleccionarMetodo(metodo: 'correo' | 'totp'): void {
     this.metodoSeleccionado = metodo;
     this.vistaActual = '2fa';
     this.mensajeError = '';
     this.codigo2FA = '';
-    this.codigoInputs = ['', '', '', '', '', '']; // Importante resetear aquí
+    this.codigoInputs = ['', '', '', '', '', ''];
     this.codigoEnviado = false;
     this.qrBase64 = null;
     this.loading = true;
@@ -310,7 +278,6 @@ export class LoginComponent {
       this.mensajeError = 'Usuario no definido';
       return;
     }
-    // VALIDACIÓN ACTUALIZADA: Asegura que la cadena unificada tenga exactamente 6 dígitos
     if (this.codigo2FA.length !== 6) {
       this.mensajeError = 'Ingrese los 6 dígitos del código de verificación';
       return;
@@ -542,7 +509,6 @@ export class LoginComponent {
     this.tempMensajeUrgente = false;
     this.correoReset = '';
   }
-
   // Manejo de modales
   manejarOk() {
     this.mensajeExito = '';

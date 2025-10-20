@@ -718,7 +718,6 @@
             </td>
 
             <!-- Unidad -->
-            <!-- Columna Unidad (reemplaza solo la <ul> dentro de la <td>; resto igual) -->
             <td class="input-cell">
               <div class="position-relative">
                 <input
@@ -757,34 +756,33 @@
             </td>
 
             <!-- Cantidad -->
-            <td class="input-cell text-center">
+            <td class="input-cell text-end">
               <input
-                type="number"
-                [(ngModel)]="item.cantidad"
-                (ngModelChange)="actualizarItemEnTiempoReal(item)"
-                class="full-width-input text-center mb-0"
+                type="text"
+                [value]="formatearNumero(item.cantidad)"
+                (input)="onCantidadInput($event, item)"
+                class="full-width-input text-end mb-0"
                 title="Cantidad * Precio Unitario Actividad"
                 placeholder="Cantidad"
-                (ngModelChange)="item.cantidad = item.cantidad ?? 0"
               />
             </td>
 
             <!-- Gastos de Operación -->
-            <td class="input-cell text-center">
+            <td class="input-cell text-end">
               <p class="mb-0" title="Gastos De Operacion + Valor Agregado">
                 {{ item.precio_unitario | number : "1.2-2" }}
               </p>
             </td>
 
             <!-- Valor Agregado -->
-            <td class="input-cell text-center">
+            <td class="input-cell text-end">
               <p class="mb-0" title="Gastos De Operacion + Valor Agregado">
                 {{ formatearNumero(getValorAgregado(item)) }}
               </p>
             </td>
 
             <!-- Precio Unitario Actividad -->
-            <td class="input-cell text-center">
+            <td class="input-cell text-end">
               <p class="mb-0" title="Cantidad * Precio Unitario Actividad">
                 {{ formatearNumero(SumaPrecioUnitarioActividad(item)) }}
               </p>

@@ -1,62 +1,98 @@
 <div class="container py-4">
-    <div class="card shadow rounded-4 mx-auto" style="max-width: 600px">
-        <div class="card-body">
-            <h3 class="card-title mb-4 text-center text-primary">
-                Editar Usuario - Rol
-            </h3>
+  <div class="card shadow rounded-4 mx-auto" style="max-width: 600px">
+    <div class="card-body">
+      <h3 class="card-title mb-4 text-center text-primary">
+        Editar Usuario - Rol
+      </h3>
 
-            <!-- Formulario -->
-            <form [formGroup]="form" (ngSubmit)="actualizar()">
-                <!-- Usuario -->
-                <div class="mb-3">
-                    <label for="usuario" class="form-label fw-semibold">Usuario</label>
-                    <select id="usuario" class="form-select" formControlName="usuario" [ngClass]="{
-                'is-invalid':
-                  form.get('usuario')?.invalid && form.get('usuario')?.touched,
-              }" required>
-                        <option value="">Seleccione un usuario</option>
-                        <option *ngFor="let u of usuarios" [value]="u.id">
-                            {{ u.nombre }} {{ u.apellido }}
-                        </option>
-                    </select>
-                </div>
-
-                <!-- Rol -->
-                <div class="mb-3">
-                    <label for="rol" class="form-label fw-semibold">Rol</label>
-                    <select id="rol" class="form-select" formControlName="rol" [ngClass]="{
-                'is-invalid':
-                  form.get('rol')?.invalid && form.get('rol')?.touched,
-              }" required>
-                        <option value="">Seleccione un rol</option>
-                        <option *ngFor="let r of roles" [value]="r.id">
-                            {{ r.nombre }}
-                        </option>
-                    </select>
-                </div>
-
-
-
-                <!-- Botones -->
-                <div class="d-flex flex-column flex-md-row justify-content-between gap-2 mt-4">
-                    <button class="btn btn-outline-secondary w-100" type="button" (click)="volver()">
-                        <i class="bi bi-arrow-left-circle me-2"></i> Volver
-                    </button>
-
-                    <button class="btn btn-warning w-100" type="button" (click)="limpiarFormulario()">
-                        <i class="bi bi-arrow-clockwise me-2"></i> Restablecer
-                    </button>
-
-                    <button class="btn btn-success w-100" type="submit" [disabled]="form.invalid">
-                        <i class="bi bi-check-circle me-2"></i> Actualizar
-                    </button>
-                </div>
-            </form>
+      <form [formGroup]="form" (ngSubmit)="actualizar()">
+        <!-- Usuario -->
+        <div class="mb-3">
+          <label for="usuario" class="form-label fw-semibold">Usuario</label>
+          <select
+            id="usuario"
+            class="form-select"
+            formControlName="usuario"
+            [ngClass]="{
+              'is-invalid':
+                form.get('usuario')?.invalid && form.get('usuario')?.touched
+            }"
+            required
+          >
+            <option value="">Seleccione un usuario</option>
+            <option *ngFor="let u of usuarios" [value]="u.id">
+              {{ u.nombre }} {{ u.apellido }}
+            </option>
+          </select>
         </div>
+
+        <!-- Rol -->
+        <div class="mb-3">
+          <label for="rol" class="form-label fw-semibold">Rol</label>
+          <select
+            id="rol"
+            class="form-select"
+            formControlName="rol"
+            [ngClass]="{
+              'is-invalid': form.get('rol')?.invalid && form.get('rol')?.touched
+            }"
+            required
+          >
+            <option value="">Seleccione un rol</option>
+            <option *ngFor="let r of roles" [value]="r.id">
+              {{ r.nombre }}
+            </option>
+          </select>
+        </div>
+
+        <!-- Mensaje de error -->
+        <div class="text-danger mb-3" *ngIf="mensajeError">
+          {{ mensajeError }}
+        </div>
+
+        <!-- Botones -->
+        <div
+          class="d-flex flex-column flex-md-row justify-content-between gap-2 mt-4"
+        >
+          <button
+            class="btn btn-outline-secondary w-100"
+            type="button"
+            (click)="volver()"
+          >
+            <i class="bi bi-arrow-left-circle me-2"></i> Volver
+          </button>
+
+          <button
+            class="btn btn-warning w-100"
+            type="button"
+            (click)="limpiarFormulario()"
+          >
+            <i class="bi bi-arrow-clockwise me-2"></i> Restablecer
+          </button>
+
+          <button
+            class="btn btn-success w-100"
+            type="submit"
+            [disabled]="form.invalid"
+          >
+            <i class="bi bi-check-circle me-2"></i> Actualizar
+          </button>
+        </div>
+      </form>
     </div>
+  </div>
 </div>
+
 <!-- Modal de Éxito -->
-<app-ok *ngIf="mensajeExito" [mensaje]="mensajeExito" (close)="manejarOk()"></app-ok>
+<app-ok
+  *ngIf="mensajeExito"
+  [mensaje]="mensajeExito"
+  (close)="manejarOk()"
+></app-ok>
 
 <!-- Modal de Error -->
-<app-error *ngIf="mensajeError" [mensaje]="mensajeError" (close)="manejarError()"></app-error>
+<app-error
+  *ngIf="mensajeError"
+  [mensaje]="mensajeError"
+  (close)="manejarError()"
+></app-error>
