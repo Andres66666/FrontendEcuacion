@@ -1,5 +1,10 @@
 import { Component } from '@angular/core';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import {
+  FormBuilder,
+  FormGroup,
+  Validators,
+  ReactiveFormsModule,
+} from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { ServiciosService } from '../../../services/servicios.service';
 import { ActivatedRoute } from '@angular/router';
@@ -52,20 +57,30 @@ export class CrearGastosGeneralesComponent {
       this.gastos_generales = Number(params['gastos_generales']) || 0;
       this.porcentaje_global_100 = Number(params['porcentaje_global_100']) || 0;
       this.Form.get('gastos_generales')?.setValue(this.gastos_generales);
-      this.Form.get('porcentaje_global_100')?.setValue(this.porcentaje_global_100);
+      this.Form.get('porcentaje_global_100')?.setValue(
+        this.porcentaje_global_100
+      );
 
       this.cargarGastosGeneralesExistente();
     });
 
-    this.servicio.totalMateriales$.subscribe((total) => (this.totalMateriales = total));
-    this.servicio.totalManoObra$.subscribe((total) => (this.totalManoObra = total));
-    this.servicio.totalEquipos$.subscribe((total) => (this.totalEquipos = total));
+    this.servicio.totalMateriales$.subscribe(
+      (total) => (this.totalMateriales = total)
+    );
+    this.servicio.totalManoObra$.subscribe(
+      (total) => (this.totalManoObra = total)
+    );
+    this.servicio.totalEquipos$.subscribe(
+      (total) => (this.totalEquipos = total)
+    );
   }
 
   cargarGastosGeneralesExistente(): void {
-    this.servicio.getGastosGenerales(this.id_gasto_operaciones).subscribe((gastos) => {
-      this.gastoExistente = gastos.length > 0 ? gastos[0] : null;
-    });
+    this.servicio
+      .getGastosGenerales(this.id_gasto_operaciones)
+      .subscribe((gastos) => {
+        this.gastoExistente = gastos.length > 0 ? gastos[0] : null;
+      });
   }
 
   recuperarUsuarioLocalStorage() {
@@ -140,11 +155,17 @@ export class CrearGastosGeneralesComponent {
 
   // 🔹 Cálculos internos con todos los decimales
   get sumaTotales(): number {
-    return (this.totalMateriales || 0) + (this.totalManoObra || 0) + (this.totalEquipos || 0);
+    return (
+      (this.totalMateriales || 0) +
+      (this.totalManoObra || 0) +
+      (this.totalEquipos || 0)
+    );
   }
 
   get totalGastosGenerales(): number {
-    return (this.sumaTotales * (this.gastos_generales / this.porcentaje_global_100));
+    return (
+      this.sumaTotales * (this.gastos_generales / this.porcentaje_global_100)
+    );
   }
 
   get totalOperacion(): number {

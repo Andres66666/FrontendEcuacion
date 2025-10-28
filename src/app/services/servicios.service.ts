@@ -291,7 +291,7 @@ export class ServiciosService {
   }
 
   deleteModulo(id: number): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/modulos/${id}/`);
+    return this.http.delete(`${this.apiUrl}modulos/${id}/`);
   }
 
   // --- Gastos y módulos ---
@@ -320,7 +320,7 @@ export class ServiciosService {
   }
 
   deleteGastoOperacion(id: number): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/GastosOperaciones/${id}/`);
+    return this.http.delete(`${this.apiUrl}GastosOperaciones/${id}/`);
   }
 
   moverGastoAModulo(
