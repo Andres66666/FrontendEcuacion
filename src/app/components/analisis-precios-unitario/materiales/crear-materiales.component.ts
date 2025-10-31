@@ -211,16 +211,16 @@ export class CrearMaterialesComponent implements OnInit {
 
   // Filtrar mientras escribe
   filtrarDescripciones(index: number, event: Event): void {
-    const valor = (event.target as HTMLInputElement).value.toLowerCase();
+    const input = event.target as HTMLInputElement;
+    let valor = input.value;
+    valor = valor.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s]/g, '');
+    valor = valor.replace(/\s{2,}/g, ' ');
+    input.value = valor;
+    this.materiales.at(index).get('descripcion')?.setValue(valor);
     this.descripcionesFiltradas[index] = this.descripcionesUsadas.filter((d) =>
-      d.toLowerCase().includes(valor)
+      d.toLowerCase().includes(valor.toLowerCase())
     );
-    this.materiales
-      .at(index)
-      .get('descripcion')
-      ?.setValue((event.target as HTMLInputElement).value);
   }
-
   // Mostrar todas las descripciones al enfocar
   mostrarTodasDescripciones(index: number): void {
     this.descripcionesFiltradas[index] = [...this.descripcionesUsadas];
@@ -354,9 +354,6 @@ export class CrearMaterialesComponent implements OnInit {
       }
     });
   }
-
-  // Agregar unidad si no existe
-  // Agregar unidad si no existe en la lista global
   private agregarUnidadSiNoExiste(unidad: string) {
     const normalizado = unidad.trim();
     if (normalizado && !this.unidadesUsadas.includes(normalizado)) {
@@ -375,23 +372,21 @@ export class CrearMaterialesComponent implements OnInit {
 
   // Filtrar mientras escribe
   filtrarUnidades(index: number, event: Event): void {
-    const valor = (event.target as HTMLInputElement).value.toLowerCase();
+    const input = event.target as HTMLInputElement;
+    let valor = input.value;
+    valor = valor.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s]/g, '');
+    valor = valor.replace(/\s{2,}/g, ' ');
+    input.value = valor;
+    this.materiales.at(index).get('unidad')?.setValue(valor);
     this.unidadesFiltradas[index] = this.unidadesUsadas.filter((u) =>
-      u.toLowerCase().includes(valor)
+      u.toLowerCase().includes(valor.toLowerCase())
     );
-    this.materiales
-      .at(index)
-      .get('unidad')
-      ?.setValue((event.target as HTMLInputElement).value);
   }
 
   // Mostrar todas las unidades al enfocar
   mostrarTodasUnidades(index: number): void {
     this.unidadesFiltradas[index] = [...this.unidadesUsadas];
   }
-  // Seleccionar unidad de la lista
-  // Mostrar la lista solo de la fila activa
-  // Mostrar unidades al hacer focus en la fila
   mostrarUnidadesFila(index: number): void {
     this.mostrarLista = this.mostrarLista.map(() => false); // Oculta otras listas
     this.mostrarLista[index] = true;
@@ -403,10 +398,6 @@ export class CrearMaterialesComponent implements OnInit {
     this.materiales.at(index).get('unidad')?.setValue(unidad); // ✅ actualiza formControl
     this.mostrarLista[index] = false;
   }
-  // Guardar nueva unidad al perder focus
-
-  // Guardar nueva unidad
-  // Guardar nueva unidad al perder focus
   guardarUnidadPersonalizada(index: number, event: Event): void {
     const input = event.target as HTMLInputElement;
     const valor = input.value.trim();

@@ -1,8 +1,29 @@
 .fondo {
   background-image: url("https://res.cloudinary.com/dz45dhxii/image/upload/v1759714209/lf1_wrpxmx.png");
-  background-size: contain; /* Ajusta la imagen completa dentro del contenedor */
+  background-size: contain;
   background-repeat: no-repeat;
   background-position: center center;
   height: 100vh;
   width: 100vw;
+}
+
+/* Solo este pequeño CSS es necesario para hacer los inputs cuadrados */
+.code-input-square {
+  aspect-ratio: 1/1;
+  height: auto;
+  font-size: clamp(1rem, 4vw, 1.5rem);
+  padding: 0.5rem;
+}
+
+/* Ocultar flechas en navegadores usando appearance estándar */
+.code-input-square::-webkit-outer-spin-button,
+.code-input-square::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Propiedad estándar para todos los navegadores modernos */
+.code-input-square[type="number"] {
+  appearance: textfield;
+  -moz-appearance: textfield; /* Fallback para Firefox antiguo */
 }

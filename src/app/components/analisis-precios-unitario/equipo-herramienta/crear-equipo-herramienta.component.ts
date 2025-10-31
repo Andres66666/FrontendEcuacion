@@ -21,7 +21,14 @@ import { ErrorComponent } from '../../mensajes/error/error.component';
 @Component({
   selector: 'app-crear-equipo-herramienta',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FormsModule, ConfirmacionComponent, OkComponent, ErrorComponent],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    FormsModule,
+    ConfirmacionComponent,
+    OkComponent,
+    ErrorComponent,
+  ],
   templateUrl: './crear-equipo-herramienta.component.html',
   styleUrls: ['./crear-equipo-herramienta.component.css'],
 })
@@ -38,7 +45,6 @@ export class CrearEquipoHerramientaComponent implements OnInit {
   roles: string[] = [];
   permisos: string[] = [];
 
-
   // ✅ Mensajes y estado UI
   mostrarConfirmacion = false;
   tipoConfirmacion: 'item' | null = null;
@@ -47,7 +53,7 @@ export class CrearEquipoHerramientaComponent implements OnInit {
   mensajeExito = '';
   mensajeError = '';
 
-    // Para UNIDAD (replicado)
+  // Para UNIDAD (replicado)
   unidadesUsadas: string[] = [];
   unidadesFiltradas: string[][] = [];
   mostrarLista: boolean[] = [];
@@ -62,7 +68,7 @@ export class CrearEquipoHerramientaComponent implements OnInit {
 
   // UI expandida (replicado de materiales; agrega 'formatoInvalido' y tipoConfirmacion más amplio si no existe)
   formatoInvalido = false;
-  
+
   constructor(
     private fb: FormBuilder,
     private route: ActivatedRoute,
@@ -77,28 +83,30 @@ export class CrearEquipoHerramientaComponent implements OnInit {
   }
 
   ngOnInit(): void {
-  this.recuperarUsuarioLocalStorage();
+    this.recuperarUsuarioLocalStorage();
 
-  this.route.queryParams.subscribe((params) => {
-    this.id_gasto_operaciones = Number(params['id_gasto_operaciones']) || 0;
-    this.herramientas = Number(params['herramientas']) || 0;
-    this.porcentaje_global_100 = Number(params['porcentaje_global_100']) || 0;
+    this.route.queryParams.subscribe((params) => {
+      this.id_gasto_operaciones = Number(params['id_gasto_operaciones']) || 0;
+      this.herramientas = Number(params['herramientas']) || 0;
+      this.porcentaje_global_100 = Number(params['porcentaje_global_100']) || 0;
 
-    this.formulario.get('herramientas')?.setValue(this.herramientas);
+      this.formulario.get('herramientas')?.setValue(this.herramientas);
 
-    if (this.id_gasto_operaciones) this.cargarEquipoHerramientaExistente();
-  });
+      if (this.id_gasto_operaciones) this.cargarEquipoHerramientaExistente();
+    });
 
-  this.servicio.totalManoObra$.subscribe((total) => (this.totalManoObra = total));
-  
-  // Carga unidades específicas de equipo/herramienta (modificado arriba)
-  this.cargarUnidades();
-  
-  // Carga catálogo (ya corregido en mensajes previos)
-  this.cargarCatalogoEquipos();
-}
+    this.servicio.totalManoObra$.subscribe(
+      (total) => (this.totalManoObra = total)
+    );
 
-    agregarEquipo(): void {
+    // Carga unidades específicas de equipo/herramienta (modificado arriba)
+    this.cargarUnidades();
+
+    // Carga catálogo (ya corregido en mensajes previos)
+    this.cargarCatalogoEquipos();
+  }
+
+  agregarEquipo(): void {
     this.equipos.push(this.crearEquipoForm());
     this.unidadesFiltradas.push([...this.unidadesUsadas]);
     this.mostrarLista.push(false);
@@ -106,8 +114,14 @@ export class CrearEquipoHerramientaComponent implements OnInit {
     this.descripcionesFiltradas.push([...this.descripcionesUsadas]);
     this.mostrarListaDescripcion.push(false);
   }
-  
-  
+
+  formatearNumero(valor: number): string {
+    // 🔹 Solo para mostrar: redondea visualmente, no modifica el valor original
+    const redondeado = Math.round(valor * 100) / 100; // redondeo final
+    let partes = redondeado.toFixed(2).split('.');
+    partes[0] = partes[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    return partes.join(',');
+  }
 
   // 🔹 Helpers
   get equipos(): FormArray {
@@ -118,26 +132,21 @@ export class CrearEquipoHerramientaComponent implements OnInit {
     return this.equipos.controls.reduce((acc, control) => {
       const cantidad = control.get('cantidad')?.value || 0;
       const precio = control.get('precio_unitario')?.value || 0;
-      return acc + cantidad * precio;
+      return acc + cantidad * precio; // ✅ sin redondeo
     }, 0);
   }
 
   get herramientasPorcentaje(): number {
-    return this.totalManoObra * (this.herramientas / this.porcentaje_global_100);
+    return (
+      this.totalManoObra * (this.herramientas / this.porcentaje_global_100)
+    );
   }
 
   get totalEquipos(): number {
     const total = this.subtotalEquipos + this.herramientasPorcentaje;
-    this.servicio.setTotalEquipos(total);
-    return total;
-  }
-    // Para mostrar el total con 2 decimales
-  get totalEquiposFormateado(): string {
-    return this.formatearNumero(this.totalEquipos);
-  }
-
-  formatearNumero(valor: number): string {
-    return new Intl.NumberFormat('es-BO', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(valor);
+    const totalRedondeado = Math.round(total);
+    this.servicio.setTotalEquipos(totalRedondeado);
+    return totalRedondeado;
   }
 
   // 🔹 Usuario
@@ -158,67 +167,87 @@ export class CrearEquipoHerramientaComponent implements OnInit {
   }
 
   // 🔹 CRUD Equipos
-  private crearEquipoForm(equipo?: EquipoHerramienta, esNuevo = true): FormGroup {
+  private crearEquipoForm(
+    equipo?: EquipoHerramienta,
+    esNuevo = true
+  ): FormGroup {
     return this.fb.group({
       id: [equipo?.id ?? null],
       descripcion: [equipo?.descripcion ?? '', Validators.required],
       unidad: [equipo?.unidad ?? '', Validators.required],
-      cantidad: [equipo?.cantidad ?? 0, [Validators.required, Validators.min(0)]],
-      precio_unitario: [equipo?.precio_unitario ?? 0, [Validators.required, Validators.min(0)]],
+      cantidad: [
+        equipo?.cantidad ?? 0,
+        [Validators.required, Validators.min(0)],
+      ],
+      precio_unitario: [
+        equipo?.precio_unitario ?? 0,
+        [Validators.required, Validators.min(0)],
+      ],
       total: [{ value: equipo?.total ?? 0, disabled: true }],
       esNuevo: [esNuevo],
       editarUnidad: [esNuevo],
     });
   }
 
-
-
   cargarEquipoHerramientaExistente(): void {
-    this.servicio.getEquipoHerramientas(this.id_gasto_operaciones).subscribe((equipos) => {
-      this.equipos.clear();
-      this.unidadesFiltradas = [];
-      this.mostrarLista = [];
-      this.descripcionesFiltradas = [];
-      this.mostrarListaDescripcion = [];
+    this.servicio
+      .getEquipoHerramientas(this.id_gasto_operaciones)
+      .subscribe((equipos) => {
+        this.equipos.clear();
+        this.unidadesFiltradas = [];
+        this.mostrarLista = [];
+        this.descripcionesFiltradas = [];
+        this.mostrarListaDescripcion = [];
 
-      equipos.forEach((equipo) => {
-        this.equipos.push(this.crearEquipoForm(equipo, false));
-        this.agregarUnidadSiNoExiste(equipo.unidad);
-        this.agregarDescripcionSiNoExiste(equipo.descripcion);
+        equipos.forEach((equipo) => {
+          this.equipos.push(this.crearEquipoForm(equipo, false));
+          this.agregarUnidadSiNoExiste(equipo.unidad);
+          this.agregarDescripcionSiNoExiste(equipo.descripcion);
 
-        this.unidadesFiltradas.push([...this.unidadesUsadas]);
-        this.mostrarLista.push(false);
+          this.unidadesFiltradas.push([...this.unidadesUsadas]);
+          this.mostrarLista.push(false);
 
-        this.descripcionesFiltradas.push([...this.descripcionesUsadas]);
-        this.mostrarListaDescripcion.push(false);
+          this.descripcionesFiltradas.push([...this.descripcionesUsadas]);
+          this.mostrarListaDescripcion.push(false);
+        });
       });
-    });
   }
   cargarUnidades(): void {
-  this.servicio.getUnidadesEquipoHerramienta().subscribe({  // Cambiado: usa el endpoint específico de equipo/herramienta
-    next: (res: string[]) => {  // Tipado explícito para consistencia
-      this.unidadesUsadas = res || [];  // Carga solo unidades únicas de la tabla EquipoHerramienta
-    },
-    error: (err: any) => {  // Tipado explícito
-      console.error("Error cargando unidades de equipo/herramienta:", err);
-    },
-  });
-}
+    this.servicio.getUnidadesEquipoHerramienta().subscribe({
+      // Cambiado: usa el endpoint específico de equipo/herramienta
+      next: (res: string[]) => {
+        // Tipado explícito para consistencia
+        this.unidadesUsadas = res || []; // Carga solo unidades únicas de la tabla EquipoHerramienta
+      },
+      error: (err: any) => {
+        // Tipado explícito
+        console.error('Error cargando unidades de equipo/herramienta:', err);
+      },
+    });
+  }
 
-private cargarCatalogoEquipos(): void {
-  this.servicio.getEquiposHerramientas().subscribe({  // Cambiado: getEquiposHerramientas() en lugar de getEquipos()
-    next: (equipos: EquipoHerramienta[]) => {  // Tipado explícito
-      this.catalogoEquipos = equipos.map((e: EquipoHerramienta) => ({  // Tipado en map
-        descripcion: e.descripcion.trim(),
-        ultimo_precio: e.precio_unitario
-      }));
-      this.descripcionesUsadas = [...new Set(equipos.map((e: EquipoHerramienta) => e.descripcion.trim()))];  // Tipado en map; ahora es string[]
-    },
-    error: (err: any) => {  // Tipado explícito
-      console.error("Error cargando catálogo de equipos:", err);
-    }
-  });
-}
+  private cargarCatalogoEquipos(): void {
+    this.servicio.getEquiposHerramientas().subscribe({
+      // Cambiado: getEquiposHerramientas() en lugar de getEquipos()
+      next: (equipos: EquipoHerramienta[]) => {
+        // Tipado explícito
+        this.catalogoEquipos = equipos.map((e: EquipoHerramienta) => ({
+          // Tipado en map
+          descripcion: e.descripcion.trim(),
+          ultimo_precio: e.precio_unitario,
+        }));
+        this.descripcionesUsadas = [
+          ...new Set(
+            equipos.map((e: EquipoHerramienta) => e.descripcion.trim())
+          ),
+        ]; // Tipado en map; ahora es string[]
+      },
+      error: (err: any) => {
+        // Tipado explícito
+        console.error('Error cargando catálogo de equipos:', err);
+      },
+    });
+  }
 
   getDescripcionControl(index: number): FormControl {
     return this.equipos.at(index).get('descripcion') as FormControl;
@@ -244,12 +273,20 @@ private cargarCatalogoEquipos(): void {
     const total = this.totalEquipos;
     this.servicio.setTotalEquipos(total);
   }
-  private actualizarPrecioPorDescripcion(descripcion: string, nuevoPrecio: number) {
+  private actualizarPrecioPorDescripcion(
+    descripcion: string,
+    nuevoPrecio: number
+  ) {
     descripcion = descripcion.trim().toLowerCase();
-    this.equipos.controls.forEach(control => {
-      const descControl = control.get('descripcion')?.value.trim().toLowerCase();
+    this.equipos.controls.forEach((control) => {
+      const descControl = control
+        .get('descripcion')
+        ?.value.trim()
+        .toLowerCase();
       if (descControl === descripcion) {
-        control.get('precio_unitario')?.setValue(nuevoPrecio, { emitEvent: false });
+        control
+          .get('precio_unitario')
+          ?.setValue(nuevoPrecio, { emitEvent: false });
         this.actualizarPrecioParcial(control);
       }
     });
@@ -261,8 +298,12 @@ private cargarCatalogoEquipos(): void {
     const listaUnidades = document.querySelectorAll('.unidad-list');
     const listaDescripciones = document.querySelectorAll('.descripcion-list');
 
-    const esDentroUnidad = Array.from(listaUnidades).some(el => el.contains(target));
-    const esDentroDescripcion = Array.from(listaDescripciones).some(el => el.contains(target));
+    const esDentroUnidad = Array.from(listaUnidades).some((el) =>
+      el.contains(target)
+    );
+    const esDentroDescripcion = Array.from(listaDescripciones).some((el) =>
+      el.contains(target)
+    );
     const esInputUnidad = target.classList.contains('input-unidad');
     const esInputDescripcion = target.classList.contains('input-descripcion');
 
@@ -271,150 +312,168 @@ private cargarCatalogoEquipos(): void {
     }
 
     if (!esDentroDescripcion && !esInputDescripcion) {
-      this.mostrarListaDescripcion = this.mostrarListaDescripcion.map(() => false);
+      this.mostrarListaDescripcion = this.mostrarListaDescripcion.map(
+        () => false
+      );
     }
   }
   // Filtrar mientras escribe
-filtrarDescripciones(index: number, event: Event): void {
-  const valor = (event.target as HTMLInputElement).value.toLowerCase();
-  this.descripcionesFiltradas[index] = this.descripcionesUsadas.filter(d =>
-    d.toLowerCase().includes(valor)
-  );
-  this.equipos.at(index).get('descripcion')?.setValue((event.target as HTMLInputElement).value);
-}
-
-// Mostrar todas las descripciones al enfocar
-mostrarTodasDescripciones(index: number): void {
-  this.descripcionesFiltradas[index] = [...this.descripcionesUsadas];
-}
-
-// Mostrar descripciones al hacer focus en la fila
-mostrarDescripcionesFila(index: number): void {
-  this.mostrarListaDescripcion = this.mostrarListaDescripcion.map(() => false);
-  this.mostrarListaDescripcion[index] = true;
-  this.descripcionesFiltradas[index] = [...this.descripcionesUsadas];
-}
-
-seleccionarDescripcion(i: number, descripcion: string) {
-  const control = this.equipos.at(i);
-  control.get("descripcion")?.setValue(descripcion);
-
-  // Buscar el último precio en el catálogo (integra con PRECIO UNITARIO)
-  const equipo = this.catalogoEquipos.find(e => e.descripcion === descripcion);
-  if (equipo) {
-    control.get("precio_unitario")?.setValue(equipo.ultimo_precio);
-  }
-
-  this.mostrarListaDescripcion[i] = false;
-}
-
-// Guardar nueva descripción al perder focus
-guardarDescripcionPersonalizada(index: number, event: Event): void {
-  const input = event.target as HTMLInputElement;
-  const valor = input.value.trim();
-
-  if (valor) {
+  filtrarDescripciones(index: number, event: Event): void {
+    const input = event.target as HTMLInputElement;
+    let valor = input.value;
+    valor = valor.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s]/g, '');
+    valor = valor.replace(/\s{2,}/g, ' ');
+    input.value = valor;
     this.equipos.at(index).get('descripcion')?.setValue(valor);
-    this.agregarDescripcionSiNoExiste(valor);
-  } else {
-    this.equipos.at(index).get('descripcion')?.setValue('');
+    this.descripcionesFiltradas[index] = this.descripcionesUsadas.filter((d) =>
+      d.toLowerCase().includes(valor.toLowerCase())
+    );
   }
-}
-onUnidadChange(index: number, event: Event): void {
-  const select = event.target as HTMLSelectElement;
-  const valor = select.value;
 
-  if (valor !== '__custom__') {
+  // Mostrar todas las descripciones al enfocar
+  mostrarTodasDescripciones(index: number): void {
+    this.descripcionesFiltradas[index] = [...this.descripcionesUsadas];
+  }
+
+  // Mostrar descripciones al hacer focus en la fila
+  mostrarDescripcionesFila(index: number): void {
+    this.mostrarListaDescripcion = this.mostrarListaDescripcion.map(
+      () => false
+    );
+    this.mostrarListaDescripcion[index] = true;
+    this.descripcionesFiltradas[index] = [...this.descripcionesUsadas];
+  }
+
+  seleccionarDescripcion(i: number, descripcion: string) {
+    const control = this.equipos.at(i);
+    control.get('descripcion')?.setValue(descripcion);
+
+    // Buscar el último precio en el catálogo (integra con PRECIO UNITARIO)
+    const equipo = this.catalogoEquipos.find(
+      (e) => e.descripcion === descripcion
+    );
+    if (equipo) {
+      control.get('precio_unitario')?.setValue(equipo.ultimo_precio);
+    }
+
+    this.mostrarListaDescripcion[i] = false;
+  }
+
+  // Guardar nueva descripción al perder focus
+  guardarDescripcionPersonalizada(index: number, event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const valor = input.value.trim();
+
+    if (valor) {
+      this.equipos.at(index).get('descripcion')?.setValue(valor);
+      this.agregarDescripcionSiNoExiste(valor);
+    } else {
+      this.equipos.at(index).get('descripcion')?.setValue('');
+    }
+  }
+  onUnidadChange(index: number, event: Event): void {
+    const select = event.target as HTMLSelectElement;
+    const valor = select.value;
+
+    if (valor !== '__custom__') {
+      this.equipos.at(index).get('unidad')?.setValue(valor);
+    }
+  }
+
+  // Filtrar mientras escribe
+
+  filtrarUnidades(index: number, event: Event): void {
+    const input = event.target as HTMLInputElement;
+    let valor = input.value;
+    valor = valor.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s]/g, '');
+    valor = valor.replace(/\s{2,}/g, ' ');
+    input.value = valor;
     this.equipos.at(index).get('unidad')?.setValue(valor);
+    this.unidadesFiltradas[index] = this.unidadesUsadas.filter((u) =>
+      u.toLowerCase().includes(valor.toLowerCase())
+    );
   }
-}
-
-// Filtrar mientras escribe
-filtrarUnidades(index: number, event: Event): void {
-  const valor = (event.target as HTMLInputElement).value.toLowerCase();
-  this.unidadesFiltradas[index] = this.unidadesUsadas.filter(u =>
-    u.toLowerCase().includes(valor)
-  );
-  this.equipos.at(index).get('unidad')?.setValue((event.target as HTMLInputElement).value);
-}
-
-// Mostrar todas las unidades al enfocar
-mostrarTodasUnidades(index: number): void {
-  this.unidadesFiltradas[index] = [...this.unidadesUsadas];
-}
-
-// Mostrar unidades al hacer focus en la fila
-mostrarUnidadesFila(index: number): void {
-  this.mostrarLista = this.mostrarLista.map(() => false);
-  this.mostrarLista[index] = true;
-  this.unidadesFiltradas[index] = [...this.unidadesUsadas];
-}
-
-// Seleccionar unidad de la lista
-seleccionarUnidad(index: number, unidad: string): void {
-  this.equipos.at(index).get('unidad')?.setValue(unidad);
-  this.mostrarLista[index] = false;
-}
-
-// Guardar nueva unidad al perder focus
-guardarUnidadPersonalizada(index: number, event: Event): void {
-  const input = event.target as HTMLInputElement;
-  const valor = input.value.trim();
-
-  if (valor) {
-    this.equipos.at(index).get('unidad')?.setValue(valor);
-    this.agregarUnidadSiNoExiste(valor);
-  } else {
-    this.equipos.at(index).get('unidad')?.setValue('');
+  // Mostrar todas las unidades al enfocar
+  mostrarTodasUnidades(index: number): void {
+    this.unidadesFiltradas[index] = [...this.unidadesUsadas];
   }
-}
 
-  
-registrarItem(index: number): void {
-  const equipo = this.equipos.at(index);
-  if (equipo.invalid) {
-    equipo.markAllAsTouched();
-    return;
+  // Mostrar unidades al hacer focus en la fila
+  mostrarUnidadesFila(index: number): void {
+    this.mostrarLista = this.mostrarLista.map(() => false);
+    this.mostrarLista[index] = true;
+    this.unidadesFiltradas[index] = [...this.unidadesUsadas];
   }
-  const nuevoEquipo: EquipoHerramienta = this.crearEquipoDesdeForm(equipo);
-  this.servicio.createEquipoHerramienta(nuevoEquipo).subscribe({
-    next: (res: EquipoHerramienta) => {  // Tipado explícito
-      equipo.patchValue({ id: res.id, esNuevo: false });
-      if (res.total) {  // Si backend retorna total
-        equipo.patchValue({ total: res.total });
-      } else {  // Calcula localmente si no
-        this.actualizarPrecioParcial(equipo);
-      }
-      this.actualizarTotalGlobal();
-      this.mensajeExito = 'Equipo/herramienta registrado exitosamente.';
 
-      this.agregarUnidadSiNoExiste(res.unidad);
-    },
-    error: (err: any) => {  // Tipado explícito
-      this.mensajeError = 'Error al registrar equipo/herramienta.';
-    },
-  });
-}
+  // Seleccionar unidad de la lista
+  seleccionarUnidad(index: number, unidad: string): void {
+    this.equipos.at(index).get('unidad')?.setValue(unidad);
+    this.mostrarLista[index] = false;
+  }
 
+  // Guardar nueva unidad al perder focus
+  guardarUnidadPersonalizada(index: number, event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const valor = input.value.trim();
 
-actualizarItem(index: number): void {
-  const equipo = this.equipos.at(index);
-  if (equipo.invalid || !equipo.get('id')?.value) return;
+    if (valor) {
+      this.equipos.at(index).get('unidad')?.setValue(valor);
+      this.agregarUnidadSiNoExiste(valor);
+    } else {
+      this.equipos.at(index).get('unidad')?.setValue('');
+    }
+  }
 
-  const equipoActualizado = this.crearEquipoDesdeForm(equipo);
-  this.servicio.updateEquipoHerramienta(equipoActualizado).subscribe({
-    next: (res: EquipoHerramienta) => {  // Tipado explícito (asumiendo que update retorna el objeto)
-      equipo.patchValue({ total: equipoActualizado.total });  // Usa el calculado local, o res.total si backend lo envía
-      this.actualizarTotalGlobal();
-      this.mensajeExito = 'Equipo/herramienta actualizado correctamente.';
+  registrarItem(index: number): void {
+    const equipo = this.equipos.at(index);
+    if (equipo.invalid) {
+      equipo.markAllAsTouched();
+      return;
+    }
+    const nuevoEquipo: EquipoHerramienta = this.crearEquipoDesdeForm(equipo);
+    this.servicio.createEquipoHerramienta(nuevoEquipo).subscribe({
+      next: (res: EquipoHerramienta) => {
+        // Tipado explícito
+        equipo.patchValue({ id: res.id, esNuevo: false });
+        if (res.total) {
+          // Si backend retorna total
+          equipo.patchValue({ total: res.total });
+        } else {
+          // Calcula localmente si no
+          this.actualizarPrecioParcial(equipo);
+        }
+        this.actualizarTotalGlobal();
+        this.mensajeExito = 'Equipo/herramienta registrado exitosamente.';
 
-      this.agregarUnidadSiNoExiste(equipoActualizado.unidad);
-    },
-    error: (err: any) => {  // Tipado explícito
-      this.mensajeError = 'Error al actualizar equipo/herramienta.';
-    },
-  });
-}
+        this.agregarUnidadSiNoExiste(res.unidad);
+      },
+      error: (err: any) => {
+        // Tipado explícito
+        this.mensajeError = 'Error al registrar equipo/herramienta.';
+      },
+    });
+  }
+
+  actualizarItem(index: number): void {
+    const equipo = this.equipos.at(index);
+    if (equipo.invalid || !equipo.get('id')?.value) return;
+
+    const equipoActualizado = this.crearEquipoDesdeForm(equipo);
+    this.servicio.updateEquipoHerramienta(equipoActualizado).subscribe({
+      next: (res: EquipoHerramienta) => {
+        // Tipado explícito (asumiendo que update retorna el objeto)
+        equipo.patchValue({ total: equipoActualizado.total }); // Usa el calculado local, o res.total si backend lo envía
+        this.actualizarTotalGlobal();
+        this.mensajeExito = 'Equipo/herramienta actualizado correctamente.';
+
+        this.agregarUnidadSiNoExiste(equipoActualizado.unidad);
+      },
+      error: (err: any) => {
+        // Tipado explícito
+        this.mensajeError = 'Error al actualizar equipo/herramienta.';
+      },
+    });
+  }
 
   eliminarItem(index: number): void {
     const equipo = this.equipos.at(index);
@@ -448,28 +507,30 @@ actualizarItem(index: number): void {
   }
 
   manejarAceptar(): void {
-  if (this.tipoConfirmacion === 'item' && this.itemIndexAEliminar !== null) {
-    const equipo = this.equipos.at(this.itemIndexAEliminar);
-    if (equipo.get('esNuevo')?.value) {
-      this.equipos.removeAt(this.itemIndexAEliminar);
-      this.mensajeExito = 'Ítem eliminado exitosamente.';
-    } else {
-      this.servicio.deleteEquipoHerramienta(equipo.get('id')?.value).subscribe({
-        next: () => {
-          this.equipos.removeAt(this.itemIndexAEliminar!);
-          this.mensajeExito = 'Ítem eliminado exitosamente.';
-        },
-        error: (err: any) => {  // Tipado explícito
-          this.mensajeError = 'Error al eliminar el equipo/herramienta.';
-        }
-      });
+    if (this.tipoConfirmacion === 'item' && this.itemIndexAEliminar !== null) {
+      const equipo = this.equipos.at(this.itemIndexAEliminar);
+      if (equipo.get('esNuevo')?.value) {
+        this.equipos.removeAt(this.itemIndexAEliminar);
+        this.mensajeExito = 'Ítem eliminado exitosamente.';
+      } else {
+        this.servicio
+          .deleteEquipoHerramienta(equipo.get('id')?.value)
+          .subscribe({
+            next: () => {
+              this.equipos.removeAt(this.itemIndexAEliminar!);
+              this.mensajeExito = 'Ítem eliminado exitosamente.';
+            },
+            error: (err: any) => {
+              // Tipado explícito
+              this.mensajeError = 'Error al eliminar el equipo/herramienta.';
+            },
+          });
+      }
     }
+    this.mostrarConfirmacion = false;
+    this.tipoConfirmacion = null;
+    this.itemIndexAEliminar = null;
   }
-  this.mostrarConfirmacion = false;
-  this.tipoConfirmacion = null;
-  this.itemIndexAEliminar = null;
-}
-
 
   manejarCancelar(): void {
     this.mostrarConfirmacion = false;
@@ -486,7 +547,6 @@ actualizarItem(index: number): void {
     this.mensajeError = '';
   }
 
-
   actualizarPrecioParcial(control: AbstractControl): void {
     const cantidad = control.get('cantidad')?.value || 0;
     const precio = control.get('precio_unitario')?.value || 0;
@@ -498,40 +558,43 @@ actualizarItem(index: number): void {
     this.actualizarPrecioParcial(control);
   }
 
-onPrecioUniChange(control: AbstractControl, index: number): void {
-  const descripcion = control.get('descripcion')?.value;
-  const nuevoPrecio = control.get('precio_unitario')?.value;
+  onPrecioUniChange(control: AbstractControl, index: number): void {
+    const descripcion = control.get('descripcion')?.value;
+    const nuevoPrecio = control.get('precio_unitario')?.value;
 
-  if (!descripcion || nuevoPrecio <= 0) return;
+    if (!descripcion || nuevoPrecio <= 0) return;
 
-  // Actualiza solo el frontend (otras filas con misma descripción)
-  this.actualizarPrecioPorDescripcion(descripcion, nuevoPrecio);
+    // Actualiza solo el frontend (otras filas con misma descripción)
+    this.actualizarPrecioPorDescripcion(descripcion, nuevoPrecio);
 
-  // Solo actualizar en backend si el ítem ya existe
-  const equipoId = control.get('id')?.value;
-  if (equipoId) {
-    this.servicio.actualizarPrecioDescripcionEquipoHerramienta(  // Cambiado: método correcto del servicio
-      this.id_gasto_operaciones,
-      descripcion,
-      nuevoPrecio
-    ).subscribe({
-      next: (res: any) => {  // Tipado explícito
-        this.mensajeExito = `Precio actualizado correctamente en ${res.actualizados} registros.`;
-      },
-      error: (err: any) => {  // Tipado explícito
-        this.mensajeError = "No se pudo actualizar el precio en el backend.";
-      }
-    });
+    // Solo actualizar en backend si el ítem ya existe
+    const equipoId = control.get('id')?.value;
+    if (equipoId) {
+      this.servicio
+        .actualizarPrecioDescripcionEquipoHerramienta(
+          // Cambiado: método correcto del servicio
+          this.id_gasto_operaciones,
+          descripcion,
+          nuevoPrecio
+        )
+        .subscribe({
+          next: (res: any) => {
+            // Tipado explícito
+            this.mensajeExito = `Precio actualizado correctamente en ${res.actualizados} registros.`;
+          },
+          error: (err: any) => {
+            // Tipado explícito
+            this.mensajeError =
+              'No se pudo actualizar el precio en el backend.';
+          },
+        });
+    }
+
+    // Siempre actualizar parcial local
+    this.actualizarPrecioParcial(control);
   }
-
-  // Siempre actualizar parcial local
-  this.actualizarPrecioParcial(control);
-}
-
-
 
   blockE(event: KeyboardEvent): void {
     if (['e', 'E', '+', '-'].includes(event.key)) event.preventDefault();
   }
-
 }

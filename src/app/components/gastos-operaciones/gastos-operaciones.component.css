@@ -3,8 +3,6 @@
   overflow-y: auto;
 }
 
-
-
 thead th {
   position: sticky;
   top: 0;
@@ -56,4 +54,3 @@ input[type="number"] {
   outline: none;
   background-color: #f0f8ff; /* Azul clarito al enfocar */
 }
-

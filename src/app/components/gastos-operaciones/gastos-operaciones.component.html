@@ -39,6 +39,7 @@
                   type="text"
                   class="form-control"
                   [(ngModel)]="nombreProyecto"
+                  (input)="filtrarNombreProyectoInput($event)"
                   placeholder="Ingrese nombre del proyecto"
                 />
               </div>
@@ -217,6 +218,7 @@
             [(ngModel)]="nombreProyecto"
             (focus)="focusInput()"
             (input)="filtrarProyectos()"
+            readonly
           />
           <ul
             *ngIf="mostrarDropdownProyectos"
@@ -561,13 +563,15 @@
                 <span class="fw-bold">Módulo:</span>
                 <input
                   [(ngModel)]="item.codigo"
-                  class="form-control w-auto"
+                  (input)="filtrarCodigoInput($event, item)"
+                  class="form-control w-auto me-2"
                   placeholder="Código"
                   style="max-width: 120px"
                 />
                 <input
                   [(ngModel)]="item.nombre"
-                  class="form-control"
+                  (input)="filtrarNombreInput($event, item)"
+                  class="form-control me-2"
                   placeholder="Nombre del módulo"
                 />
                 <button
@@ -606,16 +610,16 @@
                   <ng-template #modoEditar>
                     <input
                       [(ngModel)]="item.codigo"
+                      (input)="filtrarCodigoInput($event, item)"
                       class="form-control w-auto me-2"
                       placeholder="Código"
                       style="max-width: 120px"
-                      (blur)="actualizarModuloRegistrado(i)"
                     />
                     <input
                       [(ngModel)]="item.nombre"
+                      (input)="filtrarNombreInput($event, item)"
                       class="form-control me-2"
                       placeholder="Nombre del módulo"
-                      (blur)="actualizarModuloRegistrado(i)"
                     />
                   </ng-template>
                 </div>
@@ -679,8 +683,9 @@
             <td class="input-cell">
               <input
                 [(ngModel)]="item.descripcion"
+                (input)="filtrarDescripcionInput(i, $event)"
                 class="full-width-input"
-                placeholder="Descripción"
+                placeholder="Descripción del ítem"
               />
             </td>
 
@@ -693,9 +698,7 @@
                 <select
                   class="form-select"
                   [(ngModel)]="item.moduloId"
-                  (change)="
-                    actualizarModulo(item); actualizarItemEnTiempoReal(item)
-                  "
+                  (change)="actualizarModulo(item)"
                 >
                   <option value="">Sin módulo</option>
                   <option *ngFor="let mod of modulos" [value]="mod.id">
@@ -728,7 +731,6 @@
                   (input)="filtrarUnidades(i, $event)"
                   (focus)="mostrarUnidadesFila(i)"
                   (blur)="guardarUnidadPersonalizada(i, $event)"
-                  (ngModelChange)="actualizarItemEnTiempoReal(item)"
                 />
 
                 <ul
@@ -756,34 +758,38 @@
             </td>
 
             <!-- Cantidad -->
-            <td class="input-cell text-end">
+            <td class="input-cell">
               <input
                 type="text"
                 [value]="formatearNumero(item.cantidad)"
                 (input)="onCantidadInput($event, item)"
-                class="full-width-input text-end mb-0"
-                title="Cantidad * Precio Unitario Actividad"
+                (blur)="formatearCantidadInput(item)"
+                class="full-width-input text-center mb-0"
+                title="Cantidad * Precio Unitario Actividad 1"
                 placeholder="Cantidad"
               />
             </td>
 
             <!-- Gastos de Operación -->
             <td class="input-cell text-end">
-              <p class="mb-0" title="Gastos De Operacion + Valor Agregado">
-                {{ item.precio_unitario | number : "1.2-2" }}
+              <p class="mb-0" title="Resultado de precio unitario">
+                {{ formatearNumero(item.precio_unitario) }}
               </p>
             </td>
 
             <!-- Valor Agregado -->
             <td class="input-cell text-end">
-              <p class="mb-0" title="Gastos De Operacion + Valor Agregado">
+              <p class="mb-0" title="Precio Factura - precio unitario">
                 {{ formatearNumero(getValorAgregado(item)) }}
               </p>
             </td>
 
             <!-- Precio Unitario Actividad -->
             <td class="input-cell text-end">
-              <p class="mb-0" title="Cantidad * Precio Unitario Actividad">
+              <p
+                class="mb-0"
+                title="Suma de Gastos De Operacion y Valor Agregado"
+              >
                 {{ formatearNumero(SumaPrecioUnitarioActividad(item)) }}
               </p>
             </td>

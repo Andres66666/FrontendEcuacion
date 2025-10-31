@@ -160,7 +160,19 @@ export class LoginComponent {
       next: (res: any) => {
         this.isLoading = false;
 
-        if (res.requiere_2fa) {
+        // Verificar si es admin
+        const esAdmin = res.roles && res.roles.includes('Administrador');
+
+        if (res.requiere_cambio_password && !esAdmin) {
+          // Modificación: Para primer acceso de no-admin, ir a 'olvide' con correo pre-llenado
+          this.vistaActual = 'olvide';
+          this.correoReset = this.correo;
+          this.mensajeExito =
+            'Como es su primer acceso, debe cambiar su contraseña. Ingrese su correo para recibir una temporal.';
+          setTimeout(() => {
+            this.mensajeExito = '';
+          }, 5000);
+        } else if (res.requiere_2fa) {
           this.usuarioId = res.usuario_id;
           this.tempRoles = res.roles || [];
           this.tempPermisos = res.permisos || [];
@@ -311,11 +323,18 @@ export class LoginComponent {
 
           this.mensajeExito = 'Autenticación 2FA exitosa';
 
-          if (this.tempRequiereCambioPassword && this.tempMensajeUrgente) {
+          // Modificación: Solo redirigir a cambiar contraseña si no es admin y requiere cambio
+          const esAdmin =
+            usuarioData.roles && usuarioData.roles.includes('Administrador');
+          if (
+            !esAdmin &&
+            this.tempRequiereCambioPassword &&
+            this.tempMensajeUrgente
+          ) {
             setTimeout(() => {
               this.router.navigate(['/cambiar-password']);
             }, 2000);
-          } else if (this.tempRequiereCambioPassword) {
+          } else if (!esAdmin && this.tempRequiereCambioPassword) {
             setTimeout(() => {
               this.router.navigate(['/cambiar-password']);
             }, 5000);
@@ -345,12 +364,13 @@ export class LoginComponent {
       dias_transcurridos: res.dias_transcurridos,
     };
     localStorage.setItem('usuarioLogueado', JSON.stringify(usuario));
-
-    if (res.requiere_cambio_password && res.mensaje_urgente) {
+    // Modificación: Solo redirigir a cambiar contraseña si no es admin y requiere cambio
+    const esAdmin = usuario.roles && usuario.roles.includes('Administrador');
+    if (!esAdmin && res.requiere_cambio_password && res.mensaje_urgente) {
       setTimeout(() => {
         this.router.navigate(['/cambiar-password']);
       }, 2000);
-    } else if (res.requiere_cambio_password) {
+    } else if (!esAdmin && res.requiere_cambio_password) {
       setTimeout(() => {
         this.router.navigate(['/cambiar-password']);
       }, 5000);

@@ -20,6 +20,7 @@ import { map } from 'rxjs/operators';
 import { ViewChild, ElementRef } from '@angular/core';
 import { forkJoin } from 'rxjs';
 import { ChangeDetectorRef } from '@angular/core'; // Agrega si no está
+import { CustomValidatorsService } from '../../../validators/custom-validators.service';
 
 declare var bootstrap: any;
 interface GastoOperacionExtendido extends Partial<GastoOperacion> {
@@ -102,7 +103,8 @@ export class GastosOperacionesComponent implements OnInit, AfterViewInit {
     private router: Router,
     private servicios: ServiciosService,
     private exportService: ExportService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private validador: CustomValidatorsService
   ) {}
 
   ngOnInit(): void {
@@ -1251,10 +1253,12 @@ export class GastosOperacionesComponent implements OnInit, AfterViewInit {
         this.items[index] = {
           ...item,
           ...updatedItem,
+          cantidad: Number(updatedItem.cantidad),
           esNuevo: false,
           editarModulo: false,
           moduloId: updatedItem.modulo?.id ?? null,
         };
+
         this.mostrarMensaje('exito', 'Ítem actualizado correctamente.');
 
         // CORREGIDO: Agregar verificación de cambio y actualización de listas (tiempo real, no duplicados)
@@ -1289,40 +1293,7 @@ export class GastosOperacionesComponent implements OnInit, AfterViewInit {
     this.itemIndexAEliminar = index;
     this.mostrarConfirmacion = true; // Muestra tu modal de confirmación
   }
-  actualizarItemEnTiempoReal(item: GastoOperacionExtendido): void {
-    if (!item.id) return; // Solo actualizar si ya está registrado
 
-    const index = this.items.findIndex((i) => i === item);
-    if (index === -1) return;
-
-    const payload: Partial<GastoOperacion> & { modulo_id?: number | null } = {
-      ...item,
-      cantidad: Number(item.cantidad),
-      precio_unitario: Number(item.precio_unitario),
-      modulo_id: item.moduloId ?? null,
-      modificado_por: this.usuario_id,
-      id: item.id,
-    };
-    delete payload.modulo;
-
-    this.servicios.updateGastoOperacion(payload).subscribe({
-      next: (updatedItem) => {
-        this.items[index] = {
-          ...item,
-          ...updatedItem,
-          esNuevo: false,
-          editarModulo: false,
-          moduloId: updatedItem.modulo?.id ?? null,
-        };
-      },
-      error: (err) =>
-        this.mostrarMensaje(
-          'error',
-          'Error al actualizar ítem: ' +
-            (err.error?.error || 'Intente de nuevo')
-        ),
-    });
-  }
   actualizarModulo(item: GastoOperacionExtendido): void {
     if (item.moduloId === null || item.moduloId === undefined) {
       item.modulo = null;
@@ -1952,23 +1923,50 @@ export class GastosOperacionesComponent implements OnInit, AfterViewInit {
     return Math.round(valor * factor) / factor;
   }
   formatearNumero(valor: number | null | undefined): string {
-    const num = Number(valor) || 0; // Convierte a número, default 0
-    return new Intl.NumberFormat('es-BO', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(num);
+    if (valor === null || valor === undefined || isNaN(Number(valor))) {
+      return '';
+    }
+
+    // Convertir a string para analizar los decimales originales
+    const valorStr = valor.toString();
+    const partes = valorStr.split('.'); // [entero, decimales]
+    const parteEntera = partes[0];
+    const parteDecimal = partes[1] ?? '';
+
+    // Formatear la parte entera con puntos de miles
+    const parteEnteraFormateada = parteEntera.replace(
+      /\B(?=(\d{3})+(?!\d))/g,
+      '.'
+    );
+
+    // Si tiene decimales, los agregamos con coma, sino solo la parte entera
+    return parteDecimal
+      ? `${parteEnteraFormateada},${parteDecimal}`
+      : parteEnteraFormateada;
   }
   onCantidadInput(event: Event, item: GastoOperacionExtendido): void {
     const input = event.target as HTMLInputElement;
-    const valorFormateado = input.value;
-
-    // Parsear el valor formateado de vuelta a número (remover puntos y cambiar coma por punto)
-    const valorCrudo = valorFormateado.replace(/\./g, '').replace(',', '.');
-    const numero = parseFloat(valorCrudo) || 0;
-
-    item.cantidad = numero;
-    this.actualizarItemEnTiempoReal(item);
+    let valor = input.value;
+    valor = valor.replace(/[^0-9.,]/g, '');
+    const valorCrudo = valor.replace(',', '.');
+    const numero = parseFloat(valorCrudo);
+    if (!isNaN(numero)) {
+      item.cantidad = numero;
+    } else {
+      item.cantidad = 0;
+    }
+    input.value = valor;
   }
+
+  formatearCantidadInput(item: GastoOperacionExtendido): void {
+    if (item.cantidad !== null && item.cantidad !== undefined) {
+      const numero = Number(item.cantidad);
+      if (!isNaN(numero)) {
+        item.cantidad = numero; // mantiene los decimales originales
+      }
+    }
+  }
+
   validarFormatoDecimal(item: any): void {
     const valor = item.precio_unitario;
     const regex = /^\d+(\.\d{1,2})?$/;
@@ -2043,13 +2041,37 @@ export class GastosOperacionesComponent implements OnInit, AfterViewInit {
       this.items[index].descripcion = '';
     }
   }
-  filtrarUnidades(index: number, event: Event): void {
-    const valor = (event.target as HTMLInputElement).value.toLowerCase();
-    this.unidadesFiltradas[index] = this.unidadesUsadas.filter((u) =>
-      u.toLowerCase().includes(valor)
+  filtrarDescripcionInput(index: number, event: Event): void {
+    const input = event.target as HTMLInputElement;
+    let valor = input.value;
+    valor = valor.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ.,\s]/g, '');
+    valor = valor.replace(/\s{2,}/g, ' ');
+    input.value = valor;
+    this.items[index].descripcion = valor;
+    this.descripcionesFiltradas[index] = this.descripcionesUsadas.filter((d) =>
+      d.toLowerCase().includes(valor.toLowerCase())
     );
-    this.items[index].unidad = (event.target as HTMLInputElement).value;
   }
+
+  /*  */
+  filtrarUnidades(index: number, event: Event): void {
+    const input = event.target as HTMLInputElement;
+    let valor = input.value;
+
+    // 🔹 Solo permitir letras, números y espacios (sin caracteres especiales)
+    valor = valor.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s]/g, '');
+
+    // 🔹 Actualiza visualmente el campo
+    input.value = valor;
+
+    // 🔹 Actualiza el modelo y filtra la lista de unidades existentes
+    this.unidadesFiltradas[index] = this.unidadesUsadas.filter((u) =>
+      u.toLowerCase().includes(valor.toLowerCase())
+    );
+
+    this.items[index].unidad = valor;
+  }
+
   mostrarUnidadesFila(index: number): void {
     this.seleccionando = false; // CORREGIDO: Reset flag al mostrar lista
 
@@ -2066,7 +2088,7 @@ export class GastosOperacionesComponent implements OnInit, AfterViewInit {
 
     // Opcional: Si el item ya está registrado, actualiza en BD en tiempo real
     if (item.id && !item.esNuevo) {
-      this.actualizarItemEnTiempoReal(item);
+      /* this.actualizarItemEnTiempoReal(item); */
     }
 
     // Cierra la lista con timeout (después de blur)
@@ -2087,5 +2109,33 @@ export class GastosOperacionesComponent implements OnInit, AfterViewInit {
     } else {
       this.items[index].unidad = '';
     }
+  }
+  filtrarCodigoInput(event: Event, item: GastoOperacionExtendido): void {
+    const input = event.target as HTMLInputElement;
+    let valor = input.value;
+
+    valor = valor.replace(/[^a-zA-Z0-9]/g, '');
+
+    input.value = valor;
+    item.codigo = valor;
+  }
+
+  filtrarNombreInput(event: Event, item: GastoOperacionExtendido): void {
+    const input = event.target as HTMLInputElement;
+    let valor = input.value;
+
+    valor = valor.replace(/[^a-zA-Z0-9]/g, '');
+
+    input.value = valor;
+    item.nombre = valor;
+  }
+  // Método para filtrar el campo "Nombre del Proyecto" (solo letras, números, espacios y acentos; sin caracteres especiales)
+  filtrarNombreProyectoInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    let valor = input.value;
+    valor = valor.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s]/g, '');
+    valor = valor.replace(/\s{2,}/g, ' ');
+    input.value = valor;
+    this.nombreProyecto = valor;
   }
 }
