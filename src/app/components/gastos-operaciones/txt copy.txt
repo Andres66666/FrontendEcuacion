@@ -18,7 +18,7 @@ import { DragDropModule } from '@angular/cdk/drag-drop';
 import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 import { map } from 'rxjs/operators';
 import { ViewChild, ElementRef } from '@angular/core';
-import { BehaviorSubject, forkJoin } from 'rxjs';
+import { forkJoin } from 'rxjs';
 import { ChangeDetectorRef } from '@angular/core'; // Agrega si no está
 
 declare var bootstrap: any;
@@ -99,9 +99,6 @@ export class GastosOperacionesComponent implements OnInit, AfterViewInit {
   mostrarDropdownProyectos: boolean = false;
   seleccionando: boolean = false;
   private cargando = false;
-  private itemsSubject = new BehaviorSubject<GastoOperacionExtendido[]>([]);
-
-  public items$ = this.itemsSubject.asObservable();
   /* Bloque 1: Inicialización y Configuración del Componente */
   constructor(
     private router: Router,
@@ -1349,7 +1346,6 @@ export class GastosOperacionesComponent implements OnInit, AfterViewInit {
             (err.error?.error || 'Verifica los datos enviados')
         ),
     });
-    this.itemsSubject.next([...this.items]);
   }
   eliminarItem(index: number): void {
     const item = this.items[index];
@@ -1398,6 +1394,8 @@ export class GastosOperacionesComponent implements OnInit, AfterViewInit {
 
   private mostrarModalExito(mensaje: string, duracion = 2000) {
     this.mensajeExito = mensaje;
+    // El componente <app-ok> se muestra automáticamente via *ngIf
+    // Opcional: Limpiar automáticamente después de 'duracion' ms
     setTimeout(() => (this.mensajeExito = ''), duracion);
   }
 
@@ -2137,6 +2135,11 @@ export class GastosOperacionesComponent implements OnInit, AfterViewInit {
 
     const item = this.items[index];
     item.unidad = unidad; // Actualiza el valor en el item (se refleja en input por ngModel)
+
+    if (item.id && !item.esNuevo) {
+      /* this.actualizarItemEnTiempoReal(item); */
+    }
+
     // Cierra la lista con timeout (después de blur)
     setTimeout(() => {
       this.mostrarLista[index] = false;

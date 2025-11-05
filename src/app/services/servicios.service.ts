@@ -245,6 +245,17 @@ export class ServiciosService {
     return this.http.get<Proyecto>(`${this.apiUrl}IdGeneral/${id}/`);
   }
 
+  getProyectoCompleto(idProyecto: number): Observable<{
+    modulos: Modulo[];
+    gastos: GastoOperacion[];
+    totales: { [id: string]: number };
+  }> {
+    return forkJoin({
+      modulos: this.getModulosPorProyecto(idProyecto),
+      gastos: this.getGastoOperacionID(idProyecto),
+      totales: this.getGastosGeneralesPorProyecto(idProyecto),
+    });
+  }
   createIdentificadorGeneral(gasto: Partial<Proyecto>): Observable<Proyecto> {
     return this.http.post<Proyecto>(`${this.apiUrl}IdGeneral/`, gasto);
   }
@@ -272,7 +283,7 @@ export class ServiciosService {
   }
 
   getUnidadesGastoOperacion(): Observable<string[]> {
-    return this.http.get<string[]>(`${this.apiUrl}gasto_operacion/unidades/`);
+    return this.http.get<string[]>(`${this.apiUrl}GastosOperaciones/unidades/`);
   }
 
   // --- Módulos ---
@@ -498,6 +509,14 @@ export class ServiciosService {
       `${this.apiUrl}gastos_generales/?id_gasto_operacion=${id_gasto_operacion}`
     );
   }
+  getGastosGeneralesPorProyecto(
+    idProyecto: number
+  ): Observable<{ [id: string]: number }> {
+    return this.http.get<{ [id: string]: number }>(
+      `${this.apiUrl}gastos_generales/totals_por_proyecto/?proyecto=${idProyecto}`
+    );
+  }
+
   createGasto(g: GastosGenerales): Observable<GastosGenerales> {
     return this.http.post<GastosGenerales>(
       `${this.apiUrl}gastos_generales/`,
