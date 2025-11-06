@@ -60,7 +60,6 @@
                         type="number"
                         class="form-control text-center"
                         [(ngModel)]="carga_social"
-                        (ngModelChange)="actualizarParametrosEnTiempoReal()"
                       />
                     </td>
                   </tr>
@@ -71,7 +70,6 @@
                         type="number"
                         class="form-control text-center"
                         [(ngModel)]="iva_efectiva"
-                        (ngModelChange)="actualizarParametrosEnTiempoReal()"
                       />
                     </td>
                   </tr>
@@ -82,7 +80,6 @@
                         type="number"
                         class="form-control text-center"
                         [(ngModel)]="herramientas"
-                        (ngModelChange)="actualizarParametrosEnTiempoReal()"
                       />
                     </td>
                   </tr>
@@ -93,7 +90,6 @@
                         type="number"
                         class="form-control text-center"
                         [(ngModel)]="gastos_generales"
-                        (ngModelChange)="actualizarParametrosEnTiempoReal()"
                       />
                     </td>
                   </tr>
@@ -104,7 +100,6 @@
                         type="number"
                         class="form-control text-center"
                         [(ngModel)]="iva_tasa_nominal"
-                        (ngModelChange)="actualizarParametrosEnTiempoReal()"
                       />
                     </td>
                   </tr>
@@ -115,7 +110,6 @@
                         type="number"
                         class="form-control text-center"
                         [(ngModel)]="it"
-                        (ngModelChange)="actualizarParametrosEnTiempoReal()"
                       />
                     </td>
                   </tr>
@@ -126,7 +120,6 @@
                         type="number"
                         class="form-control text-center"
                         [(ngModel)]="iue"
-                        (ngModelChange)="actualizarParametrosEnTiempoReal()"
                       />
                     </td>
                   </tr>
@@ -137,7 +130,6 @@
                         type="number"
                         class="form-control text-center"
                         [(ngModel)]="ganancia"
-                        (ngModelChange)="actualizarParametrosEnTiempoReal()"
                       />
                     </td>
                   </tr>
@@ -148,7 +140,6 @@
                         type="number"
                         class="form-control text-center"
                         [(ngModel)]="a_costo_venta"
-                        (ngModelChange)="actualizarParametrosEnTiempoReal()"
                       />
                     </td>
                   </tr>
@@ -159,7 +150,6 @@
                         type="number"
                         class="form-control text-center"
                         [(ngModel)]="b_margen_utilidad"
-                        (ngModelChange)="actualizarParametrosEnTiempoReal()"
                       />
                     </td>
                   </tr>
@@ -182,10 +172,11 @@
               <button
                 type="button"
                 class="btn btn-secondary"
-                data-bs-dismiss="modal"
+                (click)="cerrarModalParametros()"
               >
                 Cancelar
               </button>
+
               <button
                 type="button"
                 class="btn btn-primary"
@@ -771,21 +762,21 @@
             </td>
 
             <!-- Gastos de Operación -->
-            <td class="input-cell text-end">
+            <td class="input-cell text-end pe-2">
               <p class="mb-0" title="Resultado de precio unitario">
                 {{ formatearNumero(item.precio_unitario) }}
               </p>
             </td>
 
             <!-- Valor Agregado -->
-            <td class="input-cell text-end">
+            <td class="input-cell text-end pe-2">
               <p class="mb-0" title="Precio Factura - precio unitario">
                 {{ formatearNumero(getValorAgregado(item)) }}
               </p>
             </td>
 
             <!-- Precio Unitario Actividad -->
-            <td class="input-cell text-end">
+            <td class="input-cell text-end pe-2">
               <p
                 class="mb-0"
                 title="Suma de Gastos De Operacion y Valor Agregado"
@@ -808,7 +799,7 @@
 
             <!-- Precio Factura Parcial -->
             <td
-              class="text-center"
+              class="text-end pe-2"
               title="Cantidad * Precio Unitario Actividad"
             >
               {{
@@ -825,20 +816,23 @@
                   <button
                     class="btn btn-success btn-sm"
                     (click)="registrarItem(i)"
+                    title="Registrar ítem"
                   >
-                    <i class="bi bi-check2-circle me-1"></i> Registrar
+                    <i class="bi bi-check2-circle me-1"></i>
                   </button>
                   <button
                     class="btn btn-danger btn-sm"
                     (click)="eliminarItem(i)"
+                    title="Eliminar ítem"
                   >
-                    <i class="bi bi-trash"></i> Eliminar
+                    <i class="bi bi-trash"></i>
                   </button>
                   <button
                     class="btn btn-warning btn-sm"
                     (click)="enviarAEcuacion(item)"
+                    title="Ver Ecuaciones"
                   >
-                    <i class="bi bi-send"></i> Ver Ecuaciones
+                    <i class="bi bi-send"></i>
                   </button>
                 </ng-container>
 
@@ -846,26 +840,30 @@
                   <button
                     class="btn btn-primary btn-sm"
                     (click)="actualizarItem(i)"
+                    title="Actualizar ítem"
                   >
-                    <i class="bi bi-pencil"></i> Actualizar
+                    <i class="bi bi-pencil"></i>
                   </button>
                   <button
                     class="btn btn-danger btn-sm"
                     (click)="eliminarItem(i)"
+                    title="Eliminar ítem"
                   >
-                    <i class="bi bi-trash"></i> Eliminar
+                    <i class="bi bi-trash"></i>
                   </button>
                   <button
                     class="btn btn-warning btn-sm"
                     (click)="enviarAEcuacion(item)"
+                    title="precio unitario"
                   >
-                    <i class="bi bi-send"></i> Precio Unitario
+                    <i class="bi bi-send"></i>
                   </button>
                   <button
                     class="btn btn-success btn-sm"
                     (click)="enviarTotalGastosGenerales(item)"
+                    title="Reporte Financiero"
                   >
-                    <i class="bi bi-receipt"></i> Reporte Financiero
+                    <i class="bi bi-receipt"></i>
                   </button>
                 </ng-template>
               </div>
@@ -991,6 +989,7 @@
     [mensaje]="mensajeExito"
     (close)="manejarOk()"
   ></app-ok>
+
   <app-error
     *ngIf="mensajeError"
     [mensaje]="mensajeError"

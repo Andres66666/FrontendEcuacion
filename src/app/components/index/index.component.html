@@ -4,7 +4,7 @@
       <!-- Logo a la izquierda -->
       <div class="d-flex align-items-center">
         <img
-          src="https://res.cloudinary.com/dexggkhkd/image/upload/v1750767599/logoMallaPNG_g2ta8p.png"
+          src="https://res.cloudinary.com/dsbgmboh1/image/upload/v1762314184/logomallafinita_uy4cw2.png"
           alt="Logo Malla Finita"
           class="img-fluid"
           style="max-width: 200px; margin-right: 10px"
@@ -99,14 +99,9 @@
               class="carousel-item"
               [class.active]="i === 0"
             >
-              <img
-                [src]="img"
-                class="d-block w-100"
-                alt="Imagen {{ i + 1 }}"
-              />
+              <img [src]="img" class="d-block w-100" alt="Imagen {{ i + 1 }}" />
             </div>
           </div>
-
 
           <!-- Botón Anterior -->
           <button
@@ -123,7 +118,10 @@
               transform: translateY(-50%);
             "
           >
-            <span class="carousel-control-prev-icon" style="filter: invert(1)"></span>
+            <span
+              class="carousel-control-prev-icon"
+              style="filter: invert(1)"
+            ></span>
             <span class="visually-hidden">Anterior</span>
           </button>
 
@@ -142,12 +140,14 @@
               transform: translateY(-50%);
             "
           >
-            <span class="carousel-control-next-icon" style="filter: invert(1)"></span>
+            <span
+              class="carousel-control-next-icon"
+              style="filter: invert(1)"
+            ></span>
             <span class="visually-hidden">Siguiente</span>
           </button>
         </div>
       </div>
-
     </div>
   </div>
 </section>
