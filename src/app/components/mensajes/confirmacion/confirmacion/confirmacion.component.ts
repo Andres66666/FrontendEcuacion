@@ -8,6 +8,7 @@ import { CommonModule } from '@angular/common';
   templateUrl: './confirmacion.component.html',
 })
 export class ConfirmacionComponent {
+
   @Input() mensaje: string = '¿Desea continuar?';
   @Output() aceptar = new EventEmitter<void>();
   @Output() cancelar = new EventEmitter<void>();

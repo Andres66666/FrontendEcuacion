@@ -1,0 +1,166 @@
+<div class="d-flex align-items-center mb-3">
+  <!-- DROPDOWN: LISTA DE MÓDULOS -->
+  <div class="position-relative w-100">
+
+      <!-- BOTÓN PARA MOSTRAR / OCULTAR -->
+      <button
+        class="btn btn-light w-100 text-start"
+        type="button"
+        (click)="mostrarDropdownModulos = !mostrarDropdownModulos"
+      >
+        {{ itemSeleccionado?.nombre || 'Seleccionar módulo' }}
+      </button>
+
+      <!-- DROPDOWN CUSTOM SIN BOOTSTRAP -->
+      <ul
+        *ngIf="mostrarDropdownModulos"
+        class="dropdown-menu show w-100 p-2"
+        style="max-height: 320px; overflow:auto; display:block; position:absolute; z-index:1000;"
+      >
+
+        <li *ngFor="let item of items; let i = index" class="mb-1">
+          <div class="d-flex align-items-center">
+
+            <div
+              class="flex-grow-1 pe-2"
+              style="cursor: pointer;"
+              (click)="seleccionarItem(item, i)"
+            >
+              <strong [class.text-primary]="itemSeleccionado?.id === item.id">
+                {{ item.nombre || '(sin nombre)' }}
+              </strong>
+              <div class="small text-muted">{{ item.codigo || '' }}</div>
+            </div>
+
+            <div *ngIf="!item.editar" class="d-flex align-items-center">
+              <button class="btn btn-sm btn-outline-primary me-1" (click)="activarEdicionItem(i, $event)">
+                <i class="bi bi-pencil"></i>
+              </button>
+              <button class="btn btn-sm btn-outline-danger" (click)="eliminarModulo(i, $event)">
+                <i class="bi bi-trash"></i>
+              </button>
+            </div>
+
+            <div *ngIf="item.editar" class="d-flex align-items-center">
+              <button class="btn btn-sm btn-success me-1" (click)="guardarItem(i, $event)">
+                <i class="bi bi-check2"></i>
+              </button>
+              <button class="btn btn-sm btn-secondary me-1" (click)="cancelarEdicionItem(i, $event)">
+                <i class="bi bi-x"></i>
+              </button>
+              <button class="btn btn-sm btn-danger" (click)="eliminarModulo(i, $event)">
+                <i class="bi bi-trash"></i>
+              </button>
+            </div>
+
+          </div>
+
+          <!-- INPUTS INLINE -->
+          <div *ngIf="item.editar" class="mt-2">
+            <div class="row g-2">
+              <div class="col-4">
+                <input
+                  [(ngModel)]="item.codigo"
+                  (input)="filtrarCodigoInput($event, item)"
+                  class="form-control form-control-sm"
+                  placeholder="Código"
+                />
+              </div>
+
+              <div class="col-8">
+                <input
+                  [(ngModel)]="item.nombre"
+                  (input)="filtrarNombreInput($event, item)"
+                  [class.is-invalid]="item.tieneErrores"
+                  class="form-control form-control-sm"
+                  placeholder="Nombre del módulo"
+                />
+              </div>
+            </div>
+          </div>
+
+          <hr class="my-2" />
+        </li>
+
+      </ul>
+    </div>
+
+  <!-- BOTÓN AGREGAR MÓDULO -->
+  <button class="btn btn-outline-primary ms-2" title="Agregar Modulo "  *ngIf="identificadorGeneral !== 0" (click)="agregarModulo()" data-bs-toggle="modal" data-bs-target="#modalAgregarModulo">
+    <i class="bi bi-plus-circle fs-5"></i>
+  </button>
+</div>
+
+<!-- MODAL PARA AGREGAR MÓDULO -->
+<div class="modal fade" id="modalAgregarModulo" tabindex="-1" aria-labelledby="modalAgregarModuloLabel" aria-hidden="true">
+  <div class="modal-dialog modal-sm">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalAgregarModuloLabel">Registrar Nuevo Módulo</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row g-2">
+          <div class="col-12">
+            <input
+              [(ngModel)]="nuevoModulo.codigo"
+              (input)="filtrarCodigoInput($event, nuevoModulo)"
+              class="form-control"
+              placeholder="Código"
+            />
+          </div>
+          <div class="col-12">
+            <input
+              [(ngModel)]="nuevoModulo.nombre"
+              (input)="filtrarNombreInput($event, nuevoModulo)"
+              [class.is-invalid]="nuevoModulo.tieneErrores"
+              class="form-control"
+              placeholder="Nombre del módulo"
+            />
+            <div *ngIf="nuevoModulo.tieneErrores" class="small text-warning mt-1">
+              Tiene sugerencias — clic derecho para ver opciones
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-success btn-sm" (click)="registrarModuloTemporal()" data-bs-dismiss="modal">
+          <i class="bi bi-check2-circle"></i> Registrar
+        </button>
+        <button type="button" class="btn btn-secondary btn-sm" (click)="cancelarAgregar()" data-bs-dismiss="modal">
+          <i class="bi bi-x"></i> Cancelar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MENÚ CONTEXTUAL PARA SUGERENCIAS -->
+<div *ngIf="mostrarMenuContextual" class="context-menu" [style.left.px]="menuX" [style.top.px]="menuY">
+  <ul class="list-group">
+    <li *ngFor="let sugerencia of itemSeleccionado?.sugerencias" class="list-group-item list-group-item-action" (click)="aplicarSugerencia(sugerencia)">
+      {{ sugerencia }}
+    </li>
+  </ul>
+</div>
+<!-- Modal de confirmación -->
+<app-confirmacion 
+  *ngIf="mostrarConfirmacion" 
+  [mensaje]="mensajeConfirmacion" 
+  (aceptar)="onAceptarConfirmacion()" 
+  (cancelar)="onCancelarConfirmacion()">
+</app-confirmacion>
+
+<!-- Modal de error -->
+<app-error 
+  *ngIf="mostrarError" 
+  [mensaje]="mensajeError" 
+  (close)="onCerrarError()">
+</app-error>
+
+<!-- Modal de éxito -->
+<app-ok
+  *ngIf="mostrarOk" 
+  [mensaje]="mensajeOk" 
+  (close)="onCerrarOk()">
+</app-ok>

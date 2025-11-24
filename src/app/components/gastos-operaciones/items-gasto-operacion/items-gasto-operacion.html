@@ -1,0 +1,217 @@
+<div class="items-gasto-operacion">
+  <div class="my-3 text-end">
+    <button class="btn btn-outline-primary" (click)="agregarItem()">
+      <i class="bi bi-plus-circle"></i> Agregar Ítem
+    </button>
+  </div>
+
+  <!-- Tabla responsive -->
+  <div class="table-responsive">
+    <table class="table table-bordered table-sm align-middle tabla-gastos">
+      <thead class="table-success">
+        <tr>
+          <th class="text-center" style="width: 5px;">Item</th>
+          <th class="col-4 text-center">Descripción</th>
+          <th class="text-center" *ngIf="mostrarColumnaModulo">Módulo</th>
+          <th class="text-center" style="width: 80px;">Unidad</th>
+          <th class="text-center" style="width: 70px;">Cantidad</th>
+          <th class="text-center" style="width: 100px;">Gastos De Operación</th>
+          <th class="text-center" style="width: 100px;">Valor Agregado</th>
+          <th class="text-center" style="width: 100px;">Precio Unitario Actividad</th>
+          <th class="text-center">Precio Unitario Literal</th>
+          <th class="text-center" style="width: 120px;">Precio Factura Parcial</th>
+          <th class="text-center">Acciones</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <ng-container *ngFor="let grupo of gastosPorModulo; let grupoIndex = index">
+
+          <!-- Fila de módulo -->
+          <tr>
+            <td></td>
+            <td [attr.colspan]="mostrarColumnaModulo ? 10 : 9" class="fw-bold bg-light">
+              {{ grupo.modulo?.codigo || 'Sin módulo' }} - {{ grupo.modulo?.nombre || '' }}
+            </td>
+          </tr>
+
+          <!-- Fila de ítem -->
+          <ng-container *ngFor="let item of grupo.gastos; let itemIndex = index">
+            <tr class="fila-item">
+              <td class="text-center" (click)="mostrarPanelTraslado(item)">
+                {{ obtenerNumero(getGlobalIndex(grupoIndex, itemIndex)) }}
+              </td>
+
+              <!-- Descripción -->
+              <td class="position-relative descrip-td tabla-gastos">
+                <input type="text"
+                  class="form-control input-descripcion tabla-gastos"
+                  [(ngModel)]="item.descripcion"
+                  (blur)="guardarDescripcionPersonalizada(item, $event)"
+                  spellcheck="true">
+              </td>
+
+              <!-- Columna módulo -->
+              <td *ngIf="mostrarColumnaModulo">
+                <ng-container *ngIf="item.esNuevo || item.editarModulo; else mostrarModulo">
+                  <select class="form-select" [(ngModel)]="item.moduloId" (change)="actualizarModulo(item)">
+                    <option [ngValue]="null">(sin módulo)</option>
+                    <option *ngFor="let modulo of modulos" [ngValue]="modulo.id">
+                      {{ modulo.codigo }} - {{ modulo.nombre }}
+                    </option>
+                  </select>
+                </ng-container>
+                <ng-template #mostrarModulo>
+                  {{ item.modulo?.nombre || '(sin módulo)' }}
+                </ng-template>
+              </td>
+
+              <!-- Unidad -->
+              <td style="width: 80px;">
+                <div class="position-relative">
+                  <input
+                    type="text"
+                    class="form-control form-control-sm input-unidad"
+                    [(ngModel)]="item.unidad"
+                    (input)="filtrarUnidades(item, $event)"
+                    (focus)="mostrarUnidadesFila(item)"
+                    (blur)="guardarUnidadPersonalizada(item, $event)"
+                  />
+                  <ul
+                    *ngIf="item.unidadesFiltradasUnidad?.length && item.mostrarListaUnidad"
+                    class="list-group position-absolute w-100 unidad-list"
+                    style="z-index: 1000; max-height: 150px; overflow-y: auto">
+                    <li
+                      *ngFor="let u of item.unidadesFiltradasUnidad"
+                      class="list-group-item list-group-item-action p-1"
+                      (click)="seleccionarUnidad(item, u); $event.stopPropagation()">
+                      {{ u }}
+                    </li>
+                  </ul>
+                </div>
+              </td>
+
+              <!-- Cantidad -->
+              <td style="width: 100px;">
+                <input
+                  type="text"
+                  [value]="formatearNumero(item.cantidad)"
+                  (input)="onCantidadInput($event, item)"
+                  (blur)="formatearCantidadInput(item)"
+                  class="form-control form-control-sm input-cantidad"
+                  title="Cantidad * Precio Unitario Actividad"
+                  placeholder="Cantidad"/>
+              </td>
+
+              <!-- Valores calculados -->
+              <td class="text-end">{{ formatearNumero(item.precio_unitario) }}</td>
+              <td class="text-end">{{ formatearNumero(getValorAgregado(item)) }}</td>
+              <td class="text-end">{{ formatearNumero(SumaPrecioUnitarioActividad(item)) }}</td>
+              <td>{{ item.precio_literal | uppercase }}</td>
+
+              <td class="text-end">{{ formatearNumero(MultiplicacionPrecioUnitarioActividadPORcantidad(item)) }}</td>
+
+              <!-- Acciones -->
+              <td class="acciones-col d-flex flex-nowrap">
+                <button *ngIf="item.esNuevo" class="btn btn-success btn-sm me-1" title="Registrar"
+                        (click)="registrarItem(item)">
+                  <i class="bi bi-floppy"></i>
+                </button>
+
+                <button *ngIf="!item.esNuevo" class="btn btn-primary btn-sm me-1" title="Actualizar"
+                        (click)="actualizarItem(item)">
+                  <i class="bi bi-arrow-repeat"></i>
+                </button>
+
+                <button class="btn btn-danger btn-sm me-1" title="Eliminar"
+                        (click)="eliminarItem(item)">
+                  <i class="bi bi-trash"></i>
+                </button>
+
+                <button class="btn btn-warning btn-sm me-1" title="Registro de materiales, equipo y mano de obra"
+                        (click)="enviarAEcuacion(item)">
+                  <i class="bi bi-tools"></i>
+                </button>
+
+                <button class="btn btn-success btn-sm me-1" title="Reporte Financiero"
+                        (click)="enviarTotalGastosGenerales(item)">
+                  <i class="bi bi-receipt"></i>
+                </button>
+              </td>
+            </tr>
+          </ng-container>
+        </ng-container>
+      </tbody>
+       <tfoot class="table-light">
+        <tr>
+          <td [attr.colspan]="mostrarColumnaModulo ? 5 : 4" class="text-end fw-bold">TOTALES</td>
+          <td class="fw-bold text-end">{{ formatearNumero(totalGastosOperacionGeneral) }}</td>
+          <td class="fw-bold text-end">{{ formatearNumero(totalValorAgregado) }}</td>
+          <td colspan="2">{{ totalLiteral | uppercase }}</td> <!-- Espacio para Precio Unitario Actividad y Literal (no se suman) -->
+          <td class="fw-bold text-end">{{ formatearNumero(total) }}</td> <!-- Precio Factura Parcial -->
+          <td class="text-center">
+            <!-- Botón opcional para enviarTotalesAFactura -->
+            <button class="btn btn-success btn-sm" title="Reporte General de Gasto de Operaciones"
+                    (click)="enviarTotalesAFactura()">
+              <i class="bi bi-receipt"></i> Reporte General
+            </button>
+          </td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+<!-- Modal de traslado -->
+<div class="modal fade show" tabindex="-1" [ngClass]="{'d-block': itemSeleccionadoParaTraslado}" *ngIf="itemSeleccionadoParaTraslado">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Trasladar ítem: {{ itemSeleccionadoParaTraslado.descripcion }}</h5>
+        <button type="button" class="btn-close" (click)="cancelarTraslado()"></button>
+      </div>
+      <div class="modal-body">
+        <label>Mover ítem a otro módulo:</label>
+        <select class="form-select mb-2" [(ngModel)]="moduloSeleccionadoParaTraslado" (change)="actualizarOpcionesPosicion()">
+          <option [ngValue]="null">(Sin módulo)</option>
+          <option *ngFor="let modulo of modulos" [ngValue]="modulo">
+            {{ modulo.codigo }} - {{ modulo.nombre }}
+          </option>
+        </select>
+
+        <input type="text" class="form-control mb-2" placeholder="Crear nuevo módulo"
+               [(ngModel)]="nuevoModuloNombre" (input)="actualizarOpcionesPosicion()">
+
+        <div *ngIf="posicionesDisponibles.length">
+          <label>Selecciona la posición dentro del módulo (1 a {{ posicionesDisponibles.length }}):</label>
+          <select class="form-select" [(ngModel)]="posicionSeleccionada">
+            <option *ngFor="let pos of posicionesDisponibles" [value]="pos">{{ pos }}</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-success" (click)="confirmarTraslado(posicionSeleccionada)">Confirmar</button>
+        <button class="btn btn-secondary" (click)="cancelarTraslado()">Cancelar</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- Modal de confirmación -->
+<app-confirmacion
+  *ngIf="mostrarConfirmacion" 
+  [mensaje]="mensajeConfirmacion" 
+  (aceptar)="onAceptarConfirmacion()" 
+  (cancelar)="onCancelarConfirmacion()">
+</app-confirmacion>
+
+<!-- Modal de error -->
+<app-error
+  *ngIf="mostrarError" 
+  [mensaje]="mensajeError" 
+  (close)="onCerrarError()">
+</app-error>
+
+<!-- Modal de éxito -->
+<app-ok
+  *ngIf="mostrarOk" 
+  [mensaje]="mensajeOk" 
+  (close)="onCerrarOk()">
+</app-ok>

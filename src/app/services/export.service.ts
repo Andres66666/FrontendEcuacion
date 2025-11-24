@@ -43,108 +43,6 @@ export class ExportService {
   constructor(
     private servicios: ServiciosService  // NUEVO: Inyecta para acceder a métodos de datos
   ) {}
-
-
-  async generateWord(elementId: string, fileName: string = 'factura.docx'): Promise<void> {
-      try {
-        const contentContainer = document.getElementById(elementId);
-        if (!contentContainer) {
-          console.error('Contenedor no encontrado para exportar Word');
-          return;
-        }
-
-        const sections: any[] = [];
-        const pageSections = contentContainer.querySelectorAll('.pdf-page-section');
-
-        pageSections.forEach((page: Element) => {
-          const children: (Paragraph | Table)[] = [];
-          const sectionTitles = page.querySelectorAll('.section-title');
-
-          sectionTitles.forEach((titleEl: Element) => {
-            const titleText = titleEl.textContent?.trim() || 'Sección';
-            children.push(
-              new Paragraph({
-                text: titleText,
-                heading: HeadingLevel.HEADING_2,
-                alignment: AlignmentType.START,
-                spacing: { after: 200, before: 200 },
-              })
-            );
-
-            const tableWrapper = titleEl.nextElementSibling as HTMLElement;
-            const tableEl = tableWrapper?.querySelector('table') as HTMLTableElement;
-            if (!tableEl) return;
-
-            const rows: TableRow[] = [];
-            Array.from(tableEl.rows).forEach((tr: HTMLTableRowElement) => {
-              const cells: TableCell[] = [];
-              Array.from(tr.cells).forEach((td: HTMLTableCellElement) => {
-                const isBold = td.classList.contains('bold-text');
-                const isRed = td.classList.contains('text-danger');
-                const text = td.textContent?.trim() || '';
-
-                cells.push(
-                  new TableCell({
-                    children: [
-                      new Paragraph({
-                        text,
-                        alignment: td.classList.contains('amount-col') ? AlignmentType.RIGHT : AlignmentType.LEFT,
-                        run: { bold: isBold, color: isRed ? 'FF0000' : '000000' },
-                      }),
-                    ],
-                    columnSpan: td.colSpan || 1,
-                    rowSpan: td.rowSpan || 1,
-                    borders: {
-                      top: { style: BorderStyle.SINGLE, size: 1, color: '000000' },
-                      bottom: { style: BorderStyle.SINGLE, size: 1, color: '000000' },
-                      left: { style: BorderStyle.SINGLE, size: 1, color: '000000' },
-                      right: { style: BorderStyle.SINGLE, size: 1, color: '000000' },
-                    },
-                    shading: {
-                      fill: td.classList.contains('percentage-col') ? 'F2F2F2' : 'auto',
-                      type: ShadingType.CLEAR,
-                    },
-                  })
-                );
-              });
-              rows.push(new TableRow({ children: cells }));
-            });
-
-            children.push(
-              new Table({
-                rows,
-                width: { size: 100, type: WidthType.PERCENTAGE },
-                borders: {
-                  top: { style: BorderStyle.SINGLE, size: 1, color: '000000' },
-                  bottom: { style: BorderStyle.SINGLE, size: 1, color: '000000' },
-                  left: { style: BorderStyle.SINGLE, size: 1, color: '000000' },
-                  right: { style: BorderStyle.SINGLE, size: 1, color: '000000' },
-                },
-              })
-            );
-          });
-
-          sections.push({ properties: {}, children });
-        });
-
-        const doc = new Document({ sections });
-        const blob = await Packer.toBlob(doc);
-        const url = URL.createObjectURL(blob);
-
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = fileName;
-        a.click();
-        URL.revokeObjectURL(url);
-        console.log('Word generado ✅');
-      } catch (error) {
-        console.error('Error exportando Word:', error);
-      }
-  }
-  
-  
-
-
   public async generatePDF(elementId: string, fileName: string = 'factura.pdf'): Promise<void> {
     const data = document.getElementById(elementId);
     if (!data) {
@@ -1605,218 +1503,156 @@ private multiplicacionPrecioUnitarioActividadPorCantidad(gasto: GastoOperacion, 
   return this.roundTo(this.sumaPrecioUnitarioActividad(gasto, proyecto) * this.toNum(gasto.cantidad), 2);
 }
 
-// Método para generar PDF de Gastos de Operación (adaptado del ejemplo de EquipoHerramienta, con estilos idénticos)
 async generatePDFGastosOperacionProyecto(idProyecto: number, nombreProyecto: string): Promise<void> {
   if (!idProyecto || !nombreProyecto) {
-    console.error('ID de proyecto o nombre requeridos.');
-    return;
+    throw new Error('ID DE PROYECTO O NOMBRE REQUERIDOS.');
   }
 
   try {
     const [modulos, gastos, proyecto] = await forkJoin([
       this.servicios.getModulosPorProyecto(idProyecto) as Observable<Modulo[]>,
       this.servicios.getGastoOperacionID(idProyecto) as Observable<GastoOperacion[]>,
-      this.servicios.getIdentificadorGeneralID(idProyecto) as Observable<Proyecto> // ← CORREGIDO: Método existente
+      this.servicios.getIdentificadorGeneralID(idProyecto) as Observable<Proyecto>
     ]).toPromise() as [Modulo[], GastoOperacion[], Proyecto];
 
     if (!modulos || !gastos || gastos.length === 0 || !proyecto) {
-      console.error('No hay datos suficientes (gastos o proyecto) en el proyecto.');
-      return;
+      throw new Error('NO HAY DATOS SUFICIENTES (GASTOS O PROYECTO) EN EL PROYECTO.');
     }
-    console.log('Módulos:', modulos.length, 'Gastos:', gastos.length, 'Proyecto cargado:', proyecto.NombreProyecto);
-    const gastosSinModulo = gastos.filter((g: GastoOperacion) => !g.modulo_id && !g.modulo?.id);
 
+    const gastosSinModulo = gastos.filter(g => !g.modulo_id && !g.modulo?.id);
     const modulosConGastos: { modulo: Modulo; gastos: GastoOperacion[] }[] = [];
 
-    modulos.forEach((modulo: Modulo) => {
-      const gastosDelModulo = gastos.filter((g: GastoOperacion) => 
-        g.modulo_id === modulo.id || g.modulo?.id === modulo.id
-      );
-      if (gastosDelModulo.length > 0) {
-        modulosConGastos.push({ modulo, gastos: gastosDelModulo });
-      }
+    modulos.forEach(modulo => {
+      const gastosDelModulo = gastos.filter(g => g.modulo_id === modulo.id || g.modulo?.id === modulo.id);
+      if (gastosDelModulo.length > 0) modulosConGastos.push({ modulo, gastos: gastosDelModulo });
     });
 
-    // 1. Lógica modificada: Solo agregar "Sin Módulo" si hay gastos asociados.
-    let estructura = [...modulosConGastos];
+    let estructuraFinal = [...modulosConGastos];
     if (gastosSinModulo.length > 0) {
-        estructura.push({ 
-          modulo: { id: 0, codigo: 'SIN', nombre: 'MÓDULO' } as Modulo, 
-          gastos: gastosSinModulo 
-        });
-    } else if (modulosConGastos.length === 0) { }
-    
-    // Si la estructura quedó vacía (no debería pasar por el chequeo inicial, pero por seguridad):
-    if (estructura.length === 0 && gastos.length > 0) {
-      if (modulosConGastos.length === 0 && gastos.length > 0) {
-        estructura = [{ 
-          modulo: { id: 0, codigo: 'SIN', nombre: 'MÓDULO' } as Modulo, 
-          gastos
-        }];
-      }
-    }
-    const estructuraFinal = modulosConGastos;
-    if (gastosSinModulo.length > 0) {
-        estructuraFinal.push({ 
-            modulo: { id: 0, codigo: 'SIN', nombre: 'MÓDULO' } as Modulo, 
-            gastos: gastosSinModulo 
-        });
+      estructuraFinal.push({
+        modulo: { id: 0, codigo: 'SIN', nombre: 'MÓDULO' } as Modulo,
+        gastos: gastosSinModulo
+      });
     }
 
-    console.log('Estructura:', estructuraFinal.map(e => ({ modulo: e.modulo.nombre, gastosCount: e.gastos.length })));
-    
-    // -----------------------------------------------------
+    let totalColCantidad = 0;
+    let totalColGastos = 0;
+    let totalColValorAgregado = 0;
+    let totalColPrecioActividad = 0;
+    let totalColFactura = 0;
 
-    const totalGastosOperacionGeneral = gastos.reduce((acc: number, gasto: GastoOperacion) => acc + this.toNum(gasto.precio_unitario), 0);
-    const totalValorAgregado = gastos.reduce((acc: number, gasto: GastoOperacion) => acc + this.getValorAgregado(gasto, proyecto), 0);
-    const totalFactura = gastos.reduce((acc: number, gasto: GastoOperacion) => acc + this.multiplicacionPrecioUnitarioActividadPorCantidad(gasto, proyecto), 0);
-
-    console.log('Totales calculados:', { totalGastosOperacionGeneral, totalValorAgregado, totalFactura });
+    // *** MODIFICACIÓN PRINCIPAL 1: Establecer width: 100% y padding: 0 !important; ***
     let htmlContent = `
-      <div style="font-family: Arial, sans-serif; width: 100%; font-size: 12px;">
-        <h2 style="color: #007bff; font-size: 24px; text-align: center; margin-bottom: 20px;">Reporte de Gastos de Operación por Módulos</h2>
-        <p style="font-size: 14px; text-align: center; margin-bottom: 20px;"><strong>Proyecto:</strong> ${nombreProyecto} | <strong>ID:</strong> ${idProyecto} | <strong>Fecha:</strong> ${new Date().toLocaleDateString('es-BO')}</p>
+      <div style="font-family: Arial, sans-serif; width: 100% !important; padding: 0 !important; font-size: 8px; text-transform: uppercase;">
         
-        <div style="overflow-x: auto; margin-bottom: 20px;">
-          <table style="width: 100%; border-collapse: collapse; font-size: 11px; border: 1px solid #dee2e6;">
-            <thead style="">
+        <h2 style="color: #007bff; font-size: 18px; text-align: center; padding: 10px 0 12px 0;">REPORTE DE GASTOS DE OPERACIÓN POR MÓDULOS</h2>
+        
+        <p style="font-size: 10px; text-align: end; margin-bottom: 8px;"> 
+          <strong>FECHA:</strong> ${new Date().toLocaleDateString('es-BO').toUpperCase()}
+        </p>
+        <p style="font-size: 10px; text-align: start; margin-bottom: 8px;">
+          <strong>PROYECTO:</strong> ${nombreProyecto.toUpperCase()} 
+        </p>
+
+        <div style="overflow-x: auto; margin-bottom: 12px;">
+          <table style="width: 100%; border-collapse: collapse; font-size: 8px; border: 1px solid #dee2e6; margin: 0;">
+            <thead>
               <tr>
-                <th style="border: 1px solid #dee2e6; padding: 8px; width: 5%; text-align: center;">Item</th>
-                <th style="border: 1px solid #dee2e6; padding: 8px; width: 30%; text-align: center;">Descripción</th>
-                <th style="border: 1px solid #dee2e6; padding: 8px; width: 6%; text-align: center;">Unidad</th>
-                <th style="border: 1px solid #dee2e6; padding: 8px; width: 6%; text-align: center;">Cantidad</th>
-                <th style="border: 1px solid #dee2e6; padding: 8px; width: 6%; text-align: center;">Gastos De Operación (Bs.)</th>
-                <th style="border: 1px solid #dee2e6; padding: 8px; width: 6%; text-align: center;">Valor Agregado (Bs.)</th>
-                <th style="border: 1px solid #dee2e6; padding: 8px; width: 6%; text-align: center;">Precio Unitario Actividad (Bs.)</th>
-                <th style="border: 1px solid #dee2e6; padding: 8px; width: 12%; text-align: center;">Precio Unitario Literal</th>
-                <th style="border: 1px solid #dee2e6; padding: 8px; width: 6%; text-align: center;">Precio Factura Parcial (Bs.)</th>
+                <th style="border: 1px solid #dee2e6; padding: 3px; text-align: center;">ITEM</th>
+                <th style="border: 1px solid #dee2e6; padding: 3px; text-align: center;">DESCRIPCIÓN</th>
+                <th style="border: 1px solid #dee2e6; padding: 3px; text-align: center;">UNIDAD</th>
+                <th style="border: 1px solid #dee2e6; padding: 3px; text-align: center;">CANTIDAD</th>
+                <th style="border: 1px solid #dee2e6; padding: 3px; text-align: center;">GASTOS DE OPERACIÓN (BS.)</th>
+                <th style="border: 1px solid #dee2e6; padding: 3px; text-align: center;">VALOR AGREGADO (BS.)</th>
+                <th style="border: 1px solid #dee2e6; padding: 3px; text-align: center;">PRECIO UNITARIO ACTIVIDAD (BS.)</th>
+                <th style="border: 1px solid #dee2e6; padding: 3px; text-align: center;">PRECIO UNITARIO LITERAL</th>
+                <th style="border: 1px solid #dee2e6; padding: 3px; text-align: center;">PRECIO FACTURA PARCIAL (BS.)</th>
               </tr>
             </thead>
             <tbody>
     `;
 
-    let itemNum = 1; // Contador secuencial para gastos (obtenerNumero en componente)
+    let itemNum = 1;
 
-    estructuraFinal.forEach(({ modulo, gastos }: { modulo: Modulo; gastos: GastoOperacion[] }) => {
-      const nombreModulo = modulo.id === 0 ? 'Sin Módulo' : `${modulo.codigo} - ${modulo.nombre}`;
+    estructuraFinal.forEach(({ modulo, gastos }) => {
+      const nombreModulo = modulo.id === 0 ? 'SIN MÓDULO' : `${modulo.codigo} - ${modulo.nombre}`.toUpperCase();
 
-      // Fila de Módulo Registrado (estilo bg text-black fw-bold, colspan 9, como en componente; sin acciones/editar)
       htmlContent += `
-        <tr style="color: black; font-weight: bold; font-size: 1.1em;">
-          <td colspan="9" style="border: 1px solid #dee2e6; padding: 12px; text-align: left;">
-            Módulo: ${nombreModulo} (${gastos.length} gasto(s))
+        <tr style="color: black; font-weight: bold; font-size: 0.95em;">
+          <td colspan="9" style="border: 1px solid #dee2e6; padding: 2px; text-align: left;">
+            MÓDULO: ${nombreModulo}
           </td>
         </tr>
       `;
 
-      let subtotalModuloGastos = 0;
-      let subtotalModuloValorAgregado = 0;
-      let subtotalModuloFactura = 0;
+      const gastosOrdenados = gastos.sort((a, b) => (a.id! > b.id! ? 1 : -1));
 
-      // Filtrar y ordenar gastos por ID (replica lógica del componente)
-      const gastosOrdenados = gastos.sort((a, b) => (a.id! > b.id!) ? 1 : -1);
-
-      gastosOrdenados.forEach((gasto: GastoOperacion) => {
-        // Cálculos (replica getters del componente)
+      gastosOrdenados.forEach(gasto => {
         const cantidadGasto = this.toNum(gasto.cantidad);
         const gastosOperacion = this.toNum(gasto.precio_unitario);
         const valorAgregado = this.getValorAgregado(gasto, proyecto);
         const precioUnitarioActividad = this.sumaPrecioUnitarioActividad(gasto, proyecto);
         const precioFacturaParcial = this.multiplicacionPrecioUnitarioActividadPorCantidad(gasto, proyecto);
-        // Precio Unitario Literal: Simplificado (replica NumeroALetras; usa string básico; integra librería si necesitas)
-        const precioLiteral = gasto.precio_literal || `${this.formatearNumero(precioUnitarioActividad)} Bolivianos`;
+        const precioLiteral = gasto.precio_literal ? gasto.precio_literal.toUpperCase() : `${this.formatearNumero(precioUnitarioActividad)} BOLIVIANOS`;
 
-        subtotalModuloGastos += gastosOperacion;
-        subtotalModuloValorAgregado += valorAgregado;
-        subtotalModuloFactura += precioFacturaParcial;
+        totalColCantidad += cantidadGasto;
+        totalColGastos += gastosOperacion;
+        totalColValorAgregado += valorAgregado;
+        totalColPrecioActividad += precioUnitarioActividad;
+        totalColFactura += precioFacturaParcial;
 
-        // Fila de Gasto (estilo input-cell text-center, sin drag-handle, inputs, selects, listas, acciones; sin columna Módulo)
         htmlContent += `
-          <tr style="">
-            <td style="border: 1px solid #dee2e6; padding: 6px; text-align: center; font-weight: bold;">${itemNum++}</td>
-            <td style="border: 1px solid #dee2e6; padding: 6px; text-align: left;">${gasto.descripcion || 'Sin descripción'}</td>
-            <td style="border: 1px solid #dee2e6; padding: 6px; text-align: center;">${gasto.unidad || 'N/A'}</td>
-            <td style="border: 1px solid #dee2e6; padding: 6px; text-align: center;">${cantidadGasto}</td>
-            <td style="border: 1px solid #dee2e6; padding: 6px; text-align: right;">${this.formatearNumero(gastosOperacion)}</td>
-            <td style="border: 1px solid #dee2e6; padding: 6px; text-align: right;">${this.formatearNumero(valorAgregado)}</td>
-            <td style="border: 1px solid #dee2e6; padding: 6px; text-align: right;">${this.formatearNumero(precioUnitarioActividad)}</td>
-            <td style="border: 1px solid #dee2e6; padding: 6px; text-align: left; white-space: pre-line;">${precioLiteral}</td>
-            <td style="border: 1px solid #dee2e6; padding: 6px; text-align: right; font-weight: bold;">${this.formatearNumero(precioFacturaParcial)}</td>
+          <tr>
+            <td style="border: 1px solid #dee2e6; padding: 2px; text-align: center; font-weight: bold;">${itemNum++}</td>
+            <td style="border: 1px solid #dee2e6; padding: 2px; text-align: left;">${(gasto.descripcion || 'SIN DESCRIPCIÓN').toUpperCase()}</td>
+            <td style="border: 1px solid #dee2e6; padding: 2px; text-align: center;">${(gasto.unidad || 'N/A').toUpperCase()}</td>
+            <td style="border: 1px solid #dee2e6; padding: 2px; text-align: center;">${cantidadGasto}</td>
+            <td style="border: 1px solid #dee2e6; padding: 2px; text-align: right;">${this.formatearNumero(gastosOperacion)}</td>
+            <td style="border: 1px solid #dee2e6; padding: 2px; text-align: right;">${this.formatearNumero(valorAgregado)}</td>
+            <td style="border: 1px solid #dee2e6; padding: 2px; text-align: right;">${this.formatearNumero(precioUnitarioActividad)}</td>
+            <td style="border: 1px solid #dee2e6; padding: 2px; text-align: left; white-space: pre-line;">${precioLiteral}</td>
+            <td style="border: 1px solid #dee2e6; padding: 2px; text-align: right; font-weight: bold;">${this.formatearNumero(precioFacturaParcial)}</td>
           </tr>
         `;
       });
-
-      // Subtotal por Módulo (opcional; replica tfoot con bg-light, pero por módulo; colspan ajustado a 9 columnas)
-      if (gastos.length > 0) {
-        htmlContent += `
-          <tr style="">
-            <td colspan="4" style="border: 1px solid #dee2e6; padding: 8px; text-align: right; font-weight: bold;">Subtotal Módulo (${nombreModulo}):</td>
-            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: right; font-weight: bold;">${this.formatearNumero(subtotalModuloGastos)}</td>
-            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: right; font-weight: bold;">${this.formatearNumero(subtotalModuloValorAgregado)}</td>
-            <td colspan="2" style="border: 1px solid #dee2e6; padding: 8px;"></td>
-            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: right; font-weight: bold;">${this.formatearNumero(subtotalModuloFactura)}</td>
-          </tr>
-        `;
-      }
     });
 
-    // Si no hay items: Fila vacía (replica *ngIf="items.length === 0")
-    if (gastos.length === 0) {
-      htmlContent += `
-        <tr>
-          <td colspan="9" style="border: 1px solid #dee2e6; padding: 20px; text-align: center; color: #6c757d;">
-            No hay ítems registrados.
-          </td>
-        </tr>
-      `;
-    }
-
-    // Total Global (replica tfoot: table-light, colspan ajustado a 9 columnas, sin botón)
+    // Fila de TOTALES
     htmlContent += `
-            </tbody>
-            <tfoot style="">
-              <tr>
-                <td colspan="4" style="border: 1px solid #dee2e6; padding: 12px; text-align: right; font-weight: bold; font-size: 14px;">TOTALES</td>
-                <td style="border: 1px solid #dee2e6; padding: 12px; text-align: center; font-weight: bold;">${this.formatearNumero(totalGastosOperacionGeneral)}</td>
-                <td style="border: 1px solid #dee2e6; padding: 12px; text-align: center; font-weight: bold;">${this.formatearNumero(totalValorAgregado)}</td>
-                <td colspan="2" style="border: 1px solid #dee2e6; padding: 12px;"></td>
-                <td style="border: 1px solid #dee2e6; padding: 12px; text-align: center; font-weight: bold;">${this.formatearNumero(totalFactura)}</td>
-              </tr>
-            </tfoot>
-          </table>
-        </div>
-      </div>
+      <tr style="font-weight: bold; background-color: #f1f1f1;">
+        <td colspan="3" style="border: 1px solid #dee2e6; padding: 5px; text-align: right;">TOTALES</td>
+        <td style="border: 1px solid #dee2e6; padding: 2px; text-align: center;">${totalColCantidad}</td>
+        <td style="border: 1px solid #dee2e6; padding: 2px; text-align: right;">${this.formatearNumero(totalColGastos)}</td>
+        <td style="border: 1px solid #dee2e6; padding: 2px; text-align: right;">${this.formatearNumero(totalColValorAgregado)}</td>
+        <td style="border: 1px solid #dee2e6; padding: 2px; text-align: right;">${this.formatearNumero(totalColPrecioActividad)}</td>
+        <td></td>
+        <td style="border: 1px solid #dee2e6; padding: 2px; text-align: right;">${this.formatearNumero(totalColFactura)}</td>
+      </tr>
     `;
 
-    // Paso 5: Generar PDF (usa tu método generatePDF con div temporal; estilos responsive como table-responsive)
+    htmlContent += `</tbody></table></div></div>`;
+
     const tempDiv = document.createElement('div');
-    tempDiv.id = 'temp-pdf-gastos-operacion'; // ID único
+    tempDiv.id = 'temp-pdf-gastos-operacion';
     tempDiv.innerHTML = htmlContent;
     tempDiv.style.position = 'absolute';
     tempDiv.style.left = '-9999px';
     tempDiv.style.top = '-9999px';
-    tempDiv.style.width = '210mm'; // Ancho A4 estándar (ajusta a 'l' en jsPDF si landscape para tabla ancha)
-    tempDiv.style.padding = '20px';
+    // *** MODIFICACIÓN PRINCIPAL 2: Usar width: 100vw y eliminar cualquier padding o margin. ***
+    tempDiv.style.width = '100vw'; // Ocupa el 100% del viewport
+    tempDiv.style.margin = '0';
+    tempDiv.style.padding = '0';
     tempDiv.style.backgroundColor = 'white';
-   
     document.body.appendChild(tempDiv);
 
-    // Generar filename único
     const safeNombre = nombreProyecto.replace(/[^a-zA-Z0-9]/g, '_').substring(0, 50);
-    const fileName = `reporte-gastos-operacion-modulos_${safeNombre}_${idProyecto}.pdf`;
+    const fileName = `REPORTE-GASTOS-OPERACION-MODULOS_${safeNombre}_${idProyecto}.pdf`;
 
-    // Llamar a tu método generatePDF existente (maneja html2canvas + jsPDF con paginación)
     await this.generatePDF('temp-pdf-gastos-operacion', fileName);
-
-    // Limpiar div temporal
     document.body.removeChild(tempDiv);
-
-    console.log(`PDF de gastos de operación por módulos generado exitosamente: ${fileName} | Total: ${this.formatearNumero(totalFactura)} Bs.`);
   } catch (error: unknown) {
-    console.error('Error al generar PDF de gastos de operación por módulos:', error);
     const errorMsg = error instanceof Error ? error.message : String(error);
-    throw new Error(`Fallo en generación de PDF: ${errorMsg || 'Datos insuficientes'}`);
+    throw new Error(`FALLO EN GENERACIÓN DE PDF: ${errorMsg || 'DATOS INSUFICIENTES'}`);
   }
 }
-
 }

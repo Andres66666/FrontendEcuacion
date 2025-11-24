@@ -52,12 +52,7 @@ export class CrearEcuacionComponent {
     });
   }
   navigateToHome(): void {
-    this.router.navigate(['/panel-control/gastos-operaciones']);
+    this.router.navigate(['/panel-control/proyectos']);
   }
-  exportPDF() {
-    this.exportService.generatePDF('contentToExport', 'factura.pdf');
-  }
-  exportWORD() {
-    this.exportService.generateWord('contentToExport', 'factura.docx');
-  }
+
 }

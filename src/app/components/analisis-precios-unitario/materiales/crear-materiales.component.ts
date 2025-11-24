@@ -43,7 +43,7 @@ export class CrearMaterialesComponent implements OnInit {
   permisos: string[] = [];
   unidadesUsadas: string[] = [];
 
-  // ✅ Mensajes y estado UI
+  //  Mensajes y estado UI
   formatoInvalido = false;
   mostrarConfirmacion = false;
   tipoConfirmacion: 'proyecto' | 'item' | null = null;
@@ -263,15 +263,26 @@ export class CrearMaterialesComponent implements OnInit {
     }
   }
 
-  // 🔹 CRUD
   registrarItem(index: number): void {
     const mat = this.materiales.at(index);
+
+    // Validar antes de continuar
     if (mat.invalid) {
       mat.markAllAsTouched();
       return;
     }
 
+    // Convertir campos críticos a MAYÚSCULAS
+    const descripcion = mat.get('descripcion')?.value?.toUpperCase() || "";
+    const unidad = mat.get('unidad')?.value?.toUpperCase() || "";
+
+    mat.get('descripcion')?.setValue(descripcion);
+    mat.get('unidad')?.setValue(unidad);
+
+    // Crear objeto desde el formulario
     const nuevoMaterial: Materiales = this.crearMaterialDesdeForm(mat);
+
+    // Enviar a backend
     this.servicio.createMaterial(nuevoMaterial).subscribe({
       next: (res: Materiales) => {
         mat.patchValue({ id: res.id, esNuevo: false, total: res.total });
@@ -286,11 +297,20 @@ export class CrearMaterialesComponent implements OnInit {
     });
   }
 
+
   actualizarItem(index: number): void {
     const mat = this.materiales.at(index);
+
     if (mat.invalid || !mat.get('id')?.value) return;
 
+    const descripcion = mat.get('descripcion')?.value?.toUpperCase() || "";
+    const unidad = mat.get('unidad')?.value?.toUpperCase() || "";
+
+    mat.get('descripcion')?.setValue(descripcion);
+    mat.get('unidad')?.setValue(unidad);
+
     const materialActualizado: Materiales = this.crearMaterialDesdeForm(mat);
+
     this.servicio.updateMaterial(materialActualizado).subscribe({
       next: () => {
         mat.patchValue({ total: materialActualizado.total });
@@ -304,33 +324,32 @@ export class CrearMaterialesComponent implements OnInit {
       },
     });
   }
-
   eliminarItem(index: number): void {
     const mat = this.materiales.at(index);
-
-    // 🔹 Mostrar confirmación antes de eliminar
     this.mostrarConfirmacion = true;
     this.tipoConfirmacion = 'item';
     this.itemIndexAEliminar = index;
     this.mensajeConfirmacion = '¿Estás seguro de eliminar este material?';
   }
-
-  // 🔹 Helpers para cálculos
   private crearMaterialDesdeForm(control: AbstractControl): Materiales {
+    const descripcion = (control.get('descripcion')?.value || '').toString().toUpperCase();
+    const unidad = (control.get('unidad')?.value || '').toString().toUpperCase();
+    const cantidad = Number(control.get('cantidad')?.value) || 0;
+    const precio_unitario = Number(control.get('precio_unitario')?.value) || 0;
+
     return {
       id: control.get('id')?.value ?? 0,
       id_gasto_operacion: this.id_gasto_operaciones,
-      descripcion: control.get('descripcion')?.value || '',
-      unidad: control.get('unidad')?.value || '',
-      cantidad: control.get('cantidad')?.value || 0,
-      precio_unitario: control.get('precio_unitario')?.value || 0,
-      total:
-        (control.get('cantidad')?.value || 0) *
-        (control.get('precio_unitario')?.value || 0),
+      descripcion: descripcion,
+      unidad: unidad,
+      cantidad: cantidad,
+      precio_unitario: precio_unitario,
+      total: cantidad * precio_unitario,
       creado_por: this.usuario_id,
       modificado_por: this.usuario_id,
     };
   }
+
 
   private actualizarTotalGlobal() {
     const total = this.totalMateriales;
@@ -369,7 +388,6 @@ export class CrearMaterialesComponent implements OnInit {
       this.materiales.at(index).get('unidad')?.setValue(valor);
     }
   }
-
   // Filtrar mientras escribe
   filtrarUnidades(index: number, event: Event): void {
     const input = event.target as HTMLInputElement;
@@ -382,7 +400,6 @@ export class CrearMaterialesComponent implements OnInit {
       u.toLowerCase().includes(valor.toLowerCase())
     );
   }
-
   // Mostrar todas las unidades al enfocar
   mostrarTodasUnidades(index: number): void {
     this.unidadesFiltradas[index] = [...this.unidadesUsadas];
@@ -395,7 +412,7 @@ export class CrearMaterialesComponent implements OnInit {
 
   // Seleccionar unidad de la lista
   seleccionarUnidad(index: number, unidad: string): void {
-    this.materiales.at(index).get('unidad')?.setValue(unidad); // ✅ actualiza formControl
+    this.materiales.at(index).get('unidad')?.setValue(unidad); // actualiza formControl
     this.mostrarLista[index] = false;
   }
   guardarUnidadPersonalizada(index: number, event: Event): void {

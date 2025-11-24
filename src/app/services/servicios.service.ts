@@ -256,6 +256,7 @@ export class ServiciosService {
       totales: this.getGastosGeneralesPorProyecto(idProyecto),
     });
   }
+
   createIdentificadorGeneral(gasto: Partial<Proyecto>): Observable<Proyecto> {
     return this.http.post<Proyecto>(`${this.apiUrl}IdGeneral/`, gasto);
   }
@@ -344,6 +345,7 @@ export class ServiciosService {
       payload
     );
   }
+
 
   //  =====================================================
   //  ================  seccion 3    ======================

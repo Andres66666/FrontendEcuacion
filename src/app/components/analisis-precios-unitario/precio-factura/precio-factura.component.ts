@@ -14,7 +14,7 @@ export class PrecioFacturaComponent {
   id_gasto_operaciones: number = 0;
   identificadorGeneral: number = 0;
   precio_unitario: number = 0; // De cada Item
-  // ✅ NUEVAS PROPIEDADES PARA LOS TOTALES
+  //  NUEVAS PROPIEDADES PARA LOS TOTALES
   totalGastosOperacionGeneral: number = 0;
   totalValorAgregado: number = 0;
   totalFactura: number = 0;
@@ -36,13 +36,13 @@ export class PrecioFacturaComponent {
       this.id_gasto_operaciones = Number(params['id_gasto_operaciones']) || 0;
       this.identificadorGeneral = Number(params['identificadorGeneral']) || 0;
 
-      // 🔹 Detectar si viene desde la otra vista con totales
+      //  Detectar si viene desde la otra vista con totales
       if (params['totalGastosOperacion']) {
         this.totalGastosOperacionGeneral = Number(params['totalGastosOperacion']);
         this.totalValorAgregado = Number(params['totalValorAgregado']) || 0;
         this.totalFactura = Number(params['totalFactura']) || 0;
 
-        // 🔹 Asignar al precio_unitario solo en este caso
+        //  Asignar al precio_unitario solo en este caso
         this.precio_unitario = this.totalGastosOperacionGeneral;
       } else {
         this.precio_unitario = Number(params['precio_unitario']) || 0;
@@ -62,7 +62,7 @@ export class PrecioFacturaComponent {
   }
   
   // ========================
-  // 🔹 SECCIÓN 1
+  //  SECCIÓN 1
   // ========================
   get creditoFiscal(): number {
     return this.precio_unitario * (this.iva_tasa_nominal / this.porcentaje_global_100);
@@ -71,7 +71,7 @@ export class PrecioFacturaComponent {
     return this.precio_unitario - this.creditoFiscal;
   }
   // ========================
-  // 🔹 SECCIÓN 2
+  //  SECCIÓN 2
   // ========================
   get SumaAB(): number {
     return this.a_costo_venta + this.b_margen_utilidad;
@@ -98,7 +98,7 @@ export class PrecioFacturaComponent {
     return this.costoVenta + this.margenUtilidad + this.ivaEfectiva;
   }
   // ========================
-  // 🔹 SECCIÓN 3
+  //  SECCIÓN 3
   // ========================
   get costoVentaT3 (): number{
     return (this.a_costo_venta / this.porcentaje_global_100) * this.precioFacturaS2;
@@ -113,7 +113,7 @@ export class PrecioFacturaComponent {
     return this.costoVentaT3 + this.MargenDeUtilidad + this.IVAenFactura;
   }
   // ========================
-  // 🔹 SECCIÓN 4
+  //  SECCIÓN 4
   // ========================
   get metodoMallaFinitapreciounitariomasvaloragregado (): number{
     return this.precio_unitario + this.ValorAgregado;
@@ -131,7 +131,7 @@ export class PrecioFacturaComponent {
     return this.gastosdeoperacionC2 + this.valoragradoC2;
   }
   // ========================
-  // 🔹 SECCIÓN 5
+  //  SECCIÓN 5
   // ========================
   get ValorAgregado (): number{
     return this.precioFacturaS2 - this.precio_unitario;
@@ -152,7 +152,7 @@ export class PrecioFacturaComponent {
     return this.ValorAgregado - this.SumaImpuestos;
   }
   // ========================
-  // 🔹 SECCIÓN 6
+  //  SECCIÓN 6
   // ========================
   get gananciaPrimero (): number{
     return this.SumaTotalNeta * (this.ganancia / this.porcentaje_global_100);
@@ -180,7 +180,7 @@ export class PrecioFacturaComponent {
     return this.gananciaPrimeroPorcentage + this.CompensacionDuenoPorcentage + this.ImpuestoPorcentage + this.gastoOperacionPorcentage;
   }
   // ========================
-  // 🔹 SECCIÓN 7
+  // SECCIÓN 7
   // ========================
   get RentabilidadProyecto(): number{
     return (this.ValorAgregado/ this.precio_unitario) * this.porcentaje_global_100;
@@ -195,19 +195,13 @@ export class PrecioFacturaComponent {
     return (this.SumaImpuestos/ this.precio_unitario) * this.porcentaje_global_100;
   } 
   // ========================
-  // 🔹 SECCIÓN 8
+  //  SECCIÓN 8
   // ========================
   get Retorno():number{
     return this.precio_unitario/ this.gananciaPrimero
   }
   navigateToHome(): void {
-    this.router.navigate(['/panel-control/gastos-operaciones']);
+    this.router.navigate(['/panel-control/proyectos']);
   }
 
-  exportPDF() {
-    this.exportService.generatePDF('contentToExport', 'factura.pdf');
-  }
-  exportWORD() {
-    this.exportService.generateWord('contentToExport', 'factura.docx');
-  }
 }

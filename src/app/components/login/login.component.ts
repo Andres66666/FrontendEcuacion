@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ElementRef, QueryList, ViewChildren } from '@angular/core';
 import { Router } from '@angular/router';
 import { ServiciosService } from '../../services/servicios.service';
 import { CommonModule } from '@angular/common';
@@ -46,9 +46,10 @@ export class LoginComponent {
   tempImagenUrl: string | null = null;
   tempMensajeAdicional: string = '';
   tempTipoMensaje: string = '';
-  tempDiasTranscurridos: number = 0;
+  tempDiasTranscurridos: number | null = null;
   tempRequiereCambioPassword: boolean = false;
   tempMensajeUrgente: boolean = false;
+  @ViewChildren('codeInput') codeInputs!: QueryList<ElementRef>;
 
   vistaActual:
     | 'login'
@@ -82,6 +83,7 @@ export class LoginComponent {
       nextInput.focus();
     }
   }
+  
   onBackspace(
     event: any,
     index: number,
@@ -181,7 +183,7 @@ export class LoginComponent {
           this.tempImagenUrl = res.imagen_url || null;
           this.tempMensajeAdicional = res.mensaje_adicional || '';
           this.tempTipoMensaje = res.tipo_mensaje || 'exito';
-          this.tempDiasTranscurridos = res.dias_transcurridos || 0;
+          this.tempDiasTranscurridos = res.dias_transcurridos;
           this.tempRequiereCambioPassword =
             res.requiere_cambio_password || false;
           this.tempMensajeUrgente = res.mensaje_urgente || false;

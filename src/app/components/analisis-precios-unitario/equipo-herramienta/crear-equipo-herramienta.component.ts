@@ -45,7 +45,7 @@ export class CrearEquipoHerramientaComponent implements OnInit {
   roles: string[] = [];
   permisos: string[] = [];
 
-  // ✅ Mensajes y estado UI
+  // Mensajes y estado UI
   mostrarConfirmacion = false;
   tipoConfirmacion: 'item' | null = null;
   itemIndexAEliminar: number | null = null;
@@ -116,7 +116,7 @@ export class CrearEquipoHerramientaComponent implements OnInit {
   }
 
   formatearNumero(valor: number): string {
-    // 🔹 Solo para mostrar: redondea visualmente, no modifica el valor original
+    // Solo para mostrar: redondea visualmente, no modifica el valor original
     const redondeado = Math.round(valor * 100) / 100; // redondeo final
     let partes = redondeado.toFixed(2).split('.');
     partes[0] = partes[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.');
@@ -132,7 +132,7 @@ export class CrearEquipoHerramientaComponent implements OnInit {
     return this.equipos.controls.reduce((acc, control) => {
       const cantidad = control.get('cantidad')?.value || 0;
       const precio = control.get('precio_unitario')?.value || 0;
-      return acc + cantidad * precio; // ✅ sin redondeo
+      return acc + cantidad * precio; // sin redondeo
     }, 0);
   }
 
@@ -144,10 +144,10 @@ export class CrearEquipoHerramientaComponent implements OnInit {
 
   get totalEquipos(): number {
     const total = this.subtotalEquipos + this.herramientasPorcentaje;
-    const totalRedondeado = Math.round(total);
-    this.servicio.setTotalEquipos(totalRedondeado);
-    return totalRedondeado;
+    this.servicio.setTotalEquipos(total);
+    return total;
   }
+
 
   // 🔹 Usuario
   private recuperarUsuarioLocalStorage() {
@@ -214,13 +214,10 @@ export class CrearEquipoHerramientaComponent implements OnInit {
   }
   cargarUnidades(): void {
     this.servicio.getUnidadesEquipoHerramienta().subscribe({
-      // Cambiado: usa el endpoint específico de equipo/herramienta
       next: (res: string[]) => {
-        // Tipado explícito para consistencia
         this.unidadesUsadas = res || []; // Carga solo unidades únicas de la tabla EquipoHerramienta
       },
       error: (err: any) => {
-        // Tipado explícito
         console.error('Error cargando unidades de equipo/herramienta:', err);
       },
     });
@@ -228,11 +225,8 @@ export class CrearEquipoHerramientaComponent implements OnInit {
 
   private cargarCatalogoEquipos(): void {
     this.servicio.getEquiposHerramientas().subscribe({
-      // Cambiado: getEquiposHerramientas() en lugar de getEquipos()
       next: (equipos: EquipoHerramienta[]) => {
-        // Tipado explícito
         this.catalogoEquipos = equipos.map((e: EquipoHerramienta) => ({
-          // Tipado en map
           descripcion: e.descripcion.trim(),
           ultimo_precio: e.precio_unitario,
         }));
@@ -240,10 +234,9 @@ export class CrearEquipoHerramientaComponent implements OnInit {
           ...new Set(
             equipos.map((e: EquipoHerramienta) => e.descripcion.trim())
           ),
-        ]; // Tipado en map; ahora es string[]
+        ];
       },
       error: (err: any) => {
-        // Tipado explícito
         console.error('Error cargando catálogo de equipos:', err);
       },
     });
@@ -430,16 +423,21 @@ export class CrearEquipoHerramientaComponent implements OnInit {
       equipo.markAllAsTouched();
       return;
     }
+
+    // Convertir campos críticos a MAYÚSCULAS
+    const descripcion = (equipo.get('descripcion')?.value || '').toUpperCase();
+    const unidad = (equipo.get('unidad')?.value || '').toUpperCase();
+
+    equipo.get('descripcion')?.setValue(descripcion);
+    equipo.get('unidad')?.setValue(unidad);
+
     const nuevoEquipo: EquipoHerramienta = this.crearEquipoDesdeForm(equipo);
     this.servicio.createEquipoHerramienta(nuevoEquipo).subscribe({
       next: (res: EquipoHerramienta) => {
-        // Tipado explícito
         equipo.patchValue({ id: res.id, esNuevo: false });
         if (res.total) {
-          // Si backend retorna total
           equipo.patchValue({ total: res.total });
         } else {
-          // Calcula localmente si no
           this.actualizarPrecioParcial(equipo);
         }
         this.actualizarTotalGlobal();
@@ -448,32 +446,38 @@ export class CrearEquipoHerramientaComponent implements OnInit {
         this.agregarUnidadSiNoExiste(res.unidad);
       },
       error: (err: any) => {
-        // Tipado explícito
         this.mensajeError = 'Error al registrar equipo/herramienta.';
       },
     });
   }
 
+
   actualizarItem(index: number): void {
     const equipo = this.equipos.at(index);
     if (equipo.invalid || !equipo.get('id')?.value) return;
 
+    // Convertir campos críticos a MAYÚSCULAS
+    const descripcion = (equipo.get('descripcion')?.value || '').toUpperCase();
+    const unidad = (equipo.get('unidad')?.value || '').toUpperCase();
+
+    equipo.get('descripcion')?.setValue(descripcion);
+    equipo.get('unidad')?.setValue(unidad);
+
     const equipoActualizado = this.crearEquipoDesdeForm(equipo);
     this.servicio.updateEquipoHerramienta(equipoActualizado).subscribe({
       next: (res: EquipoHerramienta) => {
-        // Tipado explícito (asumiendo que update retorna el objeto)
-        equipo.patchValue({ total: equipoActualizado.total }); // Usa el calculado local, o res.total si backend lo envía
+        equipo.patchValue({ total: equipoActualizado.total });
         this.actualizarTotalGlobal();
         this.mensajeExito = 'Equipo/herramienta actualizado correctamente.';
 
         this.agregarUnidadSiNoExiste(equipoActualizado.unidad);
       },
       error: (err: any) => {
-        // Tipado explícito
         this.mensajeError = 'Error al actualizar equipo/herramienta.';
       },
     });
   }
+
 
   eliminarItem(index: number): void {
     const equipo = this.equipos.at(index);
@@ -490,14 +494,17 @@ export class CrearEquipoHerramientaComponent implements OnInit {
     }
   }
   private crearEquipoDesdeForm(control: AbstractControl): EquipoHerramienta {
-    const cantidad = control.get('cantidad')?.value || 0;
-    const precio = control.get('precio_unitario')?.value || 0;
+    const cantidad = Number(control.get('cantidad')?.value) || 0;
+    const precio = Number(control.get('precio_unitario')?.value) || 0;
+
+    const descripcion = (control.get('descripcion')?.value || '').toUpperCase();
+    const unidad = (control.get('unidad')?.value || '').toUpperCase();
 
     return {
       id: control.get('id')?.value ?? 0,
       id_gasto_operacion: this.id_gasto_operaciones,
-      descripcion: control.get('descripcion')?.value || '',
-      unidad: control.get('unidad')?.value || '',
+      descripcion,
+      unidad,
       cantidad,
       precio_unitario: precio,
       total: cantidad * precio,
@@ -505,6 +512,7 @@ export class CrearEquipoHerramientaComponent implements OnInit {
       modificado_por: this.usuario_id,
     };
   }
+
 
   manejarAceptar(): void {
     if (this.tipoConfirmacion === 'item' && this.itemIndexAEliminar !== null) {

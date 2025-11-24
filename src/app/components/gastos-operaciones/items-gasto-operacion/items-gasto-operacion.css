@@ -1,0 +1,58 @@
+
+input[type=text]::-webkit-outer-spin-button,
+input[type=text]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type=text] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+  border: none;            
+  background: transparent;   
+}
+
+input[type=text]:focus {
+  outline: none;             
+  box-shadow: none;          
+}
+
+/* Texto un poco más pequeño */
+.tabla-gastos {
+  font-size: 0.80rem;
+}
+
+/* Filas totalmente blancas */
+.tabla-gastos tbody tr.fila-item {
+  background: #ffffff !important;
+  color: #000 !important;
+  font-weight: normal !important;
+}
+
+/* Inputs y celdas más compactas */
+.tabla-gastos td, 
+.tabla-gastos th {
+  padding: 0.3rem !important;
+}
+
+/* Evitar negrilla excepto en módulos */
+.tabla-gastos td,
+.tabla-gastos th {
+  font-weight: normal;
+}
+
+/* Botones de acciones con tamaño consistente */
+.acciones-col .btn {
+  padding: 2px 6px;
+  font-size: 0.8rem;
+}
+
+/* Responsividad: permitir desplazamiento horizontal en móviles */
+.table-responsive {
+  overflow-x: auto;
+}
+thead.table-success th {
+  text-transform: uppercase;
+  font-weight: bold; /* o 600 si lo quieres un poco menos fuerte */
+}
+

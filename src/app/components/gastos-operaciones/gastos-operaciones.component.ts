@@ -1978,19 +1978,16 @@ export class GastosOperacionesComponent implements OnInit, AfterViewInit {
     if (valor === null || valor === undefined || isNaN(Number(valor))) {
       return '';
     }
-
     // Convertir a string para analizar los decimales originales
     const valorStr = valor.toString();
     const partes = valorStr.split('.'); // [entero, decimales]
     const parteEntera = partes[0];
     const parteDecimal = partes[1] ?? '';
-
     // Formatear la parte entera con puntos de miles
     const parteEnteraFormateada = parteEntera.replace(
       /\B(?=(\d{3})+(?!\d))/g,
       '.'
     );
-
     // Si tiene decimales, los agregamos con coma, sino solo la parte entera
     return parteDecimal
       ? `${parteEnteraFormateada},${parteDecimal}`

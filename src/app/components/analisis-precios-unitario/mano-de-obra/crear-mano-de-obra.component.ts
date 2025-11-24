@@ -451,6 +451,13 @@ export class CrearManoDeObraComponent implements OnInit {
       return;
     }
 
+    // Convertir campos críticos a MAYÚSCULAS
+    const descripcion = (trabajo.get('descripcion')?.value || '').toUpperCase();
+    const unidad = (trabajo.get('unidad')?.value || '').toUpperCase();
+
+    trabajo.get('descripcion')?.setValue(descripcion);
+    trabajo.get('unidad')?.setValue(unidad);
+
     const nuevoTrabajo: ManoDeObra = this.crearManoDeObraDesdeForm(trabajo);
     this.servicio.createManoDeObra(nuevoTrabajo).subscribe({
       next: (res) => {
@@ -463,9 +470,17 @@ export class CrearManoDeObraComponent implements OnInit {
     });
   }
 
+
   actualizarItem(index: number): void {
     const trabajo = this.manoObra.at(index);
     if (trabajo.invalid || !trabajo.get('id')?.value) return;
+
+    // Convertir campos críticos a MAYÚSCULAS
+    const descripcion = (trabajo.get('descripcion')?.value || '').toUpperCase();
+    const unidad = (trabajo.get('unidad')?.value || '').toUpperCase();
+
+    trabajo.get('descripcion')?.setValue(descripcion);
+    trabajo.get('unidad')?.setValue(unidad);
 
     const trabajoActualizado = this.crearManoDeObraDesdeForm(trabajo);
     this.servicio.updateManoDeObra(trabajoActualizado).subscribe({
@@ -478,6 +493,7 @@ export class CrearManoDeObraComponent implements OnInit {
       },
     });
   }
+
 
   eliminarItem(index: number): void {
     this.mostrarConfirmacion = true;
@@ -525,13 +541,17 @@ export class CrearManoDeObraComponent implements OnInit {
   }
 
   private crearManoDeObraDesdeForm(control: AbstractControl): ManoDeObra {
-    const cantidad = control.get('cantidad')?.value || 0;
-    const precio = control.get('precio_unitario')?.value || 0;
+    const cantidad = Number(control.get('cantidad')?.value) || 0;
+    const precio = Number(control.get('precio_unitario')?.value) || 0;
+
+    const descripcion = (control.get('descripcion')?.value || '').toUpperCase();
+    const unidad = (control.get('unidad')?.value || '').toUpperCase();
+
     return {
       id: control.get('id')?.value ?? 0,
       id_gasto_operacion: this.id_gasto_operaciones,
-      descripcion: control.get('descripcion')?.value || '',
-      unidad: control.get('unidad')?.value || '',
+      descripcion,
+      unidad,
       cantidad,
       precio_unitario: precio,
       total: cantidad * precio,
@@ -539,6 +559,7 @@ export class CrearManoDeObraComponent implements OnInit {
       modificado_por: this.usuario_id,
     };
   }
+
 
   actualizarPrecioParcial(control: AbstractControl): void {
     const cantidad = control.get('cantidad')?.value || 0;

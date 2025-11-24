@@ -29,6 +29,8 @@ import { CrearEcuacionComponent } from './components/analisis-precios-unitario/1
 import { CrearGastosGeneralesComponent } from './components/analisis-precios-unitario/gastos-generales/crear-gastos-generales.component';
 import { PrecioFacturaComponent } from './components/analisis-precios-unitario/precio-factura/precio-factura.component';
 import { AuditoriaComponent } from './components/seguridad/auditoria/auditoria.component';
+import { Proyectos } from './components/gastos-operaciones/proyectos/proyectos';
+import { ReportesPDf } from './components/gastos-operaciones/reportes-pdf/reportes-pdf';
 
 export const routes: Routes = [
   { path: '', component: IndexComponent }, // Ruta principal
@@ -90,6 +92,10 @@ export const routes: Routes = [
         path: 'gastos-operaciones',
         component: GastosOperacionesComponent,
       },
+      {
+        path: 'proyectos',
+        component: Proyectos,
+      },
       //  =====================================================
       //  ================  seccion 3    ======================
       //  =====================================================
@@ -111,6 +117,8 @@ export const routes: Routes = [
         component: CrearGastosGeneralesComponent,
       },
 
+
+
       //  =====================================================
       //  ================  seccion 4    ======================
       //  =====================================================
@@ -121,6 +129,13 @@ export const routes: Routes = [
       },
       //  =====================================================
       //  ================  seccion 5    ======================
+      //  =====================================================
+      {
+        path: 'PDF',
+        component: ReportesPDf,
+      },
+      //  =====================================================
+      //  ================  seccion 6   ======================
       //  =====================================================
 
       // auditoria

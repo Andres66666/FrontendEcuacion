@@ -28,7 +28,7 @@ export class PanelControlComponent implements OnInit, OnDestroy {
   userName: string = '';
   userPermissions: string[] = [];
   imagenUrl: string | null = '';
-  diasTranscurridos: number = 0;
+  diasTranscurridos: number | null = null;
 
   mostrarConfirmacion: boolean = false;
   mensajeConfirmacion: string = '';
@@ -39,7 +39,6 @@ export class PanelControlComponent implements OnInit, OnDestroy {
 
   imagenAbrir: string = 'https://cdn-icons-png.flaticon.com/128/14025/14025576.png';   // la imagen para abrir
   imagenCerrar: string = 'https://cdn-icons-png.flaticon.com/128/603/603495.png'; // la imagen para cerrar
-
 
  
   constructor(
@@ -67,7 +66,7 @@ export class PanelControlComponent implements OnInit, OnDestroy {
     this.userName = `${datosUsuario.nombre ?? ''} ${datosUsuario.apellido ?? ''}`.trim();
     this.userPermissions = datosUsuario.permisos ?? [];
     this.imagenUrl = datosUsuario.imagen_url ?? null;
-    this.diasTranscurridos = datosUsuario.dias_transcurridos ?? 0;
+    this.diasTranscurridos = datosUsuario.dias_transcurridos ?? null;
 
     this.checkScreenSize();
     this.resetInactivityTimer();

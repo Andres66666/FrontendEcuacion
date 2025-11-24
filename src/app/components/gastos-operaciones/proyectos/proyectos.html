@@ -1,0 +1,292 @@
+<div>
+  <div
+    class="modal fade"
+    id="modalProyectoParametros"
+    tabindex="-1"
+    aria-labelledby="modalProyectoParametrosLabel"
+    aria-hidden="true"
+  >
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content shadow-lg">
+
+        <!-- HEADER -->
+        <div class="modal-header bg-primary text-white text-center position-relative">
+          <span class="btn-close invisible"></span>
+
+          <h5 class="modal-title w-100 fw-bold" id="modalProyectoParametrosLabel">
+            {{ proyectoSeleccionado ? "PARÁMETROS DEL PROYECTO" : "CREAR NUEVO PROYECTO" }}
+          </h5>
+
+          <button
+            type="button"
+            class="btn-close btn-close-white position-absolute end-0 me-3"
+            data-bs-dismiss="modal"
+            aria-label="Close"
+          ></button>
+        </div>
+
+        <!-- BODY -->
+        <div class="modal-body">
+
+          <!-- Nombre del Proyecto -->
+          <div class="mb-4">
+            <label class="form-label fw-semibold">Nombre del Proyecto</label>
+            <input
+              type="text"
+              class="form-control"
+              [(ngModel)]="nombreProyecto"
+              (input)="filtrarNombreProyectoInput($event)"
+              placeholder="Ingrese nombre del proyecto"
+            />
+          </div>
+
+          <!-- Tabla de Parámetros -->
+          <div class="table-responsive">
+            <table class="table table-bordered table-striped align-middle shadow-sm">
+              <thead class="table-primary text-center">
+                <tr>
+                  <th>PARÁMETROS</th>
+                  <th>EN PORCENTAJE (%)</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                <tr>
+                  <td>CARGAS SOCIALES</td>
+                  <td><input type="number" class="form-control text-center" [(ngModel)]="carga_social" placeholder="55"/></td>
+                </tr>
+
+                <tr>
+                  <td>IVA TASA EFECTIVA</td>
+                  <td><input type="number" class="form-control text-center" [(ngModel)]="iva_efectiva" placeholder="14.90"/></td>
+                </tr>
+
+                <tr>
+                  <td>HERRAMIENTAS</td>
+                  <td><input type="number" class="form-control text-center" [(ngModel)]="herramientas" placeholder="5"/></td>
+                </tr>
+
+                <tr>
+                  <td>GASTOS GENERALES</td>
+                  <td><input type="number" class="form-control text-center" [(ngModel)]="gastos_generales" placeholder="12"/></td>
+                </tr>
+
+                <tr>
+                  <td>IVA TASA NOMINAL</td>
+                  <td><input type="number" class="form-control text-center" [(ngModel)]="iva_tasa_nominal" placeholder="13"/></td>
+                </tr>
+
+                <tr>
+                  <td>IT TASA NOMINAL</td>
+                  <td><input type="number" class="form-control text-center" [(ngModel)]="it" placeholder="3"/></td>
+                </tr>
+
+                <tr>
+                  <td>IUE</td>
+                  <td><input type="number" class="form-control text-center" [(ngModel)]="iue" placeholder="25"/></td>
+                </tr>
+
+                <tr>
+                  <td>GANANCIA</td>
+                  <td><input type="number" class="form-control text-center" [(ngModel)]="ganancia" placeholder="50"/></td>
+                </tr>
+
+                <tr>
+                  <td>A - COSTO DE VENTA</td>
+                  <td><input type="number" class="form-control text-center" [(ngModel)]="a_costo_venta" placeholder="77" /></td>
+                </tr>
+
+                <tr>
+                  <td>B - MARGEN DE UTILIDAD</td>
+                  <td><input type="number" class="form-control text-center" [(ngModel)]="b_margen_utilidad" placeholder="10"/></td>
+                </tr>
+
+                <tr class="table-info fw-bold">
+                  <td>PORCENTAJE GLOBAL</td>
+                  <td><input type="number" class="form-control text-center fw-bold" [(ngModel)]="porcentaje_global_100" disabled /></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+        </div>
+
+        <!-- FOOTER -->
+        <div class="modal-footer d-flex justify-content-between">
+          <button type="button" class="btn btn-outline-secondary" (click)="cerrarModalParametros()">
+            Cancelar
+          </button>
+
+          <button
+            type="button"
+            class="btn btn-primary px-4"
+            (click)="proyectoSeleccionado ? guardarParametros() : registrarNuevoProyecto()"
+          >
+            {{ proyectoSeleccionado ? "Guardar Cambios" : "Crear Proyecto" }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+    <div class="row g-2 align-items-center">
+      <!-- Selector de proyectos -->
+      <div class="col-md-4">
+        <div class="dropdown position-relative w-100">
+          <div *ngIf="duplicandoProyecto" class="mt-3">
+            <div class="progress">
+              <div
+                class="progress-bar progress-bar-striped progress-bar-animated"
+                role="progressbar"
+                [style.width.%]="progresoDuplicacion"
+              >
+                {{ progresoDuplicacion }}%
+              </div>
+            </div>
+
+            <p class="text-center mt-2">Duplicando proyecto, por favor espere...</p>
+          </div>
+
+          <!-- BOTÓN -->
+          <button
+            class="btn btn-light w-100 text-start"
+            type="button"
+            (click)="toggleDropdownProyectos()"
+          >
+            {{ proyectoSeleccionado?.NombreProyecto || 'Seleccionar proyecto' }}
+          </button>
+          <!-- DROPDOWN -->
+          <ul
+            *ngIf="mostrarDropdownProyectos"
+            class="dropdown-menu show w-100 p-2 dropdown-proyectos"
+            style="max-height: 250px; overflow-y: auto;"
+            (click)="$event.stopPropagation()"
+          >
+            <!--  BUSCADOR -->
+            <input
+              type="text"
+              class="form-control mb-2"
+              placeholder="Buscar proyecto..."
+              [(ngModel)]="busquedaProyecto"
+              (input)="filtrarProyectoPorBusqueda()"
+            />
+            <!-- LISTA DE PROYECTOS FILTRADOS -->
+            <li
+              *ngFor="let proyecto of proyectosFiltrados"
+              class="list-group-item d-flex justify-content-between align-items-center mb-2"
+            >
+              <span
+                class="flex-grow-1"
+                style="cursor: pointer"
+                (click)="seleccionarProyecto(proyecto); mostrarDropdownProyectos = false"
+              >
+                {{ proyecto.NombreProyecto }}
+              </span>
+              <button
+                class="btn btn-sm btn-outline-primary"
+                type="button"
+                (click)="duplicarProyecto(proyecto, $event)"
+                title="Duplicar proyecto"
+              >
+                <i class="bi bi-copy"></i>
+              </button>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+
+      <!-- Selector de módulos -->
+      <div class="col-md-4 mt-4">  <!-- Mantiene col-md-4 para ancho reducido -->
+        <app-modulo [identificadorGeneral]="identificadorGeneral"></app-modulo>
+      </div>
+
+      <!-- Botones -->
+      <div class="col-auto d-flex gap-2 align-items-center">
+        <button
+          class="btn btn-outline-info"
+          title="Ver Parámetros"
+          *ngIf="identificadorGeneral !== 0"
+          [disabled]="!proyectoSeleccionado"
+          (click)="abrirModalParametros(true)"
+        >
+          <i class="bi bi-eye-fill fs-5"></i>
+        </button>
+
+        <button
+          class="btn btn-outline-warning"
+          title="Crear Nuevo Proyecto"
+          (click)="abrirModalParametros(false)"
+        >
+          <i class="bi bi-folder-plus fs-5"></i>
+        </button>
+
+        <button
+          class="btn btn-outline-danger"
+          *ngIf="identificadorGeneral !== 0"
+          (click)="eliminarProyecto()"
+          title="Eliminar Proyecto"
+        >
+          <i class="bi bi-trash-fill fs-5"></i>
+        </button>
+       <button
+          class="btn"
+          [ngClass]="mostrarVistaPDF ? 'btn-success' : 'btn-outline-danger'"
+          *ngIf="identificadorGeneral !== 0"
+          (click)="togglePDF()"
+          title="Generar PDF / Alternar vista"
+        >
+          <i class="bi bi-file-earmark-pdf-fill fs-5"></i>
+        </button>
+
+
+      </div>
+    </div>
+    <ng-container *ngIf="!mostrarVistaPDF; else vistaPDF">
+      <app-items-gasto-operacion 
+        [identificadorGeneral]="identificadorGeneral"
+        [proyectoSeleccionado]="proyectoSeleccionado"
+        [proyectoData]="proyectoData">
+      </app-items-gasto-operacion>
+    </ng-container>
+
+    <ng-template #vistaPDF>
+      <app-reportes-pdf 
+        [identificadorGeneral]="identificadorGeneral"
+        [nombreProyecto]="nombreProyecto"
+        [proyectoData]="proyectoData"
+        [items]="items"
+        [iva_tasa_nominal]="iva_tasa_nominal"
+        [it]="it"
+        [iue]="iue"
+        [ganancia]="ganancia"
+        [a_costo_venta]="a_costo_venta"
+        [b_margen_utilidad]="b_margen_utilidad"
+        [porcentaje_global_100]="porcentaje_global_100"
+        (mensaje)="manejarMensaje($event)">
+        
+      </app-reportes-pdf>
+    </ng-template>
+    
+
+    <!-- COMPONENTES DE MENSAJES -->
+  <app-confirmacion
+    *ngIf="mostrarConfirmacion"
+    [mensaje]="mensajeConfirmacion"
+    (aceptar)="manejarAceptar()"
+    (cancelar)="manejarCancelar()"
+  ></app-confirmacion>
+
+  <app-ok
+    *ngIf="mensajeExito"
+    [mensaje]="mensajeExito"
+    (close)="manejarOk()"
+  ></app-ok>
+
+  <app-error
+    *ngIf="mensajeError"
+    [mensaje]="mensajeError"
+    (close)="manejarError()"
+  ></app-error>
+
+</div>
