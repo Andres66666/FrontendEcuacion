@@ -20,35 +20,38 @@ import { CrearUsuarioRolComponent } from './components/gestion_de_usuarios/usuar
 import { CrearRolPermisoComponent } from './components/gestion_de_usuarios/rol-permiso/crear-rol-permiso/crear-rol-permiso.component';
 import { PerfilComponent } from './components/perfil/perfil.component';
 
-import { GastosOperacionesComponent } from './components/gastos-operaciones/gastos-operaciones.component';
-
 import { CrearMaterialesComponent } from './components/analisis-precios-unitario/materiales/crear-materiales.component';
 import { CrearManoDeObraComponent } from './components/analisis-precios-unitario/mano-de-obra/crear-mano-de-obra.component';
 import { CrearEquipoHerramientaComponent } from './components/analisis-precios-unitario/equipo-herramienta/crear-equipo-herramienta.component';
 import { CrearEcuacionComponent } from './components/analisis-precios-unitario/1-2-3-4/crear-ecuacion.component';
 import { CrearGastosGeneralesComponent } from './components/analisis-precios-unitario/gastos-generales/crear-gastos-generales.component';
 import { PrecioFacturaComponent } from './components/analisis-precios-unitario/precio-factura/precio-factura.component';
-import { AuditoriaComponent } from './components/seguridad/auditoria/auditoria.component';
-import { Proyectos } from './components/gastos-operaciones/proyectos/proyectos';
-import { ReportesPDf } from './components/gastos-operaciones/reportes-pdf/reportes-pdf';
+import { AuditoriaComponent } from './components/auditoria/auditoria.component';
+import { Proyectos } from './components/gestion_proyectos/proyectos/proyectos';
+import { ReportesPDf } from './components/gestion_proyectos/reportes-pdf/reportes-pdf';
+import { Servicios } from './components/servicios/servicios';
+import { Registrocliente } from './components/gestion_de_usuarios/registrocliente/registrocliente';
 
 export const routes: Routes = [
   { path: '', component: IndexComponent }, // Ruta principal
   { path: 'login', component: LoginComponent },
   { path: 'index', component: IndexComponent },
+  { path: 'confirmar/:token', component: Registrocliente },
 
   {
     path: 'panel-control',
     component: PanelControlComponent,
-    canActivate: [authGuard], // ⬅️ Protección con el guard
+    canActivate: [authGuard],
     children: [
       {
         path: 'perfil',
         component: PerfilComponent,
       },
-      //  =====================================================
-      //  ================  seccion 1    ======================
-      //  =====================================================
+
+      // ===============================
+      // |||  SECCIÓN 1 — SEGURIDAD  |||
+      // ===============================
+
       // Rol
       { path: 'listar-rol', component: ListarRolComponent },
       { path: 'registrar-rol', component: CrearRolComponent },
@@ -66,79 +69,57 @@ export const routes: Routes = [
 
       // Rol-Permiso
       { path: 'listar-rol-permiso', component: ListarRolPermisoComponent },
-      {
-        path: 'registrar-rol-permiso',
-        component: CrearRolPermisoComponent,
-      },
+      { path: 'registrar-rol-permiso', component: CrearRolPermisoComponent },
       { path: 'editar-rol-permiso/:id', component: EditarRolPermisoComponent },
 
-      // Usuario-Rol-
-      {
-        path: 'listar-usuario-rol',
-        component: ListarUsuarioRolComponent,
-      },
-      {
-        path: 'registrar-usuario-rol',
-        component: CrearUsuarioRolComponent,
-      },
-      {
-        path: 'editar-usuario-rol/:id',
-        component: EditarUsuarioRolComponent,
-      },
-      //  =====================================================
-      //  ================  seccion 2    ======================
-      //  =====================================================
-      {
-        path: 'gastos-operaciones',
-        component: GastosOperacionesComponent,
-      },
-      {
-        path: 'proyectos',
-        component: Proyectos,
-      },
-      //  =====================================================
-      //  ================  seccion 3    ======================
-      //  =====================================================
-      /* crear ecuaciuon */
-      { path: 'CrearEcuacion', component: CrearEcuacionComponent },
+      // Usuario-Rol
+      { path: 'listar-usuario-rol', component: ListarUsuarioRolComponent },
+      { path: 'registrar-usuario-rol', component: CrearUsuarioRolComponent },
+      { path: 'editar-usuario-rol/:id', component: EditarUsuarioRolComponent },
 
-      /*materiales   */
+      // ===============================
+      // |||  SECCIÓN 2 — OPERACIONES |||
+      // ===============================
+
+      { path: 'proyectos', component: Proyectos },
+
+      // ===============================
+      // |||  SECCIÓN 3 — CÁLCULOS   |||
+      // ===============================
+
+      { path: 'CrearEcuacion', component: CrearEcuacionComponent },
       { path: 'CrearMateriales', component: CrearMaterialesComponent },
-      /* mano de obra */
       { path: 'CrearManoDeObra', component: CrearManoDeObraComponent },
-      /* equipo herramienta */
       {
         path: 'CrearEquipoHerramienta',
         component: CrearEquipoHerramientaComponent,
       },
-      /* gastos generales administrativos */
       {
         path: 'CrearGastosGenerales',
         component: CrearGastosGeneralesComponent,
       },
 
+      // Registro de cliente externo (SE MANTIENE AQUÍ)
+      { path: 'registro-cliente', component: Registrocliente },
 
+      { path: 'servicios', component: Servicios },
 
-      //  =====================================================
-      //  ================  seccion 4    ======================
-      //  =====================================================
+      // ===============================
+      // |||  SECCIÓN 4 — FACTURACIÓN |||
+      // ===============================
 
-      {
-        path: 'PrecioFactura',
-        component: PrecioFacturaComponent,
-      },
-      //  =====================================================
-      //  ================  seccion 5    ======================
-      //  =====================================================
-      {
-        path: 'PDF',
-        component: ReportesPDf,
-      },
-      //  =====================================================
-      //  ================  seccion 6   ======================
-      //  =====================================================
+      { path: 'PrecioFactura', component: PrecioFacturaComponent },
 
-      // auditoria
+      // ===============================
+      // |||  SECCIÓN 5 — REPORTES    |||
+      // ===============================
+
+      { path: 'PDF', component: ReportesPDf },
+
+      // ===============================
+      // |||  SECCIÓN 6 — AUDITORÍA   |||
+      // ===============================
+
       { path: 'auditoria', component: AuditoriaComponent },
 
       // Ruta por defecto

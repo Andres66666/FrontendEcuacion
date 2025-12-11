@@ -83,8 +83,6 @@ export class CrearEquipoHerramientaComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.recuperarUsuarioLocalStorage();
-
     this.route.queryParams.subscribe((params) => {
       this.id_gasto_operaciones = Number(params['id_gasto_operaciones']) || 0;
       this.herramientas = Number(params['herramientas']) || 0;
@@ -147,25 +145,6 @@ export class CrearEquipoHerramientaComponent implements OnInit {
     this.servicio.setTotalEquipos(total);
     return total;
   }
-
-
-  // 🔹 Usuario
-  private recuperarUsuarioLocalStorage() {
-    const usuarioStr = localStorage.getItem('usuarioLogueado');
-    if (!usuarioStr) return;
-
-    try {
-      const datosUsuario = JSON.parse(usuarioStr);
-      this.usuario_id = datosUsuario.id ?? 0;
-      this.nombre_usuario = datosUsuario.nombre ?? '';
-      this.apellido = datosUsuario.apellido ?? '';
-      this.roles = datosUsuario.rol ?? [];
-      this.permisos = datosUsuario.permiso ?? [];
-    } catch (error) {
-      console.error('Error al parsear usuario desde localStorage', error);
-    }
-  }
-
   // 🔹 CRUD Equipos
   private crearEquipoForm(
     equipo?: EquipoHerramienta,
@@ -451,7 +430,6 @@ export class CrearEquipoHerramientaComponent implements OnInit {
     });
   }
 
-
   actualizarItem(index: number): void {
     const equipo = this.equipos.at(index);
     if (equipo.invalid || !equipo.get('id')?.value) return;
@@ -477,7 +455,6 @@ export class CrearEquipoHerramientaComponent implements OnInit {
       },
     });
   }
-
 
   eliminarItem(index: number): void {
     const equipo = this.equipos.at(index);
@@ -508,11 +485,8 @@ export class CrearEquipoHerramientaComponent implements OnInit {
       cantidad,
       precio_unitario: precio,
       total: cantidad * precio,
-      creado_por: this.usuario_id,
-      modificado_por: this.usuario_id,
     };
   }
-
 
   manejarAceptar(): void {
     if (this.tipoConfirmacion === 'item' && this.itemIndexAEliminar !== null) {

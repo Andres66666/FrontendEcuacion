@@ -75,7 +75,6 @@ export class CrearMaterialesComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.recuperarUsuarioLocalStorage();
     this.route.queryParams.subscribe((params) => {
       this.id_gasto_operaciones = Number(params['id_gasto_operaciones']) || 0;
       if (this.id_gasto_operaciones) this.cargarMaterialesExistentes();
@@ -134,24 +133,7 @@ export class CrearMaterialesComponent implements OnInit {
     return total;
   }
 
-  // 🔹 Métodos de usuario
-  private recuperarUsuarioLocalStorage() {
-    const usuarioStr = localStorage.getItem('usuarioLogueado');
-    if (!usuarioStr) return;
-
-    try {
-      const datosUsuario = JSON.parse(usuarioStr);
-      this.usuario_id = datosUsuario.id ?? 0;
-      this.nombre_usuario = datosUsuario.nombre ?? '';
-      this.apellido = datosUsuario.apellido ?? '';
-      this.roles = datosUsuario.rol ?? [];
-      this.permisos = datosUsuario.permiso ?? [];
-    } catch (error) {
-      console.error('Error al parsear usuario desde localStorage', error);
-    }
-  }
-
-  // 🔹 Formulario
+  // Formulario
   private crearMaterialForm(mat?: Materiales, esNuevo = true): FormGroup {
     return this.fb.group({
       id: [mat?.id ?? null],
@@ -273,8 +255,8 @@ export class CrearMaterialesComponent implements OnInit {
     }
 
     // Convertir campos críticos a MAYÚSCULAS
-    const descripcion = mat.get('descripcion')?.value?.toUpperCase() || "";
-    const unidad = mat.get('unidad')?.value?.toUpperCase() || "";
+    const descripcion = mat.get('descripcion')?.value?.toUpperCase() || '';
+    const unidad = mat.get('unidad')?.value?.toUpperCase() || '';
 
     mat.get('descripcion')?.setValue(descripcion);
     mat.get('unidad')?.setValue(unidad);
@@ -297,14 +279,13 @@ export class CrearMaterialesComponent implements OnInit {
     });
   }
 
-
   actualizarItem(index: number): void {
     const mat = this.materiales.at(index);
 
     if (mat.invalid || !mat.get('id')?.value) return;
 
-    const descripcion = mat.get('descripcion')?.value?.toUpperCase() || "";
-    const unidad = mat.get('unidad')?.value?.toUpperCase() || "";
+    const descripcion = mat.get('descripcion')?.value?.toUpperCase() || '';
+    const unidad = mat.get('unidad')?.value?.toUpperCase() || '';
 
     mat.get('descripcion')?.setValue(descripcion);
     mat.get('unidad')?.setValue(unidad);
@@ -332,8 +313,12 @@ export class CrearMaterialesComponent implements OnInit {
     this.mensajeConfirmacion = '¿Estás seguro de eliminar este material?';
   }
   private crearMaterialDesdeForm(control: AbstractControl): Materiales {
-    const descripcion = (control.get('descripcion')?.value || '').toString().toUpperCase();
-    const unidad = (control.get('unidad')?.value || '').toString().toUpperCase();
+    const descripcion = (control.get('descripcion')?.value || '')
+      .toString()
+      .toUpperCase();
+    const unidad = (control.get('unidad')?.value || '')
+      .toString()
+      .toUpperCase();
     const cantidad = Number(control.get('cantidad')?.value) || 0;
     const precio_unitario = Number(control.get('precio_unitario')?.value) || 0;
 
@@ -345,11 +330,8 @@ export class CrearMaterialesComponent implements OnInit {
       cantidad: cantidad,
       precio_unitario: precio_unitario,
       total: cantidad * precio_unitario,
-      creado_por: this.usuario_id,
-      modificado_por: this.usuario_id,
     };
   }
-
 
   private actualizarTotalGlobal() {
     const total = this.totalMateriales;

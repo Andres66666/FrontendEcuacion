@@ -1,0 +1,166 @@
+<div class="card shadow border-0 rounded-2 p-4">
+  <h3 class="text-center mb-4 text-success fw-bold">Registro de Cliente</h3>
+
+  <form (ngSubmit)="registrar()" #f="ngForm">
+    <!-- Nombre -->
+    <div class="mb-3">
+      <label for="nombre" class="form-label fw-semibold">Nombre</label>
+      <div class="input-group input-group-lg">
+        <span class="input-group-text"><i class="bi bi-person"></i></span>
+        <input
+          id="nombre"
+          type="text"
+          class="form-control"
+          [(ngModel)]="form.nombre"
+          name="nombre"
+          required
+          placeholder="Ingresa tu nombre"
+        />
+      </div>
+    </div>
+
+    <!-- Apellido -->
+    <div class="mb-3">
+      <label for="apellido" class="form-label fw-semibold">Apellido</label>
+      <div class="input-group input-group-lg">
+        <span class="input-group-text"><i class="bi bi-person-badge"></i></span>
+        <input
+          id="apellido"
+          type="text"
+          class="form-control"
+          [(ngModel)]="form.apellido"
+          name="apellido"
+          required
+          placeholder="Ingresa tu apellido"
+        />
+      </div>
+    </div>
+
+    <!-- Fecha de Nacimiento -->
+    <div class="mb-3">
+      <label for="fecha_nacimiento" class="form-label fw-semibold"
+        >Fecha de Nacimiento</label
+      >
+      <div class="input-group input-group-lg">
+        <span class="input-group-text"
+          ><i class="bi bi-calendar-date"></i
+        ></span>
+        <input
+          id="fecha_nacimiento"
+          type="date"
+          class="form-control"
+          [(ngModel)]="form.fecha_nacimiento"
+          name="fecha_nacimiento"
+          required
+        />
+      </div>
+    </div>
+
+    <!-- Teléfono -->
+    <div class="mb-3">
+      <label for="telefono" class="form-label fw-semibold">Teléfono</label>
+      <div class="input-group input-group-lg">
+        <span class="input-group-text"><i class="bi bi-telephone"></i></span>
+        <input
+          id="telefono"
+          type="text"
+          class="form-control"
+          [(ngModel)]="form.telefono"
+          name="telefono"
+          required
+          placeholder="Ingresa tu teléfono"
+        />
+      </div>
+    </div>
+
+    <!-- Correo -->
+    <div class="mb-3">
+      <label for="correo" class="form-label fw-semibold"
+        >Correo Electrónico</label
+      >
+      <div class="input-group input-group-lg">
+        <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+        <input
+          id="correo"
+          type="email"
+          class="form-control"
+          [(ngModel)]="form.correo"
+          name="correo"
+          required
+          placeholder="correo@ejemplo.com"
+        />
+        <button
+          type="button"
+          class="btn btn-primary"
+          (click)="verificarCorreo()"
+          [disabled]="validandoCorreo"
+        >
+          {{ validandoCorreo ? 'Validando...' : 'Verificar correo' }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Contraseña -->
+    <div class="mb-4">
+      <label for="password" class="form-label fw-semibold">Contraseña</label>
+      <div class="input-group input-group-lg">
+        <input
+          id="password"
+          type="{{ mostrarPassword ? 'text' : 'password' }}"
+          class="form-control"
+          [(ngModel)]="form.password"
+          name="password"
+          required
+          placeholder="Ingresa tu contraseña"
+        />
+        <button
+          type="button"
+          class="btn btn-light"
+          (click)="mostrarPassword = !mostrarPassword"
+        >
+          <i
+            class="bi"
+            [class.bi-eye]="!mostrarPassword"
+            [class.bi-eye-slash]="mostrarPassword"
+          ></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Cédula de Identidad -->
+    <div class="mb-3">
+      <label for="ci" class="form-label fw-semibold"
+        >Cédula de Identidad (CI)</label
+      >
+      <div class="input-group input-group-lg">
+        <span class="input-group-text"><i class="bi bi-credit-card"></i></span>
+        <input
+          id="ci"
+          type="text"
+          class="form-control"
+          [(ngModel)]="form.ci"
+          name="ci"
+          required
+          placeholder="Ingresa tu CI"
+        />
+      </div>
+    </div>
+
+    <!-- Botones -->
+    <div class="d-flex gap-2">
+      <button type="submit" class="btn btn-success w-100 py-2 fw-bold">
+        Crear Cuenta
+      </button>
+      <button
+        type="button"
+        class="btn btn-secondary w-100 py-2 fw-bold"
+        (click)="ocultarRegistro()"
+      >
+        Cancelar
+      </button>
+    </div>
+  </form>
+</div>
+<div *ngIf="mensajeNotificacion" class="notificacion">
+  {{ mensajeNotificacion }}
+</div>

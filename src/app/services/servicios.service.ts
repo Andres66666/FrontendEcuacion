@@ -15,7 +15,6 @@ import {
   Proyecto,
   Atacante,
   Modulo,
-  AuditoriaEvento,
 } from '../models/models';
 
 @Injectable({
@@ -23,16 +22,16 @@ import {
 })
 export class ServiciosService {
   private apiUrl = 'http://localhost:8000/api/';
-  /* private apiUrl = 'https://backendecuacion.onrender.com/api/'; */
+  // private apiUrl = 'https://backendecuacion.onrender.com/api/';
 
   constructor(private http: HttpClient) {}
+
   // =====================================================
-  // 🧩 SECCIÓN 1: Autenticación y Seguridad
+  // SECCIÓN 1: Autenticación y Seguridad
   // =====================================================
 
   login(correo: string, password: string): Observable<any> {
-    const loginData = { correo, password };
-    return this.http.post<any>(`${this.apiUrl}login/`, loginData);
+    return this.http.post<any>(`${this.apiUrl}login/`, { correo, password });
   }
 
   resetPassword(correo: string): Observable<any> {
@@ -111,15 +110,10 @@ export class ServiciosService {
   updateAtacanteBloqueo(id: number, bloqueado: boolean): Observable<any> {
     return this.http.patch(`${this.apiUrl}auditoria_db/${id}/`, { bloqueado });
   }
-  getEventosAuditoria(): Observable<AuditoriaEvento[]> {
-    return this.http.get<AuditoriaEvento[]>(`${this.apiUrl}auditoria_eventos/`);
-  }
-
   // =====================================================
-  // 👤 SECCIÓN 3: Gestión de Usuarios, Roles y Permisos
+  // SECCIÓN 3: Gestión de Usuarios, Roles y Permisos
   // =====================================================
 
-  // --- Roles ---
   getRoles(): Observable<Rol[]> {
     return this.http.get<Rol[]>(`${this.apiUrl}rol/`);
   }
@@ -136,7 +130,6 @@ export class ServiciosService {
     return this.http.put<Rol>(`${this.apiUrl}rol/${rol.id}/`, rol);
   }
 
-  // --- Permisos ---
   getPermisos(): Observable<Permiso[]> {
     return this.http.get<Permiso[]>(`${this.apiUrl}permiso/`);
   }
@@ -153,7 +146,6 @@ export class ServiciosService {
     return this.http.put<Permiso>(`${this.apiUrl}permiso/${p.id}/`, p);
   }
 
-  // --- Usuarios ---
   getUsuarios(): Observable<Usuario[]> {
     return this.http.get<Usuario[]>(`${this.apiUrl}usuario/`);
   }
@@ -172,11 +164,10 @@ export class ServiciosService {
 
   getUsuariosDesactivados(): Observable<any[]> {
     return this.getUsuarios().pipe(
-      map((usuarios) => usuarios.filter((usuario) => !usuario.estado))
+      map((usuarios) => usuarios.filter((u) => !u.estado))
     );
   }
 
-  // --- UsuarioRol ---
   getUsuarioRoles(): Observable<UsuarioRol[]> {
     return this.http.get<UsuarioRol[]>(`${this.apiUrl}usuario_rol/`);
   }
@@ -193,7 +184,6 @@ export class ServiciosService {
     return this.http.put<UsuarioRol>(`${this.apiUrl}usuario_rol/${ur.id}/`, ur);
   }
 
-  // --- RolPermiso ---
   getRolPermiso(): Observable<RolPermiso[]> {
     return this.http.get<RolPermiso[]>(`${this.apiUrl}rol_permiso/`);
   }
@@ -201,7 +191,7 @@ export class ServiciosService {
   getRolPermisoID(id: number): Observable<RolPermiso> {
     return this.http.get<RolPermiso>(`${this.apiUrl}rol_permiso/${id}/`);
   }
-  // Agregar este método al servicio
+
   getPermisosPorRol(rolId: number): Observable<number[]> {
     return this.http.get<number[]>(
       `${this.apiUrl}rol_permiso/permisos_por_rol/?rol_id=${rolId}`
@@ -219,14 +209,9 @@ export class ServiciosService {
     );
   }
 
-  // --- Métodos auxiliares ---
   getRolesFromLocalStorage(): string[] {
     const usuario = localStorage.getItem('usuarioLogueado');
-    if (usuario) {
-      const userObj = JSON.parse(usuario);
-      return userObj.roles || [];
-    }
-    return [];
+    return usuario ? JSON.parse(usuario).roles || [] : [];
   }
 
   verificarUsuario(usuario_id: number): Observable<Usuario> {
@@ -234,7 +219,29 @@ export class ServiciosService {
   }
 
   // =====================================================
-  // 🧱 SECCIÓN 4: Identificadores Generales y Operaciones
+  // Registro de clientes externos
+  // =====================================================
+  validarCorreo(correo: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}validar-correo/`, { correo });
+  }
+
+  enviarVerificacion(datos: any): Observable<any> {
+    return this.http.post(`${this.apiUrl}enviar-verificacion/`, datos);
+  }
+
+  confirmarRegistro(token: string): Observable<any> {
+    return this.http.get(`${this.apiUrl}confirmar/${token}/`);
+  }
+
+  registrarCliente(data: any): Observable<any> {
+    return this.http.post(`${this.apiUrl}registro-cliente/`, data);
+  }
+  completarVerificacion(token: string) {
+    return this.confirmarRegistro(token);
+  }
+
+  // =====================================================
+  // SECCIÓN 4: Identificadores Generales y Operaciones
   // =====================================================
 
   getIdentificadorGeneral(): Observable<Proyecto[]> {
@@ -263,7 +270,7 @@ export class ServiciosService {
 
   updateIdentificadorGeneral(identificador: Proyecto): Observable<Proyecto> {
     return this.http.put<Proyecto>(
-      `${this.apiUrl}IdGeneral/${identificador.id_general}/`,
+      `${this.apiUrl}IdGeneral/${identificador.id_proyecto}/`,
       identificador
     );
   }
@@ -345,7 +352,6 @@ export class ServiciosService {
       payload
     );
   }
-
 
   //  =====================================================
   //  ================  seccion 3    ======================

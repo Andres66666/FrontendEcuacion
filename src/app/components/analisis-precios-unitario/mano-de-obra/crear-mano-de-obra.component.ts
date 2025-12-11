@@ -46,7 +46,7 @@ export class CrearManoDeObraComponent implements OnInit {
   roles: string[] = [];
   permisos: string[] = [];
 
-  // ✅ Mensajes y estado UI
+  // Mensajes y estado UI
   mostrarConfirmacion = false;
   tipoConfirmacion: 'item' | null = null;
   itemIndexAEliminar: number | null = null;
@@ -85,8 +85,6 @@ export class CrearManoDeObraComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.recuperarUsuarioLocalStorage();
-
     this.route.queryParams.subscribe((params) => {
       this.id_gasto_operaciones = Number(params['id_gasto_operaciones']) || 0;
       this.carga_social = Number(params['carga_social']) || 0;
@@ -223,23 +221,6 @@ export class CrearManoDeObraComponent implements OnInit {
       this.subtotalManoObra + this.cargasManoObra + this.ivaManoObra;
     this.servicio.setTotalManoObra(total);
     return total;
-  }
-
-  // 🔹 Usuario
-  private recuperarUsuarioLocalStorage() {
-    const usuarioStr = localStorage.getItem('usuarioLogueado');
-    if (!usuarioStr) return;
-
-    try {
-      const datosUsuario = JSON.parse(usuarioStr);
-      this.usuario_id = datosUsuario.id ?? 0;
-      this.nombre_usuario = datosUsuario.nombre ?? '';
-      this.apellido = datosUsuario.apellido ?? '';
-      this.roles = datosUsuario.rol ?? [];
-      this.permisos = datosUsuario.permiso ?? [];
-    } catch (error) {
-      console.error('Error al parsear usuario desde localStorage', error);
-    }
   }
 
   // 🔹 CRUD Mano de Obra
@@ -470,7 +451,6 @@ export class CrearManoDeObraComponent implements OnInit {
     });
   }
 
-
   actualizarItem(index: number): void {
     const trabajo = this.manoObra.at(index);
     if (trabajo.invalid || !trabajo.get('id')?.value) return;
@@ -493,7 +473,6 @@ export class CrearManoDeObraComponent implements OnInit {
       },
     });
   }
-
 
   eliminarItem(index: number): void {
     this.mostrarConfirmacion = true;
@@ -555,11 +534,8 @@ export class CrearManoDeObraComponent implements OnInit {
       cantidad,
       precio_unitario: precio,
       total: cantidad * precio,
-      creado_por: this.usuario_id,
-      modificado_por: this.usuario_id,
     };
   }
-
 
   actualizarPrecioParcial(control: AbstractControl): void {
     const cantidad = control.get('cantidad')?.value || 0;

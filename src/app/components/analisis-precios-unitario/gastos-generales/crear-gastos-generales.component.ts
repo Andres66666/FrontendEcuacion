@@ -50,8 +50,6 @@ export class CrearGastosGeneralesComponent {
   }
 
   ngOnInit(): void {
-    this.recuperarUsuarioLocalStorage();
-
     this.route.queryParams.subscribe((params) => {
       this.id_gasto_operaciones = Number(params['id_gasto_operaciones']) || 0;
       this.gastos_generales = Number(params['gastos_generales']) || 0;
@@ -83,22 +81,6 @@ export class CrearGastosGeneralesComponent {
       });
   }
 
-  recuperarUsuarioLocalStorage() {
-    const usuarioStr = localStorage.getItem('usuarioLogueado');
-    if (!usuarioStr) return;
-
-    try {
-      const datosUsuario = JSON.parse(usuarioStr);
-      this.usuario_id = datosUsuario.id ?? 0;
-      this.nombre_usuario = datosUsuario.nombre ?? '';
-      this.apellido = datosUsuario.apellido ?? '';
-      this.roles = datosUsuario.rol ?? [];
-      this.permisos = datosUsuario.permiso ?? [];
-    } catch (error) {
-      console.error('Error al parsear usuario desde localStorage', error);
-    }
-  }
-
   registrarGastosGenerales(): void {
     if (!this.id_gasto_operaciones) return;
 
@@ -106,8 +88,6 @@ export class CrearGastosGeneralesComponent {
       id: 0,
       id_gasto_operacion: this.id_gasto_operaciones,
       total: this.totalOperacion,
-      creado_por: this.usuario_id,
-      modificado_por: this.usuario_id,
     };
 
     this.servicio.createGasto(nuevoGasto).subscribe({
@@ -129,8 +109,6 @@ export class CrearGastosGeneralesComponent {
       id: this.gastoExistente.id,
       id_gasto_operacion: this.id_gasto_operaciones,
       total: this.totalOperacion,
-      creado_por: this.gastoExistente.creado_por,
-      modificado_por: this.usuario_id,
     };
 
     this.servicio.updateGasto(gastoActualizado).subscribe({

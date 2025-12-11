@@ -1,0 +1,80 @@
+<div class="container mt-4">
+  <h2 class="text-center mb-4 fw-bold">
+    <i class="bi bi-graph-up-arrow text-primary me-2"></i>
+    Servicio: Ecuación Malla Finita SRL
+  </h2>
+
+  <div class="row justify-content-center">
+    <div class="col-md-4 mb-4" *ngFor="let plan of planes">
+      <div class="card border-primary shadow-lg h-100">
+        <div class="card-body text-center">
+          <h5 class="card-title fw-bold">{{ plan.nombre }}</h5>
+
+          <p class="fs-3 fw-bold text-success">
+            <i class="bi bi-cash-coin me-1"></i>
+            Bs. {{ plan.precio }}
+          </p>
+
+          <span
+            class="badge text-dark mb-2 fs-5 d-block text-wrap text-break mx-auto"
+            style="max-width: 100%"
+          >
+            Descripción: {{ plan.nombreDescripcion }}
+          </span>
+          <button
+            class="btn btn-primary w-100 mt-2"
+            data-bs-toggle="modal"
+            data-bs-target="#modalPago"
+            (click)="seleccionarPlan(plan)"
+          >
+            <i class="bi bi-cart-plus me-1"></i> Comprar
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="modalPago" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title">
+          <i class="bi bi-credit-card-2-front me-2"></i> Método de Pago
+        </h5>
+        <button
+          type="button"
+          class="btn-close btn-close-white"
+          data-bs-dismiss="modal"
+        ></button>
+      </div>
+
+      <div class="modal-body text-center">
+        <p class="mb-3" *ngIf="planSeleccionado">
+          Estás comprando:
+          <strong>{{ planSeleccionado.nombre }}</strong><br />
+          Precio:
+          <strong class="text-success"
+            >Bs. {{ planSeleccionado.precio }}</strong
+          >
+        </p>
+
+        <div class="d-grid gap-3 mt-4">
+          <button class="btn btn-success btn-lg" (click)="realizarCompra()">
+            <i class="bi bi-credit-card me-2"></i> Pagar con Tarjeta
+          </button>
+
+          <button class="btn btn-warning btn-lg" (click)="realizarCompra()">
+            <i class="bi bi-qr-code-scan me-2"></i> Pagar con QR
+          </button>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          Cerrar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,4 +1,11 @@
-import { Component, Input, OnChanges, OnInit, SimpleChanges, HostListener } from '@angular/core';
+import {
+  Component,
+  Input,
+  OnChanges,
+  OnInit,
+  SimpleChanges,
+  HostListener,
+} from '@angular/core';
 import { ServiciosService } from '../../../services/servicios.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -6,10 +13,9 @@ import { Modulo } from '../../../models/models';
 
 // @ts-ignore
 import Typo from 'typo-js';
-import { ConfirmacionComponent } from "../../mensajes/confirmacion/confirmacion/confirmacion.component";
-import { ErrorComponent } from "../../mensajes/error/error.component";
-import { OkComponent } from "../../mensajes/ok/ok.component";  // Para corrector de ortografía
-
+import { ConfirmacionComponent } from '../../mensajes/confirmacion/confirmacion/confirmacion.component';
+import { ErrorComponent } from '../../mensajes/error/error.component';
+import { OkComponent } from '../../mensajes/ok/ok.component';
 interface ModuloItem {
   tipo: 'modulo' | 'modulo_registrado';
   codigo?: string;
@@ -23,9 +29,15 @@ interface ModuloItem {
 
 @Component({
   selector: 'app-modulo',
-  imports: [CommonModule, FormsModule, ConfirmacionComponent, ErrorComponent, OkComponent],
+  imports: [
+    CommonModule,
+    FormsModule,
+    ConfirmacionComponent,
+    ErrorComponent,
+    OkComponent,
+  ],
   templateUrl: './modulo.html',
-  styleUrl: './modulo.css'
+  styleUrl: './modulo.css',
 })
 export class ModuloComponent implements OnInit, OnChanges {
   modulos: Modulo[] = [];
@@ -37,17 +49,21 @@ export class ModuloComponent implements OnInit, OnChanges {
   mostrarMenuContextual = false;
   menuX = 0;
   menuY = 0;
-  itemSeleccionado: ModuloItem | null = null;  // Item seleccionado para edición o sugerencias
-  nuevoModulo: ModuloItem = { tipo: 'modulo', tieneErrores: false, sugerencias: [] };  // Para el modal de agregar
+  itemSeleccionado: ModuloItem | null = null; // Item seleccionado para edición o sugerencias
+  nuevoModulo: ModuloItem = {
+    tipo: 'modulo',
+    tieneErrores: false,
+    sugerencias: [],
+  }; // Para el modal de agregar
 
-mostrarDropdownModulos: boolean = false;
+  mostrarDropdownModulos: boolean = false;
 
-mostrarConfirmacion = false;
-mensajeConfirmacion = '';
-mostrarError = false;
-mensajeError = '';
-mostrarOk = false;
-mensajeOk = '';
+  mostrarConfirmacion = false;
+  mensajeConfirmacion = '';
+  mostrarError = false;
+  mensajeError = '';
+  mostrarOk = false;
+  mensajeOk = '';
   constructor(private servicios: ServiciosService) {
     this.corrector = new Typo('es_ES', null, null, {
       dictionaryPath: 'assets/dictionaries/',
@@ -56,7 +72,6 @@ mensajeOk = '';
   }
 
   ngOnInit(): void {
-    this.recuperarUsuarioLocalStorage();
     if (this.identificadorGeneral > 0) {
       this.cargarModulos(this.identificadorGeneral);
     }
@@ -72,17 +87,6 @@ mensajeOk = '';
         this.items = [];
         this.ultimoIdCargado = 0;
       }
-    }
-  }
-
-  private recuperarUsuarioLocalStorage(): void {
-    const usuarioStr = localStorage.getItem('usuarioLogueado');
-    if (!usuarioStr) return;
-    try {
-      const datosUsuario = JSON.parse(usuarioStr);
-      this.usuario_id = datosUsuario.id ?? 0;
-    } catch (error) {
-      console.error('Error al parsear usuario desde localStorage', error);
     }
   }
 
@@ -118,7 +122,9 @@ mensajeOk = '';
     const item = this.items[index];
     if (!item) return;
     // Cancelar edición de otros
-    this.items.forEach((it, idx) => { if (idx !== index) it.editar = false; });
+    this.items.forEach((it, idx) => {
+      if (idx !== index) it.editar = false;
+    });
     // Activar edición en este item
     item.editar = true;
     // Guardar backup
@@ -161,7 +167,7 @@ mensajeOk = '';
       item.nombre = backup.nombre;
       delete (item as any)._backup;
     } else {
-      const original = this.modulos.find(m => m.id === item.id);
+      const original = this.modulos.find((m) => m.id === item.id);
       if (original) {
         item.codigo = original.codigo;
         item.nombre = original.nombre;
@@ -180,7 +186,13 @@ mensajeOk = '';
       alert('Selecciona un proyecto primero.');
       return;
     }
-    this.nuevoModulo = { tipo: 'modulo', codigo: '', nombre: '', tieneErrores: false, sugerencias: [] };
+    this.nuevoModulo = {
+      tipo: 'modulo',
+      codigo: '',
+      nombre: '',
+      tieneErrores: false,
+      sugerencias: [],
+    };
   }
 
   registrarModuloTemporal(): void {
@@ -193,8 +205,6 @@ mensajeOk = '';
       proyecto: this.identificadorGeneral,
       codigo: this.nuevoModulo.codigo.trim(),
       nombre: this.nuevoModulo.nombre.trim(),
-      creado_por: this.usuario_id,
-      modificado_por: this.usuario_id,
     };
     this.servicios.createModulo(payload).subscribe({
       next: (moduloCreado: Modulo) => {
@@ -214,7 +224,9 @@ mensajeOk = '';
         this.cancelarAgregar();
       },
       error: (err) => {
-        this.mensajeError = 'Error al registrar módulo: ' + (err.error?.error || 'Verifica los datos.');
+        this.mensajeError =
+          'Error al registrar módulo: ' +
+          (err.error?.error || 'Verifica los datos.');
         this.mostrarError = true;
       },
     });
@@ -236,8 +248,6 @@ mensajeOk = '';
       proyecto: this.identificadorGeneral,
       codigo: item.codigo.trim(),
       nombre: item.nombre!.trim(),
-      creado_por: this.usuario_id,
-      modificado_por: this.usuario_id,
     };
     this.servicios.createModulo(payload).subscribe({
       next: (moduloCreado: Modulo) => {
@@ -255,7 +265,9 @@ mensajeOk = '';
         this.modulos.push(moduloCreado);
       },
       error: (err) => {
-        this.mensajeError = 'Error al registrar módulo: ' + (err.error?.error || 'Verifica los datos.');
+        this.mensajeError =
+          'Error al registrar módulo: ' +
+          (err.error?.error || 'Verifica los datos.');
         this.mostrarError = true;
       },
     });
@@ -273,7 +285,6 @@ mensajeOk = '';
     const payload: Partial<Modulo> = {
       codigo: item.codigo.trim(),
       nombre: item.nombre!.trim(),
-      modificado_por: this.usuario_id,
     };
     this.servicios.updateModulo(item.id!, payload).subscribe({
       next: (moduloActualizado: Modulo) => {
@@ -287,7 +298,9 @@ mensajeOk = '';
         this.mostrarOk = true;
       },
       error: (err) => {
-        this.mensajeError = 'Error al actualizar módulo: ' + (err.error?.error || 'Intente de nuevo.');
+        this.mensajeError =
+          'Error al actualizar módulo: ' +
+          (err.error?.error || 'Intente de nuevo.');
         this.mostrarError = true;
         item.editar = false;
       },
@@ -312,7 +325,9 @@ mensajeOk = '';
           this.mostrarOk = true;
         },
         error: (err) => {
-          this.mensajeError = 'Error al eliminar módulo: ' + (err.error?.error || 'Intente de nuevo.');
+          this.mensajeError =
+            'Error al eliminar módulo: ' +
+            (err.error?.error || 'Intente de nuevo.');
           this.mostrarError = true;
         },
       });
@@ -331,14 +346,14 @@ mensajeOk = '';
   filtrarNombreInput(event: Event, item: ModuloItem): void {
     const input = event.target as HTMLInputElement;
     let valor = input.value;
-    // ✅ Convertir a mayúsculas automáticamente al escribir
+    // Convertir a mayúsculas automáticamente al escribir
     valor = valor.toUpperCase();
-    valor = valor.replace(/[^A-Z0-9ÁÉÍÓÚÑ\s]/g, '');  // Solo mayúsculas, números, acentos y espacios
+    valor = valor.replace(/[^A-Z0-9ÁÉÍÓÚÑ\s]/g, ''); // Solo mayúsculas, números, acentos y espacios
     valor = valor.replace(/\s{2,}/g, ' ');
     input.value = valor;
     item.nombre = valor;
 
-    // ✅ Verificar ortografía y corregir automáticamente si hay una sugerencia única
+    // Verificar ortografía y corregir automáticamente si hay una sugerencia única
     this.verificarYCorregirOrtografia(item);
   }
 
@@ -353,8 +368,8 @@ mensajeOk = '';
     const sugerencias: string[] = [];
     const palabrasCorregidas: string[] = [];
 
-    palabras.forEach(palabra => {
-      const palabraMinuscula = palabra.toLowerCase();  // Chequear en minúscula para evitar falsos positivos por mayúsculas
+    palabras.forEach((palabra) => {
+      const palabraMinuscula = palabra.toLowerCase(); // Chequear en minúscula para evitar falsos positivos por mayúsculas
       if (!this.corrector.check(palabraMinuscula)) {
         const sugs = this.corrector.suggest(palabraMinuscula);
         if (sugs.length === 1) {
@@ -363,12 +378,12 @@ mensajeOk = '';
         } else if (sugs.length > 1) {
           errores = true;
           sugerencias.push(...sugs.slice(0, 3));
-          palabrasCorregidas.push(palabra);  // Mantener original si múltiples sugerencias
+          palabrasCorregidas.push(palabra); // Mantener original si múltiples sugerencias
         } else {
-          palabrasCorregidas.push(palabra);  // Sin sugerencias, mantener
+          palabrasCorregidas.push(palabra); // Sin sugerencias, mantener
         }
       } else {
-        palabrasCorregidas.push(palabra);  // Bien escrita
+        palabrasCorregidas.push(palabra); // Bien escrita
       }
     });
 
@@ -378,14 +393,19 @@ mensajeOk = '';
     item.sugerencias = [...new Set(sugerencias)];
   }
 
-  // ✅ Menú contextual al clic derecho (solo si hay errores y múltiples sugerencias)
+  // Menú contextual al clic derecho (solo si hay errores y múltiples sugerencias)
   @HostListener('contextmenu', ['$event'])
   onRightClick(event: MouseEvent): void {
     event.preventDefault();
     const target = event.target as HTMLInputElement;
-    if (target.tagName === 'INPUT' && target.placeholder === 'Nombre del módulo') {
-      const item = this.items.find(i => i.nombre === target.value) || this.nuevoModulo;
-      if (item && item.tieneErrores && item.sugerencias!.length > 1) {  // Solo si múltiples sugerencias
+    if (
+      target.tagName === 'INPUT' &&
+      target.placeholder === 'Nombre del módulo'
+    ) {
+      const item =
+        this.items.find((i) => i.nombre === target.value) || this.nuevoModulo;
+      if (item && item.tieneErrores && item.sugerencias!.length > 1) {
+        // Solo si múltiples sugerencias
         this.mostrarMenuContextual = true;
         this.menuX = event.clientX;
         this.menuY = event.clientY;
@@ -407,31 +427,31 @@ mensajeOk = '';
     this.itemSeleccionado = null;
   }
   @HostListener('document:click', ['$event'])
-cerrarDropdown(event: Event) {
-  const target = event.target as HTMLElement;
-  if (!target.closest('.position-relative')) {
-    this.mostrarDropdownModulos = false;
+  cerrarDropdown(event: Event) {
+    const target = event.target as HTMLElement;
+    if (!target.closest('.position-relative')) {
+      this.mostrarDropdownModulos = false;
+    }
   }
-}
-// Métodos para manejar eventos de los modales
-onAceptarConfirmacion() {
-  this.mostrarConfirmacion = false;
-  // Lógica específica después de aceptar (se define en el método que lo llama)
-  if (this.accionPendiente) {
-    this.accionPendiente();
+  // Métodos para manejar eventos de los modales
+  onAceptarConfirmacion() {
+    this.mostrarConfirmacion = false;
+    // Lógica específica después de aceptar (se define en el método que lo llama)
+    if (this.accionPendiente) {
+      this.accionPendiente();
+      this.accionPendiente = null;
+    }
+  }
+  onCancelarConfirmacion() {
+    this.mostrarConfirmacion = false;
     this.accionPendiente = null;
   }
-}
-onCancelarConfirmacion() {
-  this.mostrarConfirmacion = false;
-  this.accionPendiente = null;
-}
-onCerrarError() {
-  this.mostrarError = false;
-}
-onCerrarOk() {
-  this.mostrarOk = false;
-}
-// Propiedad para almacenar la acción pendiente (para confirmaciones)
-private accionPendiente: (() => void) | null = null;
+  onCerrarError() {
+    this.mostrarError = false;
+  }
+  onCerrarOk() {
+    this.mostrarOk = false;
+  }
+  // Propiedad para almacenar la acción pendiente (para confirmaciones)
+  private accionPendiente: (() => void) | null = null;
 }
