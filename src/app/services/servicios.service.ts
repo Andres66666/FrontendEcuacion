@@ -14,7 +14,6 @@ import {
   providedIn: 'root',
 })
 export class ServiciosService {
-  /*   private apiUrl = 'http://localhost:8000/api/'; */
   private apiUrl = 'https://backendecuacion.onrender.com/api/';
 
   constructor(private http: HttpClient) {}
@@ -232,8 +231,4 @@ export class ServiciosService {
   completarVerificacion(token: string) {
     return this.confirmarRegistro(token);
   }
-
-  // =====================================================
-  // SECCIÓN 4: Identificadores Generales y Operaciones
-  // =====================================================
 }
