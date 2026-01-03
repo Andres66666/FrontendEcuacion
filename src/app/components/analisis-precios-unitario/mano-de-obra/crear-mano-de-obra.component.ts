@@ -329,6 +329,9 @@ export class CrearManoDeObraComponent implements OnInit {
       ctrl.setValue(ctrl.value?.toUpperCase() || '', { emitEvent: false });
     }
   }
+  redondear2(valor: number): number {
+    return Math.round(valor * 100) / 100;
+  }
 
   parseNumero(valor: any): number {
     if (valor === null || valor === undefined || valor === '') return 0;
@@ -342,10 +345,10 @@ export class CrearManoDeObraComponent implements OnInit {
   }
 
   calcularPrecioParcial(mano: AbstractControl): number {
-    return (
-      this.parseNumero(mano.get('cantidad')?.value) *
-      this.parseNumero(mano.get('precio_unitario')?.value)
-    );
+    const cantidad = this.parseNumero(mano.get('cantidad')?.value);
+    const precio = this.parseNumero(mano.get('precio_unitario')?.value);
+
+    return this.redondear2(cantidad * precio);
   }
 
   actualizarPrecioParcial(control: AbstractControl): void {
@@ -354,18 +357,20 @@ export class CrearManoDeObraComponent implements OnInit {
   }
 
   get subtotalManoObra(): number {
-    return this.manoObra.controls.reduce(
+    const subtotal = this.manoObra.controls.reduce(
       (acc, c) => acc + this.calcularPrecioParcial(c),
       0
     );
+
+    return this.redondear2(subtotal);
   }
 
   get cargasManoObra(): number {
-    return this.subtotalManoObra * (this.carga_social / 100);
+    return this.redondear2(this.subtotalManoObra * (this.carga_social / 100));
   }
 
   get ivaManoObra(): number {
-    return (
+    return this.redondear2(
       (this.subtotalManoObra + this.cargasManoObra) * (this.iva_efectiva / 100)
     );
   }
@@ -373,8 +378,11 @@ export class CrearManoDeObraComponent implements OnInit {
   get totalManoObra(): number {
     const total =
       this.subtotalManoObra + this.cargasManoObra + this.ivaManoObra;
-    this.servicio.setTotalManoObra(total);
-    return total;
+
+    const totalRedondeado = this.redondear2(total);
+    this.servicio.setTotalManoObra(totalRedondeado);
+
+    return totalRedondeado;
   }
 
   formatearNumero(valor: number): string {
