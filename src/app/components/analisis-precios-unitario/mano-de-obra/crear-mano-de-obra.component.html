@@ -18,12 +18,12 @@
       <table class="table table-bordered">
         <thead>
           <tr>
-            <th>Descripción</th>
-            <th>Unidad</th>
-            <th>Cantidad</th>
-            <th>Precio Unitario</th>
-            <th>Precio Total</th>
-            <th>Acciones</th>
+            <th>DESCRIPCIÓN</th>
+            <th>UNIDAD</th>
+            <th>CATIDAD</th>
+            <th>PRECIO UNITARIO</th>
+            <th>PRECIO TOTAL</th>
+            <th>ACCIONES</th>
           </tr>
         </thead>
 
@@ -149,11 +149,14 @@
       <table class="table table-bordered mb-0">
         <tbody>
           <tr>
-            <td>Subtotal Mano de Obra</td>
+            <td>SUBTOTAL DE MANO DE OBRA</td>
             <td class="text-end">{{ formatearNumero(subtotalManoObra) }}</td>
           </tr>
           <tr>
-            <td>Cargas Sociales ({{ formatearNumero(carga_social) }} %)</td>
+            <td>
+              CARGAS SOCIALES -({{ formatearNumero(carga_social) }} %) DEL
+              SUBTOTAL DE MANO DE OBRA
+            </td>
             <td class="text-end">{{ formatearNumero(cargasManoObra) }}</td>
           </tr>
           <tr>
