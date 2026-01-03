@@ -164,7 +164,8 @@ export class PrecioFacturaComponent {
   }
 
   get margenUtilidad(): number {
-    return this.precioFactura3 - this.costoVenta4 - this.iva13;
+    const valor = this.precioFactura3 - this.costoVenta4 - this.iva13;
+    return this.redondear2(valor);
   }
 
   // ========================
