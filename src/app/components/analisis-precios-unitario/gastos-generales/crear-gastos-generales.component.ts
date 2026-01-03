@@ -125,51 +125,47 @@ export class CrearGastosGeneralesComponent {
   manejarError(): void {
     this.mensajeError = '';
   }
+  redondear2(valor: number): number {
+    return Math.round(valor * 100) / 100;
+  }
 
   // Cálculos internos con todos los decimales
   get sumaTotales(): number {
-    return (
+    const total =
       (this.totalMateriales || 0) +
       (this.totalManoObra || 0) +
-      (this.totalEquipos || 0)
-    );
-  }
+      (this.totalEquipos || 0);
 
+    return this.redondear2(total);
+  }
   get totalGastosGenerales(): number {
-    return this.sumaTotales * (this.gastos_generales / 100);
+    return this.redondear2(this.sumaTotales * (this.gastos_generales / 100));
+  }
+  get totalOperacion(): number {
+    return this.redondear2(this.totalGastosGenerales);
   }
 
-  get totalOperacion(): number {
-    return this.totalGastosGenerales;
-  }
   /* nuevas operaciones para la sección 5 */
   get suma1234(): number {
-    return (
-      (this.totalMateriales || 0) +
-      (this.totalManoObra || 0) +
-      (this.totalEquipos || 0) +
-      (this.totalGastosGenerales || 0)
-    );
+    const total = this.sumaTotales + this.totalGastosGenerales;
+
+    return this.redondear2(total);
   }
   get TotalesS5(): number {
     const base = 100 - this.iva_tasa_nominal;
-    return (
+
+    return this.redondear2(
       this.suma1234 * (this.margen_utilidad / (base - this.margen_utilidad))
     );
   }
-
   get sumaTotalGeneral12345(): number {
-    // Redondear cada valor a dos decimales antes de sumar
-    const mat = Math.round(this.totalMateriales * 100) / 100;
-    const mano = Math.round(this.totalManoObra * 100) / 100;
-    const equi = Math.round(this.totalEquipos * 100) / 100;
-    const gast = Math.round(this.totalGastosGenerales * 100) / 100;
-    const totS5 = Math.round(this.TotalesS5 * 100) / 100;
-    return mat + mano + equi + gast + totS5;
+    return this.redondear2(this.suma1234 + this.TotalesS5);
   }
+
   get Total12345(): number {
     return this.sumaTotalGeneral12345;
   }
+
   // Para mostrar los resultados redondeados
   formatearNumero(valor: number): string {
     return new Intl.NumberFormat('de-DE', {

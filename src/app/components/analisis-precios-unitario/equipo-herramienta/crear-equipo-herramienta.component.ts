@@ -333,6 +333,9 @@ export class CrearEquipoHerramientaComponent implements OnInit {
       ctrl.setValue(ctrl.value?.toUpperCase() || '', { emitEvent: false });
     }
   }
+  redondear2(valor: number): number {
+    return Math.round(valor * 100) / 100;
+  }
 
   parseNumero(valor: any): number {
     if (valor === null || valor === undefined || valor === '') return 0;
@@ -346,10 +349,10 @@ export class CrearEquipoHerramientaComponent implements OnInit {
   }
 
   calcularPrecioParcial(equipo: AbstractControl): number {
-    return (
-      this.parseNumero(equipo.get('cantidad')?.value) *
-      this.parseNumero(equipo.get('precio_unitario')?.value)
-    );
+    const cantidad = this.parseNumero(equipo.get('cantidad')?.value);
+    const precio = this.parseNumero(equipo.get('precio_unitario')?.value);
+
+    return this.redondear2(cantidad * precio);
   }
 
   actualizarPrecioParcial(control: AbstractControl): void {
@@ -358,20 +361,25 @@ export class CrearEquipoHerramientaComponent implements OnInit {
   }
 
   get subtotalEquipos(): number {
-    return this.equipos.controls.reduce(
+    const subtotal = this.equipos.controls.reduce(
       (acc, c) => acc + this.calcularPrecioParcial(c),
       0
     );
+
+    return this.redondear2(subtotal);
   }
 
   get herramientasPorcentaje(): number {
-    return this.totalManoObra * (this.herramientas / 100);
+    return this.redondear2(this.totalManoObra * (this.herramientas / 100));
   }
 
   get totalEquipos(): number {
     const total = this.subtotalEquipos + this.herramientasPorcentaje;
-    this.servicio.setTotalEquipos(total);
-    return total;
+
+    const totalRedondeado = this.redondear2(total);
+    this.servicio.setTotalEquipos(totalRedondeado);
+
+    return totalRedondeado;
   }
 
   formatearNumero(valor: number): string {
