@@ -15,7 +15,9 @@ import { BehaviorSubject, forkJoin, Observable } from 'rxjs';
   providedIn: 'root',
 })
 export class ServiciosProyectos {
-  private apiUrl = 'http://localhost:8000/api/';
+  /*   private apiUrl = 'http://localhost:8000/api/'; */
+  private apiUrl = 'https://backendecuacion.onrender.com/api/';
+
   totalManoObraActual = 0; // o private _totalManoObra: number
 
   constructor(private http: HttpClient) {}
