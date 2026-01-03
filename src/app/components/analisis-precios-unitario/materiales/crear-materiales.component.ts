@@ -316,10 +316,12 @@ export class CrearMaterialesComponent implements OnInit {
   }
 
   calcularTotalFila(mat: AbstractControl): number {
-    return (
-      this.parseNumero(mat.get('cantidad')?.value) *
-      this.parseNumero(mat.get('precio_unitario')?.value)
-    );
+    const cantidad = this.parseNumero(mat.get('cantidad')?.value);
+    const precio = this.parseNumero(mat.get('precio_unitario')?.value);
+
+    const total = cantidad * precio;
+
+    return Math.round(total * 100) / 100;
   }
 
   get totalMateriales(): number {
@@ -327,8 +329,12 @@ export class CrearMaterialesComponent implements OnInit {
       (acc, c) => acc + this.calcularTotalFila(c),
       0
     );
-    this.servicio.setTotalMateriales(total);
-    return total;
+
+    // Redondeo final de seguridad
+    const totalRedondeado = Math.round(total * 100) / 100;
+
+    this.servicio.setTotalMateriales(totalRedondeado);
+    return totalRedondeado;
   }
 
   formatearNumero(valor: number): string {
