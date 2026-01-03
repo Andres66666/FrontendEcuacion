@@ -97,6 +97,16 @@ export class PrecioFacturaComponent {
   private redondear2(valor: number): number {
     return Math.round((valor + Number.EPSILON) * 100) / 100;
   }
+  formatearNumero3(valor: number): string {
+    return new Intl.NumberFormat('es-BO', {
+      minimumFractionDigits: 3,
+      maximumFractionDigits: 3,
+    }).format(Number(valor) || 0);
+  }
+
+  private redondear3(valor: number): number {
+    return Math.round((valor + Number.EPSILON) * 1000) / 1000;
+  }
 
   // ========================
   // SECCIÓN 1 – IVA
@@ -193,11 +203,11 @@ export class PrecioFacturaComponent {
   // SECCIÓN 6
   // ========================
   get ganaciaColumna1(): number {
-    return this.redondear2(this.totalUtilidadNeta * (this.ganancia / 100));
+    return this.redondear3(this.totalUtilidadNeta * (this.ganancia / 100));
   }
 
   get CompensacioDuenoColumna1(): number {
-    return this.redondear2(this.totalUtilidadNeta * (this.ganancia / 100));
+    return this.redondear3(this.totalUtilidadNeta * (this.ganancia / 100));
   }
 
   get ImpuestosColumna1(): number {
