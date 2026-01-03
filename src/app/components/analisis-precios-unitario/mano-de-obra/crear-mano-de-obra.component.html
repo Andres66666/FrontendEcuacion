@@ -1,180 +1,152 @@
-<form [formGroup]="formulario" *ngIf="formulario">
-  <div class="card border-success mb-4">
-    <div class="card-header bg-success text-white">
-      <h5 class="mb-0">
-        <i class="bi bi-person-workspace me-2"></i>2. Mano de Obra
-      </h5>
+<form [formGroup]="formulario">
+  <div class="card">
+    <div class="card-header bg-success bg-opacity-25">
+      <h5><i class="bi bi-person-workspace me-1"></i>2. Mano de Obra</h5>
     </div>
 
     <div class="card-body" formArrayName="manoObra">
       <div class="d-flex justify-content-end no-export">
         <button
           type="button"
-          class="btn btn-outline-success mt-2 mb-3"
+          class="btn btn-outline-success mb-3"
           (click)="agregarManoDeObra()"
         >
-          <i class="bi bi-plus-circle me-1"></i> Añadir Mano de Obra
+          + Agregar mano de obra
         </button>
       </div>
 
-      <table class="table table-bordered table-hover align-middle mb-3">
-        <thead class="table-light text-center">
+      <table class="table table-bordered">
+        <thead>
           <tr>
             <th>Descripción</th>
             <th>Unidad</th>
             <th>Cantidad</th>
-            <th>P. Unitario</th>
+            <th>Precio Unitario</th>
             <th>Precio Parcial</th>
-            <th class="no-export">Acción</th>
+            <th>Acciones</th>
           </tr>
         </thead>
+
         <tbody>
           <tr
-            *ngFor="let trabajo of manoObra.controls; let i = index"
+            *ngFor="let mano of manoObra.controls; let i = index"
             [formGroupName]="i"
           >
-            <!-- Descripción -->
-            <td>
-              <div class="position-relative">
-                <input
-                  type="text"
-                  class="form-control input-descripcion"
-                  placeholder="Ej. Obrero"
-                  [formControl]="getDescripcionControl(i)"
-                  (input)="filtrarDescripciones(i, $event)"
-                  (focus)="mostrarDescripcionesFila(i)"
-                  (blur)="guardarDescripcionPersonalizada(i, $event)"
-                />
-                <ul
-                  *ngIf="
-                    descripcionesFiltradas[i]?.length &&
-                    mostrarListaDescripcion[i]
-                  "
-                  class="list-group position-absolute w-100 descripcion-list"
-                  style="z-index: 1000; max-height: 150px; overflow-y: auto"
+            <!-- DESCRIPCIÓN -->
+            <td class="position-relative">
+              <input
+                type="text"
+                class="form-control"
+                formControlName="descripcion"
+                (focus)="mostrarDescripcion(i)"
+                (input)="
+                  filtrarDescripcion(i); convertirAMayusculas(i, 'descripcion')
+                "
+                (blur)="ocultarDescripcion(i)"
+              />
+              <ul
+                *ngIf="opcionesDescripcion[i]?.length"
+                class="list-group position-absolute w-100"
+                style="z-index: 1000; max-height: 200px; overflow-y: auto"
+              >
+                <li
+                  class="list-group-item list-group-item-action"
+                  *ngFor="let opt of opcionesDescripcion[i]"
+                  (click)="seleccionarDescripcion(i, opt)"
                 >
-                  <li
-                    *ngFor="let d of descripcionesFiltradas[i]"
-                    class="list-group-item list-group-item-action p-1"
-                    (mousedown)="seleccionarDescripcion(i, d)"
-                    style="cursor: pointer"
-                  >
-                    {{ d }}
-                  </li>
-                </ul>
-                <div
-                  *ngIf="trabajo.get('descripcion')?.errors?.['required']"
-                  class="text-danger small"
-                >
-                  Campo requerido.
-                </div>
-              </div>
+                  {{ opt.descripcion }}
+                </li>
+              </ul>
             </td>
 
-            <!-- Unidad -->
-            <td>
-              <div class="position-relative">
-                <input
-                  type="text"
-                  class="form-control form-control-sm input-unidad"
-                  placeholder="Seleccione o escriba una unidad"
-                  [formControl]="getUnidadControl(i)"
-                  (input)="filtrarUnidades(i, $event)"
-                  (focus)="mostrarUnidadesFila(i)"
-                  (blur)="guardarUnidadPersonalizada(i, $event)"
-                />
-                <ul
-                  *ngIf="unidadesFiltradas[i]?.length && mostrarLista[i]"
-                  class="list-group position-absolute w-100 unidad-list"
-                  style="z-index: 1000; max-height: 150px; overflow-y: auto"
+            <!-- UNIDAD -->
+            <td class="position-relative">
+              <input
+                type="text"
+                class="form-control"
+                formControlName="unidad"
+                (focus)="mostrarUnidad(i)"
+                (input)="filtrarUnidad(i); convertirAMayusculas(i, 'unidad')"
+                (blur)="ocultarUnidad(i)"
+              />
+              <ul
+                *ngIf="opcionesUnidad[i]?.length"
+                class="list-group position-absolute w-100"
+                style="z-index: 1000; max-height: 200px; overflow-y: auto"
+              >
+                <li
+                  class="list-group-item list-group-item-action"
+                  *ngFor="let u of opcionesUnidad[i]"
+                  (click)="seleccionarUnidad(i, u)"
                 >
-                  <li
-                    *ngFor="let u of unidadesFiltradas[i]"
-                    class="list-group-item list-group-item-action p-1"
-                    (mousedown)="seleccionarUnidad(i, u)"
-                    style="cursor: pointer"
-                  >
-                    {{ u }}
-                  </li>
-                </ul>
-              </div>
+                  {{ u }}
+                </li>
+              </ul>
             </td>
 
-            <!-- Cantidad -->
+            <!-- CANTIDAD -->
             <td>
               <input
                 type="number"
                 class="form-control"
                 formControlName="cantidad"
-                (keydown)="blockE($event)"
-                (change)="onCantidadChange(trabajo)"
+                (change)="actualizarPrecioParcial(mano)"
               />
             </td>
-
-            <!-- Precio Unitario -->
+            <!-- PRECIO UNITARIO -->
             <td>
               <input
                 type="number"
                 class="form-control"
                 formControlName="precio_unitario"
-                (keydown)="blockE($event)"
-                (change)="onPrecioUniChange(trabajo)"
+                (change)="onPrecioUniChange(mano, i)"
               />
             </td>
 
-            <!-- Precio Parcial -->
-            <td>
-              <input
-                type="number"
-                class="form-control"
-                [value]="trabajo.get('total')?.value"
-                readonly
-              />
+            <!-- PRECIO PARCIAL -->
+            <td class="text-end">
+              {{ formatearNumero(calcularPrecioParcial(mano)) }}
             </td>
 
-            <!-- Acción -->
-            <td class="text-center no-export">
-              <div class="d-flex justify-content-center gap-2">
-                <ng-container
-                  *ngIf="trabajo.get('esNuevo')?.value; else accionesExistente"
-                >
-                  <button
-                    class="btn btn-success btn-sm"
-                    (click)="registrarItem(i)"
-                  >
-                    <i class="bi bi-check2-circle me-1"></i> Registrar
-                  </button>
-                  <button
-                    class="btn btn-danger btn-sm"
-                    (click)="eliminarItem(i)"
-                  >
-                    <i class="bi bi-trash"></i> Eliminar
-                  </button>
-                </ng-container>
+            <!-- ACCIONES -->
+            <td class="text-center">
+              <button
+                *ngIf="!mano.get('id')?.value"
+                type="button"
+                class="btn btn-outline-success btn-sm me-1"
+                (click)="guardar(i)"
+                title="Guardar mano de obra"
+              >
+                <i class="bi bi-check-lg"></i>
+              </button>
 
-                <ng-template #accionesExistente>
-                  <button
-                    class="btn btn-primary btn-sm"
-                    (click)="actualizarItem(i)"
-                  >
-                    <i class="bi bi-pencil"></i> Actualizar
-                  </button>
-                  <button
-                    class="btn btn-danger btn-sm"
-                    (click)="eliminarItem(i)"
-                  >
-                    <i class="bi bi-trash"></i> Eliminar
-                  </button>
-                </ng-template>
-              </div>
+              <button
+                *ngIf="mano.get('id')?.value && mano.dirty"
+                type="button"
+                class="btn btn-outline-primary btn-sm me-1"
+                (click)="guardar(i)"
+                title="Guardar cambios"
+              >
+                <i class="bi bi-arrow-clockwise"></i>
+              </button>
+
+              <button
+                type="button"
+                class="btn btn-outline-danger btn-sm"
+                (click)="eliminar(i)"
+                title="Eliminar mano de obra"
+              >
+                <i class="bi bi-trash3"></i>
+              </button>
             </td>
           </tr>
         </tbody>
       </table>
     </div>
 
+    <!-- TOTALES -->
     <div class="card-footer">
-      <table class="table table-bordered table-hover mb-0">
+      <table class="table table-bordered mb-0">
         <tbody>
           <tr>
             <td>Subtotal Mano de Obra</td>
@@ -188,30 +160,11 @@
             <td>IVA ({{ formatearNumero(iva_efectiva) }} %)</td>
             <td class="text-end">{{ formatearNumero(ivaManoObra) }}</td>
           </tr>
-          <tr class="table-success fw-bold">
-            <td>Total Mano de Obra</td>
-            <td class="text-end">{{ formatearNumero(totalManoObra) }}</td>
-          </tr>
         </tbody>
       </table>
     </div>
+    <div class="card-footer text-end fw-bold">
+      TOTAL MANO DE OBRA: {{ formatearNumero(totalManoObra) }}
+    </div>
   </div>
 </form>
-
-<app-confirmacion
-  *ngIf="mostrarConfirmacion"
-  [mensaje]="mensajeConfirmacion"
-  (aceptar)="manejarAceptar()"
-  (cancelar)="manejarCancelar()"
-></app-confirmacion>
-
-<app-ok
-  *ngIf="mensajeExito"
-  [mensaje]="mensajeExito"
-  (close)="manejarOk()"
-></app-ok>
-<app-error
-  *ngIf="mensajeError"
-  [mensaje]="mensajeError"
-  (close)="manejarError()"
-></app-error>

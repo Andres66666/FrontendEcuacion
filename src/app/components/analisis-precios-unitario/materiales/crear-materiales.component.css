@@ -1,18 +1,21 @@
-
-input[type=text],[type=number]::-webkit-outer-spin-button,
-input[type=text],[type=number]::-webkit-inner-spin-button {
+input[type="text"],
+[type="number"]::-webkit-outer-spin-button,
+input[type="text"],
+[type="number"]::-webkit-inner-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
 
-input[type=text],[type=number] {
+input[type="text"],
+[type="number"] {
   -moz-appearance: textfield;
   appearance: textfield;
-  border: none;            
-  background: transparent;   
+  border: none;
+  background: transparent;
 }
 
-input[type=text],[type=number]:focus {
-  outline: none;             
-  box-shadow: none;          
+input[type="text"],
+[type="number"]:focus {
+  outline: none;
+  box-shadow: none;
 }

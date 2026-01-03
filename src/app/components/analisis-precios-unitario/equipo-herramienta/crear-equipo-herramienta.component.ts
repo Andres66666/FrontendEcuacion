@@ -1,156 +1,127 @@
-import { Component, HostListener, OnInit } from '@angular/core';
+// crear-equipo-herramienta.component.ts
+import { Component, Input, OnInit, SimpleChanges } from '@angular/core';
 import {
   FormArray,
   FormBuilder,
   FormGroup,
   Validators,
-  AbstractControl,
   ReactiveFormsModule,
+  AbstractControl,
   FormsModule,
-  FormControl,
 } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 
-import { ServiciosService } from '../../../services/servicios.service';
-import { EquipoHerramienta } from '../../../models/models';
-import { ConfirmacionComponent } from '../../mensajes/confirmacion/confirmacion/confirmacion.component';
-import { OkComponent } from '../../mensajes/ok/ok.component';
-import { ErrorComponent } from '../../mensajes/error/error.component';
+import { BehaviorSubject } from 'rxjs';
+import { ServiciosProyectos } from '../../gestion_proyectos/service/servicios-proyectos';
+import {
+  EquipoHerramienta,
+  Proyecto,
+} from '../../gestion_proyectos/models/modelosProyectos';
 
 @Component({
   selector: 'app-crear-equipo-herramienta',
   standalone: true,
-  imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    FormsModule,
-    ConfirmacionComponent,
-    OkComponent,
-    ErrorComponent,
-  ],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule],
   templateUrl: './crear-equipo-herramienta.component.html',
   styleUrls: ['./crear-equipo-herramienta.component.css'],
 })
 export class CrearEquipoHerramientaComponent implements OnInit {
-  formulario: FormGroup;
-  id_gasto_operaciones = 0;
+  @Input() proyectoData!: Proyecto;
+  @Input() id_gasto_operaciones!: number;
+
+  formulario!: FormGroup;
   herramientas = 0;
   totalManoObra = 0;
-  porcentaje_global_100 = 0;
 
-  usuario_id = 0;
-  nombre_usuario = '';
-  apellido = '';
-  roles: string[] = [];
-  permisos: string[] = [];
+  private id_proyecto = 0;
 
-  // Mensajes y estado UI
-  mostrarConfirmacion = false;
-  tipoConfirmacion: 'item' | null = null;
-  itemIndexAEliminar: number | null = null;
-  mensajeConfirmacion = '';
-  mensajeExito = '';
-  mensajeError = '';
+  catalogoEquipoHerramienta: EquipoHerramienta[] = [];
+  catalogoUnidades: string[] = [];
 
-  // Para UNIDAD (replicado)
-  unidadesUsadas: string[] = [];
-  unidadesFiltradas: string[][] = [];
-  mostrarLista: boolean[] = [];
+  /** Opciones por fila para el autocompletado */
+  opcionesDescripcion: { [i: number]: EquipoHerramienta[] } = {};
+  opcionesUnidad: { [i: number]: string[] } = {};
 
-  // Para DESCRIPCIÓN (replicado)
-  descripcionesUsadas: string[] = []; // lista global de descripciones
-  descripcionesFiltradas: string[][] = []; // filtrado por fila
-  mostrarListaDescripcion: boolean[] = []; // mostrar lista por fila
-
-  // Para DESCRIPCIÓN y PRECIO UNITARIO (catálogo para auto-rellenar precio)
-  catalogoEquipos: { descripcion: string; ultimo_precio: number }[] = [];
-
-  // UI expandida (replicado de materiales; agrega 'formatoInvalido' y tipoConfirmacion más amplio si no existe)
-  formatoInvalido = false;
+  /** Observable para propagar cambios de precios dinámicamente */
+  private precioUnitario$ = new BehaviorSubject<{
+    descripcion: string;
+    precio: number;
+  } | null>(null);
 
   constructor(
     private fb: FormBuilder,
-    private route: ActivatedRoute,
-    private servicio: ServiciosService
-  ) {
-    this.formulario = this.fb.group({
-      equipos: this.fb.array([]),
-      herramientas: [0, [Validators.required, Validators.min(0)]],
-    });
-
-    this.agregarEquipo();
-  }
+    private servicio: ServiciosProyectos,
+    private route: ActivatedRoute
+  ) {}
 
   ngOnInit(): void {
-    this.route.queryParams.subscribe((params) => {
-      this.id_gasto_operaciones = Number(params['id_gasto_operaciones']) || 0;
-      this.herramientas = Number(params['herramientas']) || 0;
-      this.porcentaje_global_100 = Number(params['porcentaje_global_100']) || 0;
-
-      this.formulario.get('herramientas')?.setValue(this.herramientas);
-
-      if (this.id_gasto_operaciones) this.cargarEquipoHerramientaExistente();
-    });
-
+    this.inicializarFormulario();
+    this.suscribirCambiosPrecioGlobal();
+    this.leerParametrosRuta();
     this.servicio.totalManoObra$.subscribe(
       (total) => (this.totalManoObra = total)
     );
-
-    // Carga unidades específicas de equipo/herramienta (modificado arriba)
-    this.cargarUnidades();
-
-    // Carga catálogo (ya corregido en mensajes previos)
-    this.cargarCatalogoEquipos();
   }
 
-  agregarEquipo(): void {
-    this.equipos.push(this.crearEquipoForm());
-    this.unidadesFiltradas.push([...this.unidadesUsadas]);
-    this.mostrarLista.push(false);
-
-    this.descripcionesFiltradas.push([...this.descripcionesUsadas]);
-    this.mostrarListaDescripcion.push(false);
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['proyectoData'] && this.proyectoData) {
+      this.herramientas = this.proyectoData.herramientas;
+    }
   }
 
-  formatearNumero(valor: number): string {
-    // Solo para mostrar: redondea visualmente, no modifica el valor original
-    const redondeado = Math.round(valor * 100) / 100; // redondeo final
-    let partes = redondeado.toFixed(2).split('.');
-    partes[0] = partes[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-    return partes.join(',');
+  private inicializarFormulario(): void {
+    this.formulario = this.fb.group({ equipos: this.fb.array([]) });
   }
 
-  // 🔹 Helpers
+  private suscribirCambiosPrecioGlobal(): void {
+    this.precioUnitario$.subscribe((update) => {
+      if (!update) return;
+      this.equipos.controls.forEach((control) => {
+        const fg = control as FormGroup;
+        if (
+          fg.get('descripcion')?.value?.toUpperCase() ===
+          update.descripcion.toUpperCase()
+        ) {
+          fg.get('precio_unitario')?.setValue(update.precio, {
+            emitEvent: false,
+          });
+          this.actualizarPrecioParcial(fg);
+        }
+      });
+    });
+  }
+
+  private leerParametrosRuta(): void {
+    this.route.queryParams.subscribe((params) => {
+      this.id_gasto_operaciones = Number(params['id_gasto_operaciones']) || 0;
+      if (this.id_gasto_operaciones) this.cargarDatosIniciales();
+    });
+  }
+
+  private cargarDatosIniciales(): void {
+    this.servicio.getGastosOperacion().subscribe((gastos) => {
+      const gasto = gastos.find((g) => g.id === this.id_gasto_operaciones);
+      if (!gasto) return;
+
+      this.id_proyecto =
+        typeof gasto.identificador === 'number'
+          ? gasto.identificador
+          : gasto.identificador.id_proyecto;
+
+      this.cargarEquipoHerramienta();
+      this.cargarCatalogo();
+    });
+  }
+
+  // ================= GETTERS =================
   get equipos(): FormArray {
     return this.formulario.get('equipos') as FormArray;
   }
 
-  get subtotalEquipos(): number {
-    return this.equipos.controls.reduce((acc, control) => {
-      const cantidad = control.get('cantidad')?.value || 0;
-      const precio = control.get('precio_unitario')?.value || 0;
-      return acc + cantidad * precio; // sin redondeo
-    }, 0);
-  }
-
-  get herramientasPorcentaje(): number {
-    return (
-      this.totalManoObra * (this.herramientas / this.porcentaje_global_100)
-    );
-  }
-
-  get totalEquipos(): number {
-    const total = this.subtotalEquipos + this.herramientasPorcentaje;
-    this.servicio.setTotalEquipos(total);
-    return total;
-  }
-  // 🔹 CRUD Equipos
-  private crearEquipoForm(
-    equipo?: EquipoHerramienta,
-    esNuevo = true
-  ): FormGroup {
-    return this.fb.group({
+  // ================= LÓGICA DE FORMULARIO =================
+  private crearFormEquipoHerramienta(equipo?: EquipoHerramienta): FormGroup {
+    const fg = this.fb.group({
       id: [equipo?.id ?? null],
       descripcion: [equipo?.descripcion ?? '', Validators.required],
       unidad: [equipo?.unidad ?? '', Validators.required],
@@ -162,421 +133,251 @@ export class CrearEquipoHerramientaComponent implements OnInit {
         equipo?.precio_unitario ?? 0,
         [Validators.required, Validators.min(0)],
       ],
-      total: [{ value: equipo?.total ?? 0, disabled: true }],
-      esNuevo: [esNuevo],
-      editarUnidad: [esNuevo],
     });
-  }
 
-  cargarEquipoHerramientaExistente(): void {
-    this.servicio
-      .getEquipoHerramientas(this.id_gasto_operaciones)
-      .subscribe((equipos) => {
-        this.equipos.clear();
-        this.unidadesFiltradas = [];
-        this.mostrarLista = [];
-        this.descripcionesFiltradas = [];
-        this.mostrarListaDescripcion = [];
-
-        equipos.forEach((equipo) => {
-          this.equipos.push(this.crearEquipoForm(equipo, false));
-          this.agregarUnidadSiNoExiste(equipo.unidad);
-          this.agregarDescripcionSiNoExiste(equipo.descripcion);
-
-          this.unidadesFiltradas.push([...this.unidadesUsadas]);
-          this.mostrarLista.push(false);
-
-          this.descripcionesFiltradas.push([...this.descripcionesUsadas]);
-          this.mostrarListaDescripcion.push(false);
-        });
-      });
-  }
-  cargarUnidades(): void {
-    this.servicio.getUnidadesEquipoHerramienta().subscribe({
-      next: (res: string[]) => {
-        this.unidadesUsadas = res || []; // Carga solo unidades únicas de la tabla EquipoHerramienta
-      },
-      error: (err: any) => {
-        console.error('Error cargando unidades de equipo/herramienta:', err);
-      },
+    fg.valueChanges.subscribe(() => {
+      if (fg.get('id')?.value) fg.markAsDirty();
     });
+
+    return fg;
   }
 
-  private cargarCatalogoEquipos(): void {
-    this.servicio.getEquiposHerramientas().subscribe({
-      next: (equipos: EquipoHerramienta[]) => {
-        this.catalogoEquipos = equipos.map((e: EquipoHerramienta) => ({
-          descripcion: e.descripcion.trim(),
-          ultimo_precio: e.precio_unitario,
-        }));
-        this.descripcionesUsadas = [
-          ...new Set(
-            equipos.map((e: EquipoHerramienta) => e.descripcion.trim())
-          ),
-        ];
-      },
-      error: (err: any) => {
-        console.error('Error cargando catálogo de equipos:', err);
-      },
-    });
+  agregarEquipoHerramienta(): void {
+    const i = this.equipos.length;
+    this.equipos.push(this.crearFormEquipoHerramienta());
+    this.opcionesDescripcion[i] = [];
+    this.opcionesUnidad[i] = [];
   }
 
-  getDescripcionControl(index: number): FormControl {
-    return this.equipos.at(index).get('descripcion') as FormControl;
+  // ================= AUTOCOMPLETE =================
+  mostrarDescripcion(i: number): void {
+    this.opcionesDescripcion[i] =
+      this.opcionesDescripcion[i]?.length === 0
+        ? [...this.catalogoEquipoHerramienta]
+        : [];
   }
 
-  getUnidadControl(index: number): FormControl {
-    return this.equipos.at(index).get('unidad') as FormControl;
-  }
-  private agregarDescripcionSiNoExiste(descripcion: string) {
-    const normalizado = descripcion.trim();
-    if (normalizado && !this.descripcionesUsadas.includes(normalizado)) {
-      this.descripcionesUsadas.push(normalizado);
-    }
-  }
-
-  private agregarUnidadSiNoExiste(unidad: string) {
-    const normalizado = unidad.trim();
-    if (normalizado && !this.unidadesUsadas.includes(normalizado)) {
-      this.unidadesUsadas.push(normalizado);
-    }
-  }
-  private actualizarTotalGlobal() {
-    const total = this.totalEquipos;
-    this.servicio.setTotalEquipos(total);
-  }
-  private actualizarPrecioPorDescripcion(
-    descripcion: string,
-    nuevoPrecio: number
-  ) {
-    descripcion = descripcion.trim().toLowerCase();
-    this.equipos.controls.forEach((control) => {
-      const descControl = control
-        .get('descripcion')
-        ?.value.trim()
-        .toLowerCase();
-      if (descControl === descripcion) {
-        control
-          .get('precio_unitario')
-          ?.setValue(nuevoPrecio, { emitEvent: false });
-        this.actualizarPrecioParcial(control);
-      }
-    });
-  }
-  @HostListener('document:click', ['$event'])
-  handleClickOutside(event: Event) {
-    const target = event.target as HTMLElement;
-
-    const listaUnidades = document.querySelectorAll('.unidad-list');
-    const listaDescripciones = document.querySelectorAll('.descripcion-list');
-
-    const esDentroUnidad = Array.from(listaUnidades).some((el) =>
-      el.contains(target)
-    );
-    const esDentroDescripcion = Array.from(listaDescripciones).some((el) =>
-      el.contains(target)
-    );
-    const esInputUnidad = target.classList.contains('input-unidad');
-    const esInputDescripcion = target.classList.contains('input-descripcion');
-
-    if (!esDentroUnidad && !esInputUnidad) {
-      this.mostrarLista = this.mostrarLista.map(() => false);
-    }
-
-    if (!esDentroDescripcion && !esInputDescripcion) {
-      this.mostrarListaDescripcion = this.mostrarListaDescripcion.map(
-        () => false
-      );
-    }
-  }
-  // Filtrar mientras escribe
-  filtrarDescripciones(index: number, event: Event): void {
-    const input = event.target as HTMLInputElement;
-    let valor = input.value;
-    valor = valor.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s]/g, '');
-    valor = valor.replace(/\s{2,}/g, ' ');
-    input.value = valor;
-    this.equipos.at(index).get('descripcion')?.setValue(valor);
-    this.descripcionesFiltradas[index] = this.descripcionesUsadas.filter((d) =>
-      d.toLowerCase().includes(valor.toLowerCase())
+  filtrarDescripcion(i: number): void {
+    const texto = (
+      this.equipos.at(i).get('descripcion')?.value || ''
+    ).toUpperCase();
+    this.opcionesDescripcion[i] = this.catalogoEquipoHerramienta.filter((e) =>
+      e.descripcion.includes(texto)
     );
   }
 
-  // Mostrar todas las descripciones al enfocar
-  mostrarTodasDescripciones(index: number): void {
-    this.descripcionesFiltradas[index] = [...this.descripcionesUsadas];
-  }
-
-  // Mostrar descripciones al hacer focus en la fila
-  mostrarDescripcionesFila(index: number): void {
-    this.mostrarListaDescripcion = this.mostrarListaDescripcion.map(
-      () => false
-    );
-    this.mostrarListaDescripcion[index] = true;
-    this.descripcionesFiltradas[index] = [...this.descripcionesUsadas];
-  }
-
-  seleccionarDescripcion(i: number, descripcion: string) {
-    const control = this.equipos.at(i);
-    control.get('descripcion')?.setValue(descripcion);
-
-    // Buscar el último precio en el catálogo (integra con PRECIO UNITARIO)
-    const equipo = this.catalogoEquipos.find(
-      (e) => e.descripcion === descripcion
-    );
-    if (equipo) {
-      control.get('precio_unitario')?.setValue(equipo.ultimo_precio);
-    }
-
-    this.mostrarListaDescripcion[i] = false;
-  }
-
-  // Guardar nueva descripción al perder focus
-  guardarDescripcionPersonalizada(index: number, event: Event): void {
-    const input = event.target as HTMLInputElement;
-    const valor = input.value.trim();
-
-    if (valor) {
-      this.equipos.at(index).get('descripcion')?.setValue(valor);
-      this.agregarDescripcionSiNoExiste(valor);
-    } else {
-      this.equipos.at(index).get('descripcion')?.setValue('');
-    }
-  }
-  onUnidadChange(index: number, event: Event): void {
-    const select = event.target as HTMLSelectElement;
-    const valor = select.value;
-
-    if (valor !== '__custom__') {
-      this.equipos.at(index).get('unidad')?.setValue(valor);
-    }
-  }
-
-  // Filtrar mientras escribe
-
-  filtrarUnidades(index: number, event: Event): void {
-    const input = event.target as HTMLInputElement;
-    let valor = input.value;
-    valor = valor.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s]/g, '');
-    valor = valor.replace(/\s{2,}/g, ' ');
-    input.value = valor;
-    this.equipos.at(index).get('unidad')?.setValue(valor);
-    this.unidadesFiltradas[index] = this.unidadesUsadas.filter((u) =>
-      u.toLowerCase().includes(valor.toLowerCase())
-    );
-  }
-  // Mostrar todas las unidades al enfocar
-  mostrarTodasUnidades(index: number): void {
-    this.unidadesFiltradas[index] = [...this.unidadesUsadas];
-  }
-
-  // Mostrar unidades al hacer focus en la fila
-  mostrarUnidadesFila(index: number): void {
-    this.mostrarLista = this.mostrarLista.map(() => false);
-    this.mostrarLista[index] = true;
-    this.unidadesFiltradas[index] = [...this.unidadesUsadas];
-  }
-
-  // Seleccionar unidad de la lista
-  seleccionarUnidad(index: number, unidad: string): void {
-    this.equipos.at(index).get('unidad')?.setValue(unidad);
-    this.mostrarLista[index] = false;
-  }
-
-  // Guardar nueva unidad al perder focus
-  guardarUnidadPersonalizada(index: number, event: Event): void {
-    const input = event.target as HTMLInputElement;
-    const valor = input.value.trim();
-
-    if (valor) {
-      this.equipos.at(index).get('unidad')?.setValue(valor);
-      this.agregarUnidadSiNoExiste(valor);
-    } else {
-      this.equipos.at(index).get('unidad')?.setValue('');
-    }
-  }
-
-  registrarItem(index: number): void {
-    const equipo = this.equipos.at(index);
-    if (equipo.invalid) {
-      equipo.markAllAsTouched();
+  seleccionarDescripcion(i: number, equipo: EquipoHerramienta): void {
+    if (this.existeEquipoHerramientaEnItem(equipo.descripcion, i)) {
+      alert('Esta equipo/herramienta ya está registrada en este ítem.');
+      this.opcionesDescripcion[i] = [];
       return;
     }
-
-    // Convertir campos críticos a MAYÚSCULAS
-    const descripcion = (equipo.get('descripcion')?.value || '').toUpperCase();
-    const unidad = (equipo.get('unidad')?.value || '').toUpperCase();
-
-    equipo.get('descripcion')?.setValue(descripcion);
-    equipo.get('unidad')?.setValue(unidad);
-
-    const nuevoEquipo: EquipoHerramienta = this.crearEquipoDesdeForm(equipo);
-    this.servicio.createEquipoHerramienta(nuevoEquipo).subscribe({
-      next: (res: EquipoHerramienta) => {
-        equipo.patchValue({ id: res.id, esNuevo: false });
-        if (res.total) {
-          equipo.patchValue({ total: res.total });
-        } else {
-          this.actualizarPrecioParcial(equipo);
-        }
-        this.actualizarTotalGlobal();
-        this.mensajeExito = 'Equipo/herramienta registrado exitosamente.';
-
-        this.agregarUnidadSiNoExiste(res.unidad);
+    const fg = this.equipos.at(i) as FormGroup;
+    fg.patchValue(
+      {
+        descripcion: equipo.descripcion,
+        precio_unitario: equipo.precio_unitario,
       },
-      error: (err: any) => {
-        this.mensajeError = 'Error al registrar equipo/herramienta.';
-      },
+      { emitEvent: false }
+    );
+    this.actualizarPrecioParcial(fg);
+
+    if (fg.get('id')?.value) fg.markAsDirty();
+    this.opcionesDescripcion[i] = [];
+  }
+
+  ocultarDescripcion(i: number): void {
+    setTimeout(() => (this.opcionesDescripcion[i] = []), 200);
+  }
+
+  mostrarUnidad(i: number): void {
+    this.opcionesUnidad[i] =
+      this.opcionesUnidad[i]?.length === 0 ? [...this.catalogoUnidades] : [];
+  }
+
+  filtrarUnidad(i: number): void {
+    const texto = (this.equipos.at(i).get('unidad')?.value || '').toUpperCase();
+    this.opcionesUnidad[i] = this.catalogoUnidades.filter((u) =>
+      u.includes(texto)
+    );
+  }
+
+  seleccionarUnidad(i: number, unidad: string): void {
+    this.equipos.at(i).get('unidad')?.setValue(unidad);
+    this.opcionesUnidad[i] = [];
+  }
+
+  ocultarUnidad(i: number): void {
+    setTimeout(() => (this.opcionesUnidad[i] = []), 200);
+  }
+
+  private existeEquipoHerramientaEnItem(desc: string, index: number): boolean {
+    const busqueda = desc.trim().toUpperCase();
+    return this.equipos.controls.some(
+      (c, i) =>
+        i !== index && c.get('descripcion')?.value?.toUpperCase() === busqueda
+    );
+  }
+
+  // ================= CARGAS =================
+  private cargarEquipoHerramienta(): void {
+    this.servicio
+      .getEquipoHerramientas(this.id_gasto_operaciones)
+      .subscribe((data) => {
+        this.equipos.clear();
+        data
+          .sort((a, b) =>
+            a.descripcion.localeCompare(b.descripcion, 'es', {
+              sensitivity: 'base',
+            })
+          )
+          .forEach((e, i) => {
+            this.equipos.push(this.crearFormEquipoHerramienta(e));
+            this.opcionesDescripcion[i] = [];
+            this.opcionesUnidad[i] = [];
+          });
+      });
+  }
+
+  private cargarCatalogo(): void {
+    // Cargar catálogo de descripciones con precios
+    this.servicio
+      .getCatalogoEquipoHerramientaPorProyecto(this.id_proyecto)
+      .subscribe((data: any[]) => {
+        this.catalogoEquipoHerramienta = data
+          .map((e) => ({
+            id: 0,
+            id_gasto_operacion: 0,
+            descripcion: e.descripcion.toUpperCase(),
+            unidad: '',
+            cantidad: 0,
+            precio_unitario: e.ultimo_precio,
+            total: 0,
+          }))
+          .sort((a, b) => a.descripcion.localeCompare(b.descripcion));
+      });
+
+    // Cargar unidades por separado
+    this.servicio.getUnidadesEquipoHerramienta().subscribe((unis) => {
+      this.catalogoUnidades = unis.map((u) => u.toUpperCase()).sort();
     });
   }
 
-  actualizarItem(index: number): void {
-    const equipo = this.equipos.at(index);
-    if (equipo.invalid || !equipo.get('id')?.value) return;
+  // ================= CRUD =================
+  guardar(i: number): void {
+    const control = this.equipos.at(i);
+    if (control.invalid) return;
 
-    // Convertir campos críticos a MAYÚSCULAS
-    const descripcion = (equipo.get('descripcion')?.value || '').toUpperCase();
-    const unidad = (equipo.get('unidad')?.value || '').toUpperCase();
+    const equipo = this.mapearEquipoHerramienta(control);
+    const peticion = equipo.id
+      ? this.servicio.updateEquipoHerramienta(equipo)
+      : this.servicio.createEquipoHerramienta(equipo);
 
-    equipo.get('descripcion')?.setValue(descripcion);
-    equipo.get('unidad')?.setValue(unidad);
-
-    const equipoActualizado = this.crearEquipoDesdeForm(equipo);
-    this.servicio.updateEquipoHerramienta(equipoActualizado).subscribe({
-      next: (res: EquipoHerramienta) => {
-        equipo.patchValue({ total: equipoActualizado.total });
-        this.actualizarTotalGlobal();
-        this.mensajeExito = 'Equipo/herramienta actualizado correctamente.';
-
-        this.agregarUnidadSiNoExiste(equipoActualizado.unidad);
-      },
-      error: (err: any) => {
-        this.mensajeError = 'Error al actualizar equipo/herramienta.';
-      },
+    peticion.subscribe(() => {
+      this.cargarEquipoHerramienta();
+      this.cargarCatalogo();
     });
   }
 
-  eliminarItem(index: number): void {
-    const equipo = this.equipos.at(index);
-    if (equipo.get('esNuevo')?.value) {
-      // Si es nuevo, se puede eliminar directamente
-      this.equipos.removeAt(index);
-      this.mensajeExito = 'Ítem eliminado exitosamente.';
+  eliminar(i: number): void {
+    const id = this.equipos.at(i).get('id')?.value;
+    if (id) {
+      this.servicio.deleteEquipoHerramienta(id).subscribe(() => {
+        this.cargarEquipoHerramienta();
+        this.cargarCatalogo();
+      });
     } else {
-      // Si ya existe en BD, mostrar confirmación
-      this.mostrarConfirmacion = true;
-      this.tipoConfirmacion = 'item';
-      this.itemIndexAEliminar = index;
-      this.mensajeConfirmacion = '¿Estás seguro de eliminar este ítem?';
+      this.equipos.removeAt(i);
     }
   }
-  private crearEquipoDesdeForm(control: AbstractControl): EquipoHerramienta {
-    const cantidad = Number(control.get('cantidad')?.value) || 0;
-    const precio = Number(control.get('precio_unitario')?.value) || 0;
 
-    const descripcion = (control.get('descripcion')?.value || '').toUpperCase();
-    const unidad = (control.get('unidad')?.value || '').toUpperCase();
-
+  private mapearEquipoHerramienta(control: AbstractControl): EquipoHerramienta {
+    const raw = (control as FormGroup).getRawValue();
+    const cantidad = this.parseNumero(raw.cantidad);
+    const precio = this.parseNumero(raw.precio_unitario);
     return {
-      id: control.get('id')?.value ?? 0,
+      id: raw.id ?? 0,
       id_gasto_operacion: this.id_gasto_operaciones,
-      descripcion,
-      unidad,
-      cantidad,
+      descripcion: raw.descripcion.toUpperCase().trim(),
+      unidad: raw.unidad.toUpperCase().trim(),
+      cantidad: cantidad,
       precio_unitario: precio,
       total: cantidad * precio,
     };
   }
 
-  manejarAceptar(): void {
-    if (this.tipoConfirmacion === 'item' && this.itemIndexAEliminar !== null) {
-      const equipo = this.equipos.at(this.itemIndexAEliminar);
-      if (equipo.get('esNuevo')?.value) {
-        this.equipos.removeAt(this.itemIndexAEliminar);
-        this.mensajeExito = 'Ítem eliminado exitosamente.';
-      } else {
-        this.servicio
-          .deleteEquipoHerramienta(equipo.get('id')?.value)
-          .subscribe({
-            next: () => {
-              this.equipos.removeAt(this.itemIndexAEliminar!);
-              this.mensajeExito = 'Ítem eliminado exitosamente.';
-            },
-            error: (err: any) => {
-              // Tipado explícito
-              this.mensajeError = 'Error al eliminar el equipo/herramienta.';
-            },
-          });
-      }
+  // ================= UTILITARIOS =================
+  onPrecioUniChange(control: AbstractControl, index?: number): void {
+    const fg = control as FormGroup;
+    const desc = fg.get('descripcion')?.value;
+    const precio = this.parseNumero(fg.get('precio_unitario')?.value);
+
+    if (!desc || precio <= 0) return;
+
+    this.precioUnitario$.next({ descripcion: desc.toUpperCase(), precio });
+
+    if (fg.get('id')?.value) {
+      this.servicio
+        .actualizarPrecioDescripcionEquipoHerramienta(
+          this.id_gasto_operaciones,
+          desc,
+          precio
+        )
+        .subscribe();
     }
-    this.mostrarConfirmacion = false;
-    this.tipoConfirmacion = null;
-    this.itemIndexAEliminar = null;
   }
 
-  manejarCancelar(): void {
-    this.mostrarConfirmacion = false;
-    this.tipoConfirmacion = null;
-    this.itemIndexAEliminar = null;
-    this.mensajeConfirmacion = '';
+  convertirAMayusculas(i: number, campo: string): void {
+    const ctrl = this.equipos.at(i).get(campo);
+    if (ctrl) {
+      ctrl.setValue(ctrl.value?.toUpperCase() || '', { emitEvent: false });
+    }
   }
 
-  manejarOk(): void {
-    this.mensajeExito = '';
+  parseNumero(valor: any): number {
+    if (valor === null || valor === undefined || valor === '') return 0;
+    if (typeof valor === 'number') return valor;
+    const texto = valor.toString().trim();
+    const limpio =
+      texto.includes(',') && texto.includes('.')
+        ? texto.replace(/\./g, '').replace(',', '.')
+        : texto.replace(',', '.');
+    return parseFloat(limpio) || 0;
   }
 
-  manejarError(): void {
-    this.mensajeError = '';
+  calcularPrecioParcial(equipo: AbstractControl): number {
+    return (
+      this.parseNumero(equipo.get('cantidad')?.value) *
+      this.parseNumero(equipo.get('precio_unitario')?.value)
+    );
   }
 
   actualizarPrecioParcial(control: AbstractControl): void {
-    const cantidad = control.get('cantidad')?.value || 0;
-    const precio = control.get('precio_unitario')?.value || 0;
-    control.get('total')?.setValue(cantidad * precio, { emitEvent: false });
+    const total = this.calcularPrecioParcial(control);
+    (control as FormGroup).get('total')?.setValue(total, { emitEvent: false });
   }
 
-  onCantidadChange(control: AbstractControl): void {
-    control.get('cantidad')?.markAsTouched();
-    this.actualizarPrecioParcial(control);
+  get subtotalEquipos(): number {
+    return this.equipos.controls.reduce(
+      (acc, c) => acc + this.calcularPrecioParcial(c),
+      0
+    );
   }
 
-  onPrecioUniChange(control: AbstractControl, index: number): void {
-    const descripcion = control.get('descripcion')?.value;
-    const nuevoPrecio = control.get('precio_unitario')?.value;
-
-    if (!descripcion || nuevoPrecio <= 0) return;
-
-    // Actualiza solo el frontend (otras filas con misma descripción)
-    this.actualizarPrecioPorDescripcion(descripcion, nuevoPrecio);
-
-    // Solo actualizar en backend si el ítem ya existe
-    const equipoId = control.get('id')?.value;
-    if (equipoId) {
-      this.servicio
-        .actualizarPrecioDescripcionEquipoHerramienta(
-          // Cambiado: método correcto del servicio
-          this.id_gasto_operaciones,
-          descripcion,
-          nuevoPrecio
-        )
-        .subscribe({
-          next: (res: any) => {
-            // Tipado explícito
-            this.mensajeExito = `Precio actualizado correctamente en ${res.actualizados} registros.`;
-          },
-          error: (err: any) => {
-            // Tipado explícito
-            this.mensajeError =
-              'No se pudo actualizar el precio en el backend.';
-          },
-        });
-    }
-
-    // Siempre actualizar parcial local
-    this.actualizarPrecioParcial(control);
+  get herramientasPorcentaje(): number {
+    return this.totalManoObra * (this.herramientas / 100);
   }
 
-  blockE(event: KeyboardEvent): void {
-    if (['e', 'E', '+', '-'].includes(event.key)) event.preventDefault();
+  get totalEquipos(): number {
+    const total = this.subtotalEquipos + this.herramientasPorcentaje;
+    this.servicio.setTotalEquipos(total);
+    return total;
+  }
+
+  formatearNumero(valor: number): string {
+    return new Intl.NumberFormat('de-DE', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(valor || 0);
   }
 }

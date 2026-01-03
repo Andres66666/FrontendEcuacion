@@ -8,12 +8,12 @@ import {
   OnDestroy,
   Output,
   SimpleChanges,
-  ChangeDetectorRef
+  ChangeDetectorRef,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ServiciosService } from '../../../services/servicios.service';
-import { GastoOperacion, Proyecto } from '../../../models/models';
 import { ExportService } from '../../../services/export.service';
+import { ServiciosProyectos } from '../service/servicios-proyectos';
+import { GastoOperacion, Proyecto } from '../models/modelosProyectos';
 
 interface GastoOperacionExtendido extends Partial<GastoOperacion> {
   esNuevo?: boolean;
@@ -32,10 +32,9 @@ interface GastoOperacionExtendido extends Partial<GastoOperacion> {
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './reportes-pdf.html',
-  styleUrl: './reportes-pdf.css'
+  styleUrl: './reportes-pdf.css',
 })
 export class ReportesPDf implements OnInit, OnChanges, OnDestroy {
-  
   @Input() identificadorGeneral!: number;
   @Input() nombreProyecto!: string;
   @Input() proyectoData!: Partial<Proyecto>;
@@ -44,18 +43,20 @@ export class ReportesPDf implements OnInit, OnChanges, OnDestroy {
   @Input() it: number | null = null;
   @Input() iue: number | null = null;
   @Input() ganancia: number | null = null;
-  @Input() a_costo_venta: number | null = null;
-  @Input() b_margen_utilidad: number | null = null;
+  @Input() margen_utilidad: number | null = null;
   @Input() porcentaje_global_100!: number;
 
-  @Output() mensaje = new EventEmitter<{ tipo: 'exito' | 'error'; mensaje: string }>();
+  @Output() mensaje = new EventEmitter<{
+    tipo: 'exito' | 'error';
+    mensaje: string;
+  }>();
   @Output() solicitarRefrescoItems = new EventEmitter<void>();
 
   gastosRegistrados: GastoOperacionExtendido[] = [];
   private escuchaActiva: any;
 
   constructor(
-    private servicios: ServiciosService,
+    private servicios: ServiciosProyectos,
     private exportService: ExportService,
     private cdr: ChangeDetectorRef
   ) {}
@@ -82,7 +83,10 @@ export class ReportesPDf implements OnInit, OnChanges, OnDestroy {
 
   refrescarItems(): void {
     if (!this.identificadorGeneral) {
-      this.emitirMensaje('error', 'No hay proyecto seleccionado para refrescar los datos.');
+      this.emitirMensaje(
+        'error',
+        'No hay proyecto seleccionado para refrescar los datos.'
+      );
       return;
     }
     // Llamamos al servicio directamente
@@ -95,16 +99,20 @@ export class ReportesPDf implements OnInit, OnChanges, OnDestroy {
           esNuevo: false,
           editarModulo: false,
           editar: false,
-          moduloId: g.modulo?.id ?? null,
+          moduloId:
+            typeof g.modulo === 'object' && g.modulo ? g.modulo.id : null,
         }));
         this.items = [...gastosEnItems]; // ⚠️ Cambiamos la referencia del array
         this.actualizarGastosRegistrados(); // Actualiza la vista
-        this.emitirMensaje('exito', 'Datos del proyecto actualizados correctamente.');
+        this.emitirMensaje(
+          'exito',
+          'Datos del proyecto actualizados correctamente.'
+        );
       },
       error: (err) => {
         console.error(err);
         this.emitirMensaje('error', 'Error al refrescar los datos.');
-      }
+      },
     });
   }
   // ------------------------------------------------------------
@@ -112,19 +120,17 @@ export class ReportesPDf implements OnInit, OnChanges, OnDestroy {
   // ------------------------------------------------------------
   iniciarEscuchaActualizacion(): void {
     this.escuchaActiva = setInterval(() => {
-
       // Actualiza vista
       this.cdr.detectChanges();
 
       // Actualiza cálculos
       this.actualizarGastosRegistrados();
-
     }, 500); // cada 0.5 segundos
   }
 
   actualizarGastosRegistrados(): void {
     this.gastosRegistrados = this.items
-      .filter(item => item.tipo === 'gasto' && !!item.id)
+      .filter((item) => item.tipo === 'gasto' && !!item.id)
       .sort((a, b) => (a.id! > b.id! ? 1 : -1));
   }
 
@@ -134,14 +140,25 @@ export class ReportesPDf implements OnInit, OnChanges, OnDestroy {
 
   exportPDFGeneral(): void {
     if (!this.identificadorGeneral || !this.nombreProyecto) {
-      this.emitirMensaje('error', 'Selecciona un proyecto primero para generar el PDF.');
+      this.emitirMensaje(
+        'error',
+        'Selecciona un proyecto primero para generar el PDF.'
+      );
       return;
     }
 
     this.exportService
-      .generatePDFGastosOperacionProyecto(this.identificadorGeneral, this.nombreProyecto)
-      .then(() => this.emitirMensaje('exito', `PDF generado para "${this.nombreProyecto}".`))
-      .catch(error => {
+      .generatePDFGastosOperacionProyecto(
+        this.identificadorGeneral,
+        this.nombreProyecto
+      )
+      .then(() =>
+        this.emitirMensaje(
+          'exito',
+          `PDF generado para "${this.nombreProyecto}".`
+        )
+      )
+      .catch((error) => {
         console.error('Error al generar el PDF general:', error);
         this.emitirMensaje('error', 'Error al generar el PDF. Ver consola.');
       });
@@ -149,7 +166,10 @@ export class ReportesPDf implements OnInit, OnChanges, OnDestroy {
 
   generarReporteGeneralPDF(): void {
     if (!this.identificadorGeneral || !this.nombreProyecto) {
-      this.emitirMensaje('error', 'Selecciona un proyecto válido para generar el reporte general.');
+      this.emitirMensaje(
+        'error',
+        'Selecciona un proyecto válido para generar el reporte general.'
+      );
       return;
     }
 
@@ -163,26 +183,39 @@ export class ReportesPDf implements OnInit, OnChanges, OnDestroy {
       it: this.it || 0,
       iue: this.iue || 0,
       ganancia: this.ganancia || 0,
-      a_costo_venta: this.a_costo_venta || 0,
-      b_margen_utilidad: this.b_margen_utilidad || 0,
+      b_margen_utilidad: this.margen_utilidad || 0,
       porcentaje_global_100: this.porcentaje_global_100 ?? 100,
       fechaReporte: new Date().toLocaleDateString('es-BO'),
     };
 
-    const fileName = `Reporte_General_${this.nombreProyecto.replace(/[^a-zA-Z0-9]/g, '_')}_${this.identificadorGeneral}.pdf`;
+    const fileName = `Reporte_General_${this.nombreProyecto.replace(
+      /[^a-zA-Z0-9]/g,
+      '_'
+    )}_${this.identificadorGeneral}.pdf`;
 
     this.exportService
       .generatePDFReporteGeneral(params, fileName)
-      .then(() => this.emitirMensaje('exito', `Reporte general PDF generado para "${this.nombreProyecto}".`))
-      .catch(error => {
+      .then(() =>
+        this.emitirMensaje(
+          'exito',
+          `Reporte general PDF generado para "${this.nombreProyecto}".`
+        )
+      )
+      .catch((error) => {
         console.error('Error al generar el reporte general:', error);
-        this.emitirMensaje('error', 'Error al generar el reporte. Ver consola.');
+        this.emitirMensaje(
+          'error',
+          'Error al generar el reporte. Ver consola.'
+        );
       });
   }
 
   generarReporteFinanciero(item: GastoOperacionExtendido): void {
     if (!item.id || !this.identificadorGeneral || !this.nombreProyecto) {
-      this.emitirMensaje('error', 'No se puede generar el reporte: Gasto o proyecto no válido.');
+      this.emitirMensaje(
+        'error',
+        'No se puede generar el reporte: Gasto o proyecto no válido.'
+      );
       return;
     }
 
@@ -197,23 +230,35 @@ export class ReportesPDf implements OnInit, OnChanges, OnDestroy {
       it: this.it || 0,
       iue: this.iue || 0,
       ganancia: this.ganancia || 0,
-      a_costo_venta: this.a_costo_venta || 0,
-      b_margen_utilidad: this.b_margen_utilidad || 0,
+      b_margen_utilidad: this.margen_utilidad || 0,
       porcentaje_global_100: this.porcentaje_global_100 || 100,
       nombreProyecto: this.nombreProyecto,
-      fechaReporte: new Date().toLocaleDateString('es-BO')
+      fechaReporte: new Date().toLocaleDateString('es-BO'),
     };
 
-    const safeDescripcion = (item.descripcion || 'gasto').replace(/[^a-zA-Z0-9]/g, '_').substring(0, 20);
+    const safeDescripcion = (item.descripcion || 'gasto')
+      .replace(/[^a-zA-Z0-9]/g, '_')
+      .substring(0, 20);
 
-    const fileName = `reporte-financiero-${this.nombreProyecto.replace(/[^a-zA-Z0-9]/g, '_')}-${safeDescripcion}.pdf`;
+    const fileName = `reporte-financiero-${this.nombreProyecto.replace(
+      /[^a-zA-Z0-9]/g,
+      '_'
+    )}-${safeDescripcion}.pdf`;
 
     this.exportService
       .generatePDFFinanciero(params, fileName)
-      .then(() => this.emitirMensaje('exito', `Reporte financiero generado para "${item.descripcion}".`))
-      .catch(error => {
+      .then(() =>
+        this.emitirMensaje(
+          'exito',
+          `Reporte financiero generado para "${item.descripcion}".`
+        )
+      )
+      .catch((error) => {
         console.error('Error al generar el reporte financiero:', error);
-        this.emitirMensaje('error', 'Error al generar el reporte. Ver consola.');
+        this.emitirMensaje(
+          'error',
+          'Error al generar el reporte. Ver consola.'
+        );
       });
   }
 
@@ -224,9 +269,12 @@ export class ReportesPDf implements OnInit, OnChanges, OnDestroy {
     }
 
     this.exportService
-      .generatePDFMaterialesProyecto(this.identificadorGeneral, this.nombreProyecto)
+      .generatePDFMaterialesProyecto(
+        this.identificadorGeneral,
+        this.nombreProyecto
+      )
       .then(() => this.emitirMensaje('exito', `PDF de Materiales generado.`))
-      .catch(error => {
+      .catch((error) => {
         console.error(error);
         this.emitirMensaje('error', 'Error al generar PDF de Materiales.');
       });
@@ -239,9 +287,12 @@ export class ReportesPDf implements OnInit, OnChanges, OnDestroy {
     }
 
     this.exportService
-      .generatePDFManoDeObraProyecto(this.identificadorGeneral, this.nombreProyecto)
+      .generatePDFManoDeObraProyecto(
+        this.identificadorGeneral,
+        this.nombreProyecto
+      )
       .then(() => this.emitirMensaje('exito', `PDF de Mano de Obra generado.`))
-      .catch(error => {
+      .catch((error) => {
         console.error(error);
         this.emitirMensaje('error', 'Error al generar PDF de Mano de Obra.');
       });
@@ -254,11 +305,19 @@ export class ReportesPDf implements OnInit, OnChanges, OnDestroy {
     }
 
     this.exportService
-      .generatePDFEquipoHerramientaProyecto(this.identificadorGeneral, this.nombreProyecto)
-      .then(() => this.emitirMensaje('exito', `PDF de Equipo y Herramientas generado.`))
-      .catch(error => {
+      .generatePDFEquipoHerramientaProyecto(
+        this.identificadorGeneral,
+        this.nombreProyecto
+      )
+      .then(() =>
+        this.emitirMensaje('exito', `PDF de Equipo y Herramientas generado.`)
+      )
+      .catch((error) => {
         console.error(error);
-        this.emitirMensaje('error', 'Error al generar PDF de Equipo y Herramientas.');
+        this.emitirMensaje(
+          'error',
+          'Error al generar PDF de Equipo y Herramientas.'
+        );
       });
   }
 
@@ -273,7 +332,7 @@ export class ReportesPDf implements OnInit, OnChanges, OnDestroy {
 
   getGastosRegistrados(): GastoOperacionExtendido[] {
     return this.items
-      .filter(item => item.tipo === 'gasto' && !!item.id)
+      .filter((item) => item.tipo === 'gasto' && !!item.id)
       .sort((a, b) => (a.id! > b.id! ? 1 : -1));
   }
 
@@ -283,13 +342,23 @@ export class ReportesPDf implements OnInit, OnChanges, OnDestroy {
 
   get totalGastosOperacionGeneral(): number {
     return this.items
-      .filter(item => item.tipo === 'gasto' && item.id && this.toNum(item.precio_unitario) > 0)
+      .filter(
+        (item) =>
+          item.tipo === 'gasto' &&
+          item.id &&
+          this.toNum(item.precio_unitario) > 0
+      )
       .reduce((acc, item) => acc + this.toNum(item.precio_unitario), 0);
   }
 
   get totalValorAgregado(): number {
     const total = this.items
-      .filter(item => item.tipo === 'gasto' && item.id && this.toNum(item.precio_unitario) > 0)
+      .filter(
+        (item) =>
+          item.tipo === 'gasto' &&
+          item.id &&
+          this.toNum(item.precio_unitario) > 0
+      )
       .reduce((acc, item) => acc + this.getValorAgregado(item), 0);
 
     return Number(total.toFixed(2));
@@ -297,7 +366,7 @@ export class ReportesPDf implements OnInit, OnChanges, OnDestroy {
 
   get total(): number {
     const total = this.items
-      .filter(item => item.tipo === 'gasto' && item.id)
+      .filter((item) => item.tipo === 'gasto' && item.id)
       .reduce(
         (acc, item) =>
           acc + this.MultiplicacionPrecioUnitarioActividadPORcantidad(item),
@@ -312,7 +381,8 @@ export class ReportesPDf implements OnInit, OnChanges, OnDestroy {
   }
 
   getValorAgregado(item: GastoOperacionExtendido): number {
-    const valor = this.getPrecioFactura(item) - this.toNum(item.precio_unitario);
+    const valor =
+      this.getPrecioFactura(item) - this.toNum(item.precio_unitario);
     return this.roundTo(valor, 2);
   }
 
@@ -327,22 +397,14 @@ export class ReportesPDf implements OnInit, OnChanges, OnDestroy {
   getCostoVenta(item: GastoOperacionExtendido): number {
     const precio = this.toNum(item.precio_unitario);
     const ivaNominal = this.toNum(this.proyectoData.iva_tasa_nominal);
-    const porcentajeGlobal = this.toNum(this.proyectoData.porcentaje_global_100);
 
-    return precio - precio * (ivaNominal / porcentajeGlobal);
+    return precio - precio * (ivaNominal / 100);
   }
 
   getMargenUtilidad(item: GastoOperacionExtendido): number {
-    if (this.toNum(this.proyectoData.a_costo_venta) === 0) return 0;
+    const margen = this.toNum(this.proyectoData.margen_utilidad);
 
-    const margen = this.toNum(this.proyectoData.b_margen_utilidad);
-    const aCosto = this.toNum(this.proyectoData.a_costo_venta);
-    const porcentajeGlobal = this.toNum(this.proyectoData.porcentaje_global_100);
-
-    return (
-      (margen / porcentajeGlobal / (aCosto / porcentajeGlobal)) *
-      this.getCostoVenta(item)
-    );
+    return (margen / 100 / 100) * this.getCostoVenta(item);
   }
 
   getIvaEfectiva(item: GastoOperacionExtendido): number {
@@ -354,10 +416,9 @@ export class ReportesPDf implements OnInit, OnChanges, OnDestroy {
 
   getIvaEfectivaCalculo(): number {
     const ivaNominal = this.toNum(this.proyectoData.iva_tasa_nominal);
-    const aCosto = this.toNum(this.proyectoData.a_costo_venta);
-    const margen = this.toNum(this.proyectoData.b_margen_utilidad);
+    const margen = this.toNum(this.proyectoData.margen_utilidad);
 
-    return ivaNominal / (aCosto + margen);
+    return ivaNominal / margen;
   }
 
   SumaPrecioUnitarioActividad(item: GastoOperacionExtendido): number {
@@ -367,7 +428,9 @@ export class ReportesPDf implements OnInit, OnChanges, OnDestroy {
     );
   }
 
-  MultiplicacionPrecioUnitarioActividadPORcantidad(item: GastoOperacionExtendido): number {
+  MultiplicacionPrecioUnitarioActividadPORcantidad(
+    item: GastoOperacionExtendido
+  ): number {
     return this.roundTo(
       this.SumaPrecioUnitarioActividad(item) * this.toNum(item.cantidad),
       2

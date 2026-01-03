@@ -1,6 +1,6 @@
 export interface Proyecto {
   id_proyecto: number;
-  NombreProyecto: string;
+  NombreProyecto: string /* nombre del proyecto */;
   carga_social: number;
   iva_efectiva: number;
   herramientas: number;
@@ -9,28 +9,26 @@ export interface Proyecto {
   it: number;
   iue: number;
   ganancia: number;
-  a_costo_venta: number;
-  b_margen_utilidad: number;
-  porcentaje_global_100: number;
+  margen_utilidad: number;
+  creado_por: number /* ID del usuario que creó el proyecto */;
 }
 
 export interface Modulo {
   id: number;
   proyecto: number;
   codigo: string;
-  nombre: string;
+  nombre: string /* nombre del módulo */;
 }
 
 export interface GastoOperacion {
   id: number;
-  identificador: Proyecto;
-  descripcion: string;
+  identificador: Proyecto | number;
+  modulo: Modulo | number;
+  descripcion: string /* descripción del gasto de operación esto es el nombre del item */;
   unidad: string;
   cantidad: number;
   precio_unitario: number;
-  precio_literal: string;
   costo_parcial: number;
-  modulo?: Modulo | null;
 }
 
 //  ================  seccion 3    ======================
@@ -64,5 +62,6 @@ export interface EquipoHerramienta {
 export interface GastosGenerales {
   id: number;
   id_gasto_operacion: number;
+  totalgastosgenerales: number /* 1+2+3+4 */;
   total: number;
 }

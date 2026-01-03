@@ -1,201 +1,153 @@
 <form [formGroup]="formulario">
-  <div class="card border-primary mb-4">
-    <div class="card-header bg-primary text-white">
-      <h5 class="mb-0"><i class="bi bi-box-seam me-2"></i>1. Materiales</h5>
+  <div class="card">
+    <div class="card-header bg-primary bg-opacity-25">
+      <h5><i class="bi bi-bricks me-1"></i>1. Materiales</h5>
     </div>
 
     <div class="card-body" formArrayName="materiales">
       <div class="d-flex justify-content-end no-export">
         <button
           type="button"
-          class="btn btn-outline-primary mt-2 mb-3"
+          class="btn btn-outline-primary mb-3"
           (click)="agregarMaterial()"
         >
-          <i class="bi bi-plus-circle me-1"></i> Añadir Material
+          + Agregar material
         </button>
       </div>
-      <table class="table table-bordered table-hover align-middle mb-3">
-        <thead class="table-light text-center">
+
+      <table class="table table-bordered">
+        <thead>
           <tr>
             <th>Descripción</th>
             <th>Unidad</th>
             <th>Cantidad</th>
-            <th>P. Unitario</th>
-            <th>Precio parcial</th>
-            <th class="no-export">Acción</th>
+            <th>Precio Unitario</th>
+            <th>Precio Total</th>
+            <th>Acciones</th>
           </tr>
         </thead>
+
         <tbody>
           <tr
             *ngFor="let mat of materiales.controls; let i = index"
             [formGroupName]="i"
           >
-            <!-- Descripción -->
-            <td>
-              <div class="position-relative">
-                <input
-                  type="text"
-                  class="form-control input-descripcion"
-                  placeholder="Ej. Cemento"
-                  [formControl]="getDescripcionControl(i)"
-                  (input)="filtrarDescripciones(i, $event)"
-                  (focus)="mostrarDescripcionesFila(i)"
-                  (blur)="guardarDescripcionPersonalizada(i, $event)"
-                />
-
-                <ul
-                  *ngIf="
-                    descripcionesFiltradas[i]?.length &&
-                    mostrarListaDescripcion[i]
-                  "
-                  class="list-group position-absolute w-100 descripcion-list"
-                  style="z-index: 1000; max-height: 150px; overflow-y: auto"
+            <!-- DESCRIPCIÓN -->
+            <td class="position-relative">
+              <input
+                type="text"
+                class="form-control"
+                formControlName="descripcion"
+                (focus)="mostrarDescripcion(i)"
+                (input)="
+                  filtrarDescripcion(i); convertirAMayusculas(i, 'descripcion')
+                "
+                (blur)="ocultarDescripcion(i)"
+              />
+              <ul
+                *ngIf="opcionesDescripcion[i]?.length"
+                class="list-group position-absolute w-100"
+                style="z-index: 1000; max-height: 200px; overflow-y: auto"
+              >
+                <li
+                  class="list-group-item list-group-item-action"
+                  *ngFor="let opt of opcionesDescripcion[i]"
+                  (click)="seleccionarDescripcion(i, opt)"
                 >
-                  <li
-                    *ngFor="let d of descripcionesFiltradas[i]"
-                    class="list-group-item list-group-item-action p-1"
-                    (mousedown)="seleccionarDescripcion(i, d)"
-                    style="cursor: pointer"
-                  >
-                    {{ d }}
-                  </li>
-                </ul>
-
-                <div
-                  *ngIf="mat.get('descripcion')?.errors?.['required']"
-                  class="text-danger small"
-                >
-                  Campo requerido.
-                </div>
-              </div>
+                  {{ opt.descripcion }}
+                </li>
+              </ul>
             </td>
 
-            <!-- Unidad -->
-            <td>
-              <div class="position-relative">
-                <input
-                  type="text"
-                  class="form-control form-control-sm input-unidad"
-                  placeholder="Seleccione o escriba una unidad"
-                  [formControl]="getUnidadControl(i)"
-                  (input)="filtrarUnidades(i, $event)"
-                  (focus)="mostrarUnidadesFila(i)"
-                  (blur)="guardarUnidadPersonalizada(i, $event)"
-                />
-
-                <ul
-                  *ngIf="unidadesFiltradas[i]?.length && mostrarLista[i]"
-                  class="list-group position-absolute w-100 unidad-list"
-                  style="z-index: 1000; max-height: 150px; overflow-y: auto"
+            <!-- UNIDAD -->
+            <td class="position-relative">
+              <input
+                type="text"
+                class="form-control"
+                formControlName="unidad"
+                (focus)="mostrarUnidad(i)"
+                (input)="filtrarUnidad(i); convertirAMayusculas(i, 'unidad')"
+                (blur)="ocultarUnidad(i)"
+              />
+              <ul
+                *ngIf="opcionesUnidad[i]?.length"
+                class="list-group position-absolute w-100"
+                style="z-index: 1000; max-height: 200px; overflow-y: auto"
+              >
+                <li
+                  class="list-group-item list-group-item-action"
+                  *ngFor="let u of opcionesUnidad[i]"
+                  (click)="seleccionarUnidad(i, u)"
                 >
-                  <li
-                    *ngFor="let u of unidadesFiltradas[i]"
-                    class="list-group-item list-group-item-action p-1"
-                    (mousedown)="seleccionarUnidad(i, u)"
-                    style="cursor: pointer"
-                  >
-                    {{ u }}
-                  </li>
-                </ul>
-              </div>
+                  {{ u }}
+                </li>
+              </ul>
             </td>
-            <!-- Cantidad -->
+
+            <!-- CANTIDAD -->
             <td>
               <input
                 type="number"
                 class="form-control"
                 formControlName="cantidad"
-                (keydown)="blockE($event)"
-                (change)="onCantidadChange(mat)"
               />
             </td>
-
-            <!-- Precio Unitario -->
+            <!-- PRECIO UNITARIO -->
             <td>
               <input
                 type="number"
                 class="form-control"
                 formControlName="precio_unitario"
-                (keydown)="blockE($event)"
                 (change)="onPrecioUniChange(mat, i)"
               />
             </td>
 
-            <!-- Precio Parcial (readonly) -->
-            <td>
-              <input
-                type="number"
-                class="form-control"
-                [value]="mat.get('total')?.value"
-                readonly
-              />
+            <!-- TOTAL -->
+
+            <td class="text-end">
+              {{ formatearNumero(calcularTotalFila(mat)) }}
             </td>
 
-            <!-- Acción -->
-            <td class="text-center no-export">
-              <div class="d-flex justify-content-center gap-2">
-                <ng-container
-                  *ngIf="mat.get('esNuevo')?.value; else accionesExistente"
-                >
-                  <button
-                    class="btn btn-success btn-sm"
-                    (click)="registrarItem(i)"
-                  >
-                    <i class="bi bi-check2-circle me-1"></i> Registrar
-                  </button>
-                  <button
-                    class="btn btn-danger btn-sm"
-                    (click)="eliminarItem(i)"
-                  >
-                    <i class="bi bi-trash"></i> Eliminar
-                  </button>
-                </ng-container>
-                <ng-template #accionesExistente>
-                  <button
-                    class="btn btn-primary btn-sm"
-                    (click)="actualizarItem(i)"
-                  >
-                    <i class="bi bi-pencil"></i> Actualizar
-                  </button>
-                  <button
-                    class="btn btn-danger btn-sm"
-                    (click)="eliminarItem(i)"
-                  >
-                    <i class="bi bi-trash"></i> Eliminar
-                  </button>
-                </ng-template>
-              </div>
+            <!-- ACCIONES -->
+            <td class="text-center">
+              <button
+                *ngIf="!mat.get('id')?.value"
+                type="button"
+                class="btn btn-outline-success btn-sm me-1"
+                (click)="guardar(i)"
+                title="Guardar material"
+              >
+                <i class="bi bi-check-lg"></i>
+              </button>
+
+              <button
+                *ngIf="mat.get('id')?.value && mat.dirty"
+                type="button"
+                class="btn btn-outline-primary btn-sm me-1"
+                (click)="guardar(i)"
+                title="Guardar cambios"
+              >
+                <i class="bi bi-arrow-clockwise"></i>
+              </button>
+
+              <button
+                type="button"
+                class="btn btn-outline-danger btn-sm"
+                (click)="eliminar(i)"
+                title="Eliminar material"
+              >
+                <i class="bi bi-trash3"></i>
+              </button>
             </td>
           </tr>
         </tbody>
       </table>
     </div>
 
-    <div class="card-footer">
-      <table class="table table-bordered table-hover mb-0">
-        <tbody>
-          <tr class="table-primary fw-bold">
-            <td>Total Materiales</td>
-            <td class="text-end">{{ formatearNumero(totalMateriales) }}</td>
-          </tr>
-        </tbody>
-      </table>
+    <!-- TOTAL GENERAL -->
+
+    <div class="card-footer text-end fw-bold">
+      TOTAL MATERIALES: {{ formatearNumero(totalMateriales) }}
     </div>
   </div>
 </form>
-<app-confirmacion
-  *ngIf="mostrarConfirmacion"
-  [mensaje]="mensajeConfirmacion"
-  (aceptar)="manejarAceptar()"
-  (cancelar)="manejarCancelar()"
-></app-confirmacion>
-<app-ok
-  *ngIf="mensajeExito"
-  [mensaje]="mensajeExito"
-  (close)="manejarOk()"
-></app-ok>
-<app-error
-  *ngIf="mensajeError"
-  [mensaje]="mensajeError"
-  (close)="manejarError()"
-></app-error>

@@ -1,8 +1,9 @@
+<!-- crear-gastos-generales.component.html (refactorizado y limpiado) -->
 <!-- ========== GASTOS GENERALES ========== -->
-<div class="card border-info mb-4" [formGroup]="Form">
-  <div class="card-header bg-info ">
+<div class="card mb-4">
+  <div class="card-header bg-info bg-opacity-25">
     <h5 class="mb-0">
-      <i class="bi bi-cash-stack me-2"></i>4. Gastos Generales y Administrativos
+      <i class="bi bi-cash-stack me-2"></i>4. GASTOS GENERALES Y ADMINISTRATIVOS
     </h5>
   </div>
 
@@ -10,19 +11,52 @@
     <table class="table table-bordered mb-3">
       <tbody>
         <tr>
-          <td><p>Suma Total (1+2+3) :</p></td>
-          <td class="text-end align-middle">{{ formatearNumero(sumaTotales) }}</td>
-        </tr>
-        <tr>
-          <td>Total Gastos Generales ((1+2+3) * {{formatearNumero(gastos_generales)}} %)</td>
+          <td>
+            GASTOS GENERALES (
+            {{ formatearNumero(gastos_generales) }} %) * (1+2+3)
+          </td>
           <td class="text-end">
             {{ formatearNumero(totalGastosGenerales) }}
           </td>
         </tr>
-        <tr class="table-info fw-bold">
-          <td>Total Gastos de Operación (1+2+3+4)</td>
+        <tr class="fw-bold text-end">
+          <td>TOTAL GASTOS GENERALES Y ADMINISTRATIVOS</td>
           <td class="text-end">
             {{ formatearNumero(totalOperacion) }}
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+<div class="card mb-4">
+  <div class="card-header bg-secondary bg-opacity-25">
+    <h5 class="mb-0"><i class="bi bi-cash-stack me-2"></i>5. VALOR AGREGADO</h5>
+  </div>
+
+  <div class="card-body">
+    <table class="table table-bordered mb-3">
+      <tbody>
+        <tr>
+          <td>
+            MARGEN DE UTILIDAD (
+            {{ formatearNumero(margen_utilidad) }} %)
+          </td>
+          <td class="text-end">
+            {{ formatearNumero(TotalesS5) }}
+          </td>
+        </tr>
+        <tr class="fw-bold">
+          <td class="text-end">TOTAL VALOR AGREGADO</td>
+          <td class="text-end">
+            {{ formatearNumero(TotalesS5) }}
+          </td>
+        </tr>
+
+        <tr class="fw-bold">
+          <td class="text-end">TOTAL PRECIO UNITARIO (1+2+3+4+5)</td>
+          <td class="text-end">
+            {{ formatearNumero(sumaTotalGeneral12345) }}
           </td>
         </tr>
       </tbody>
@@ -40,12 +74,20 @@
         class="btn btn-primary"
         type="button"
         (click)="actualizarGastosGenerales()"
-        [disabled]="!gastoExistente" 
+        [disabled]="!gastoExistente"
       >
         Actualizar
       </button>
     </div>
   </div>
 </div>
-<app-ok *ngIf="mensajeExito" [mensaje]="mensajeExito" (close)="manejarOk()"></app-ok>
-<app-error *ngIf="mensajeError" [mensaje]="mensajeError" (close)="manejarError()"></app-error>
+<app-ok
+  *ngIf="mensajeExito"
+  [mensaje]="mensajeExito"
+  (close)="manejarOk()"
+></app-ok>
+<app-error
+  *ngIf="mensajeError"
+  [mensaje]="mensajeError"
+  (close)="manejarError()"
+></app-error>

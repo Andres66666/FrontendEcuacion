@@ -4,7 +4,7 @@
 -->
 <div class="d-flex gap-0">
   <div id="contentToExport" class="flex-grow-1">
-    <section class="mb-3 p-3 text-white rounded-3 ">
+    <section class="mb-3 p-3 text-white rounded-3">
       <div class="card bg-transparent border-0">
         <div class="card-body p-2">
           <h1 class="mb-2 fs-1 text-center">PRECIOS UNITARIOS</h1>
@@ -12,23 +12,23 @@
             <div class="row justify-content-center">
               <div class="col-12 col-md-6 fs-5">
                 <p class="mb-1 d-flex">
-                  <strong style="width: 120px;">Proyecto:</strong>
+                  <strong style="width: 120px">Proyecto:</strong>
                   <span>{{ nombreProyecto }}</span>
                 </p>
                 <p class="mb-1 d-flex">
-                  <strong style="width: 120px;">Actividad:</strong>
+                  <strong style="width: 120px">Actividad:</strong>
                   <span>{{ descripcion }}</span>
                 </p>
                 <p class="mb-1 d-flex">
-                  <strong style="width: 120px;">Cantidad:</strong>
+                  <strong style="width: 120px">Cantidad:</strong>
                   <span>{{ cantidad }}</span>
                 </p>
                 <p class="mb-1 d-flex">
-                  <strong style="width: 120px;">Unidad:</strong>
+                  <strong style="width: 120px">Unidad:</strong>
                   <span>{{ unidad }}</span>
                 </p>
                 <p class="mb-1 d-flex">
-                  <strong style="width: 120px;">Moneda:</strong>
+                  <strong style="width: 120px">Moneda:</strong>
                   <span>Bolivianos</span>
                 </p>
               </div>
@@ -40,32 +40,44 @@
 
     <!-- Secciones -->
     <section class="mb-3 p-3 text-white rounded-3">
-        <app-crear-materiales></app-crear-materiales>
+      <app-crear-materiales></app-crear-materiales>
     </section>
 
     <section class="mb-3 p-3 text-dark rounded-3">
-      <app-crear-mano-de-obra></app-crear-mano-de-obra>
+      <app-crear-mano-de-obra
+        [id_gasto_operaciones]="id_gasto_operaciones"
+        [proyectoData]="proyectoData"
+      ></app-crear-mano-de-obra>
     </section>
 
     <section class="mb-3 p-3 text-white rounded-3">
-      <app-crear-equipo-herramienta></app-crear-equipo-herramienta>
+      <app-crear-equipo-herramienta
+        [id_gasto_operaciones]="id_gasto_operaciones"
+        [proyectoData]="proyectoData"
+      ></app-crear-equipo-herramienta>
     </section>
 
     <section class="mb-3 p-3 text-white rounded-3">
-      <app-crear-gastos-generales></app-crear-gastos-generales>
+      <app-crear-gastos-generales
+        [id_gasto_operaciones]="id_gasto_operaciones"
+        [proyectoData]="proyectoData"
+      ></app-crear-gastos-generales>
     </section>
   </div>
-  <div class="position-sticky top-50 translate-middle-y align-self-start z-3" style="width: 60px">
+  <div
+    class="position-sticky top-50 translate-middle-y align-self-start z-3"
+    style="width: 60px"
+  >
     <a
-      class="btn d-flex align-items-center justify-content-center p-0 mb-3 "
+      class="btn d-flex align-items-center justify-content-center p-0 mb-3"
       (click)="navigateToHome()"
       style="width: 60px; height: 60px"
     >
-      <img 
-        src="https://cdn-icons-png.flaticon.com/128/3487/3487330.png" 
+      <img
+        src="https://cdn-icons-png.flaticon.com/128/3487/3487330.png"
         class="img-fluid"
-        style="width: 40px; height: 40px;"
-      />  
+        style="width: 40px; height: 40px"
+      />
     </a>
   </div>
 </div>

@@ -2,206 +2,327 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { ExportService } from '../../../services/export.service';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
 @Component({
   selector: 'app-precio-factura',
+  standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './precio-factura.component.html',
   styleUrl: './precio-factura.component.css',
 })
 export class PrecioFacturaComponent {
-  id_gasto_operaciones: number = 0;
-  identificadorGeneral: number = 0;
-  precio_unitario: number = 0; // De cada Item
-  //  NUEVAS PROPIEDADES PARA LOS TOTALES
-  totalGastosOperacionGeneral: number = 0;
-  totalValorAgregado: number = 0;
-  totalFactura: number = 0;
+  // ========================
+  // IDENTIFICACIÓN
+  // ========================
+  id_item_gasto_operacion: number = 0;
+  id_proyecto_general: number = 0;
 
-  iva_tasa_nominal: number = 0;   // IVA % mostrado Variable Principal
-  it: number = 0;      // IT % mostrado Variable Principal
-  iue: number = 0;    // IUE % mostrado Variable Principal
-  ganancia: number = 0; // Ganancia mostrada Variable Principal
+  // ========================
+  // CONTROL DE ORIGEN
+  // ========================
+  origen: 'ITEM' | 'PROYECTO' | 'MODULO' | '' = '';
 
-  a_costo_venta: number = 0;     // % A ingresado (ej: 77)
-  b_margen_utilidad: number = 0;     // % B ingresado (ej: 10)
-  porcentaje_global_100: number = 0; // Porcentaje de ganancia
+  // ========================
+  // REPORTE PRINCIPAL
+  // ========================
+  REPORTE_GASTOS_DE_OPERACION: number = 0;
+  REPORTE_VALOR_AGREGADO: number = 0;
 
-  constructor(private route: ActivatedRoute, public router: Router,  private exportService: ExportService ) {}
+  // ========================
+  // VARIABLES FINANCIERAS
+  // ========================
+  iva_tasa_nominal: number = 0;
+  it: number = 0;
+  iue: number = 0;
+  ganancia: number = 0;
+  margen_utilidad: number = 0;
 
+  // ========================
+  // DATOS VISUALES DEL REPORTE
+  // ========================
+  nombreProyecto: string = '';
+  nombreModulo: string = '';
+  descripcionItem: string = '';
 
+  constructor(private route: ActivatedRoute, private router: Router) {}
+
+  // ========================
+  // INIT
+  // ========================
   ngOnInit(): void {
     this.route.queryParams.subscribe((params) => {
-      this.id_gasto_operaciones = Number(params['id_gasto_operaciones']) || 0;
-      this.identificadorGeneral = Number(params['identificadorGeneral']) || 0;
+      // ========================
+      // DATOS PARA EL REPORTE
+      // ========================
+      this.nombreProyecto = params['NombreProyecto'] || '';
+      this.nombreModulo = params['NombreModulo'] || '';
+      this.descripcionItem = params['descripcion'] || '';
 
-      //  Detectar si viene desde la otra vista con totales
-      if (params['totalGastosOperacion']) {
-        this.totalGastosOperacionGeneral = Number(params['totalGastosOperacion']);
-        this.totalValorAgregado = Number(params['totalValorAgregado']) || 0;
-        this.totalFactura = Number(params['totalFactura']) || 0;
+      // ORIGEN
+      this.origen = params['origen'] || '';
 
-        //  Asignar al precio_unitario solo en este caso
-        this.precio_unitario = this.totalGastosOperacionGeneral;
-      } else {
-        this.precio_unitario = Number(params['precio_unitario']) || 0;
-      }
+      // IDENTIFICADORES
+      this.id_item_gasto_operacion =
+        Number(params['id_item_gasto_operacion']) || 0;
+      this.id_proyecto_general = Number(params['id_proyecto']) || 0;
 
+      // VARIABLES FINANCIERAS
       this.iva_tasa_nominal = Number(params['iva_tasa_nominal']) || 0;
       this.it = Number(params['it']) || 0;
       this.iue = Number(params['iue']) || 0;
       this.ganancia = Number(params['ganancia']) || 0;
-      this.a_costo_venta = Number(params['a_costo_venta']) || 0;
-      this.b_margen_utilidad = Number(params['b_margen_utilidad']) || 0;
-      this.porcentaje_global_100 = Number(params['porcentaje_global_100']) || 0;
+      this.margen_utilidad = Number(params['margen_utilidad']) || 0;
+
+      // ========================
+      // ASIGNAR REPORTE SEGÚN ORIGEN
+      // ========================
+      if (this.origen === 'PROYECTO') {
+        this.REPORTE_GASTOS_DE_OPERACION =
+          Number(params['total_proyecto_gastos_operacion_parcial']) || 0;
+        this.REPORTE_VALOR_AGREGADO =
+          Number(params['total_proyecto_valor_agregado']) || 0;
+      } else if (this.origen === 'ITEM') {
+        this.REPORTE_GASTOS_DE_OPERACION =
+          Number(params['total_Item_gasto_operacion_parcial']) || 0;
+        this.REPORTE_VALOR_AGREGADO =
+          Number(params['total_Item_valor_agregado_item']) || 0;
+      } else if (this.origen === 'MODULO') {
+        this.REPORTE_GASTOS_DE_OPERACION =
+          Number(params['total_modulo_gastos_operacion_parcial']) || 0;
+        this.REPORTE_VALOR_AGREGADO =
+          Number(params['total_modulo_valor_agregado']) || 0;
+      } else {
+        this.REPORTE_GASTOS_DE_OPERACION = 0;
+        this.REPORTE_VALOR_AGREGADO = 0;
+      }
     });
   }
-  formatearNumero(valor: number): string {
-    return new Intl.NumberFormat('es-BO', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(valor);
-  }
-  
+
   // ========================
-  //  SECCIÓN 1
+  // FORMATOS
+  // ========================
+  formatearNumero(valor: number): string {
+    return new Intl.NumberFormat('es-BO', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(Number(valor) || 0);
+  }
+
+  private redondear2(valor: number): number {
+    return Math.round((valor + Number.EPSILON) * 100) / 100;
+  }
+
+  // ========================
+  // SECCIÓN 1 – IVA
   // ========================
   get creditoFiscal(): number {
-    return this.precio_unitario * (this.iva_tasa_nominal / this.porcentaje_global_100);
+    return this.REPORTE_GASTOS_DE_OPERACION * (this.iva_tasa_nominal / 100);
   }
+
   get costoVenta(): number {
-    return this.precio_unitario - this.creditoFiscal;
+    return this.REPORTE_GASTOS_DE_OPERACION - this.creditoFiscal;
   }
+
   // ========================
-  //  SECCIÓN 2
+  // SECCIÓN 3
   // ========================
-  get SumaAB(): number {
-    return this.a_costo_venta + this.b_margen_utilidad;
+  get GastoOperacion3(): number {
+    return this.REPORTE_GASTOS_DE_OPERACION;
   }
-  get mensajeErrorAB(): string | null {
-    return this.SumaAB !== 87 ? "PORCENTAJE INCORRECTO" : null;
+
+  get ValorAgregado3(): number {
+    return this.REPORTE_VALOR_AGREGADO;
   }
-  get SumaIva_SumaAB(): number {
-    return this.SumaAB + this.iva_tasa_nominal;
+
+  get precioFactura3(): number {
+    return this.REPORTE_GASTOS_DE_OPERACION + this.REPORTE_VALOR_AGREGADO;
   }
-  get mensajeErrorIva(): string | null {
-    return this.SumaIva_SumaAB !== this.porcentaje_global_100 ? "DATOS INCORRECTOS" : null;
+
+  get GastoOperacion31(): number {
+    return (this.REPORTE_GASTOS_DE_OPERACION * 100) / this.precioFactura3;
   }
+
+  get ValorAgregado31(): number {
+    return (this.REPORTE_VALOR_AGREGADO * 100) / this.precioFactura3;
+  }
+
+  get precioFactura31(): number {
+    return this.GastoOperacion31 + this.ValorAgregado31;
+  }
+
+  // ========================
+  // SECCIÓN 4
+  // ========================
+  get costoVenta4(): number {
+    return this.REPORTE_GASTOS_DE_OPERACION - this.creditoFiscal;
+  }
+
+  get iva13(): number {
+    return this.precioFactura3 * (this.iva_tasa_nominal / 100);
+  }
+
   get margenUtilidad(): number {
-    return (this.b_margen_utilidad / this.a_costo_venta) * this.costoVenta;
+    return this.precioFactura3 - this.costoVenta4 - this.iva13;
   }
-  get ivaEfectivaCalculo(): number {
-    return this.iva_tasa_nominal / this.SumaAB;
-  }
-  get ivaEfectiva(): number {
-    return (this.costoVenta + this.margenUtilidad) * this.ivaEfectivaCalculo;
-  }
-  get precioFacturaS2(): number {
-    return this.costoVenta + this.margenUtilidad + this.ivaEfectiva;
-  }
+
   // ========================
-  //  SECCIÓN 3
+  // SECCIÓN 5
   // ========================
-  get costoVentaT3 (): number{
-    return (this.a_costo_venta / this.porcentaje_global_100) * this.precioFacturaS2;
+  get impuestoIva5(): number {
+    const valor = this.ValorAgregado3 * (this.iva_tasa_nominal / 100);
+    return this.redondear2(valor);
   }
-  get MargenDeUtilidad (): number{
-    return (this.b_margen_utilidad / this.porcentaje_global_100) * this.precioFacturaS2;
+
+  get itefactura5(): number {
+    const valor = this.precioFactura3 * (this.it / 100);
+    return this.redondear2(valor);
   }
-  get IVAenFactura (): number{
-    return (this.iva_tasa_nominal / this.porcentaje_global_100) * this.precioFacturaS2;
+
+  get iueUtilidad5(): number {
+    const utilidad = this.ValorAgregado3 - this.impuestoIva5 - this.itefactura5;
+    const valor = utilidad * (this.iue / 100);
+    return this.redondear2(valor);
   }
-  get SumaFactura (): number{
-    return this.costoVentaT3 + this.MargenDeUtilidad + this.IVAenFactura;
+
+  get totalImpuestos5(): number {
+    return this.redondear2(
+      this.impuestoIva5 + this.itefactura5 + this.iueUtilidad5
+    );
   }
+
+  get totalUtilidadNeta(): number {
+    return this.ValorAgregado3 - this.totalImpuestos5;
+  }
+
   // ========================
-  //  SECCIÓN 4
+  // SECCIÓN 6
   // ========================
-  get metodoMallaFinitapreciounitariomasvaloragregado (): number{
-    return this.precio_unitario + this.ValorAgregado;
+  get ganaciaColumna1(): number {
+    return this.totalUtilidadNeta * (this.ganancia / 100);
   }
-  get restaPfacturamenosPunitario (): number{
-    return this.precioFacturaS2 - this.precio_unitario;
+
+  get CompensacioDuenoColumna1(): number {
+    return this.totalUtilidadNeta * (this.ganancia / 100);
   }
-  get gastosdeoperacionC2 (): number{
-    return (this.precio_unitario * this.porcentaje_global_100) / this.metodoMallaFinitapreciounitariomasvaloragregado;
+
+  get ImpuestosColumna1(): number {
+    return this.totalImpuestos5;
   }
-  get valoragradoC2 (): number{
-    return (this.ValorAgregado * this.porcentaje_global_100) / this.metodoMallaFinitapreciounitariomasvaloragregado;
+
+  get GastosOperacionColumna1(): number {
+    return this.REPORTE_GASTOS_DE_OPERACION;
   }
-  get preciofacturaC2 (): number{
-    return this.gastosdeoperacionC2 + this.valoragradoC2;
+
+  get PrecioFacturaColumna1(): number {
+    return (
+      this.ganaciaColumna1 +
+      this.CompensacioDuenoColumna1 +
+      this.ImpuestosColumna1 +
+      this.GastosOperacionColumna1
+    );
   }
-  // ========================
-  //  SECCIÓN 5
-  // ========================
-  get ValorAgregado (): number{
-    return this.precioFacturaS2 - this.precio_unitario;
+
+  get gananciaColumna2(): number {
+    return (this.ganaciaColumna1 * 100) / this.PrecioFacturaColumna1;
   }
-  get ImpuestoIva (): number{
-    return (this.iva_tasa_nominal / this.porcentaje_global_100)*this.ValorAgregado
+
+  get CompensacioDuenoColumna2(): number {
+    return (this.CompensacioDuenoColumna1 * 100) / this.PrecioFacturaColumna1;
   }
-  get itFactura (): number{
-    return (this.it / this.porcentaje_global_100) * this.precioFacturaS2;
+
+  get ImpuestosColumna2(): number {
+    return (this.ImpuestosColumna1 * 100) / this.PrecioFacturaColumna1;
   }
-  get iueUtilidad (): number{
-    return (this.ValorAgregado - this.ImpuestoIva - this.itFactura) * (this.iue / this.porcentaje_global_100);
+
+  get GastosOperacionColumna2(): number {
+    return (this.GastosOperacionColumna1 * 100) / this.PrecioFacturaColumna1;
   }
-  get SumaImpuestos (): number{
-    return this.ImpuestoIva + this.itFactura + this.iueUtilidad;
+
+  get PrecioFacturaColumna2(): number {
+    return (
+      this.gananciaColumna2 +
+      this.CompensacioDuenoColumna2 +
+      this.ImpuestosColumna2 +
+      this.GastosOperacionColumna2
+    );
   }
-  get SumaTotalNeta (): number{
-    return this.ValorAgregado - this.SumaImpuestos;
-  }
-  // ========================
-  //  SECCIÓN 6
-  // ========================
-  get gananciaPrimero (): number{
-    return this.SumaTotalNeta * (this.ganancia / this.porcentaje_global_100);
-  }
-  get CompensacionDueno (): number{
-    return this.SumaTotalNeta * (this.ganancia / this.porcentaje_global_100);
-  }
-  get PrecioFacturaPrimero (): number{
-    return this.gananciaPrimero + this.CompensacionDueno + this.SumaImpuestos + this.precio_unitario;
-  }
-  //Columna 2 
-  get gananciaPrimeroPorcentage (): number{
-    return (this.gananciaPrimero / this.PrecioFacturaPrimero) * this.porcentaje_global_100;
-  }
-  get CompensacionDuenoPorcentage (): number{
-    return (this.CompensacionDueno / this.PrecioFacturaPrimero) * this.porcentaje_global_100;
-  }
-  get ImpuestoPorcentage (): number{
-    return (this.SumaImpuestos / this.PrecioFacturaPrimero) * this.porcentaje_global_100;
-  }
-  get gastoOperacionPorcentage (): number{
-    return (this.precio_unitario / this.PrecioFacturaPrimero) * this.porcentaje_global_100 ;
-  }
-  get PorcentajeTotalGananciaPrimero (): number{
-    return this.gananciaPrimeroPorcentage + this.CompensacionDuenoPorcentage + this.ImpuestoPorcentage + this.gastoOperacionPorcentage;
-  }
+
   // ========================
   // SECCIÓN 7
   // ========================
-  get RentabilidadProyecto(): number{
-    return (this.ValorAgregado/ this.precio_unitario) * this.porcentaje_global_100;
+  get RentabilidadProyecto7(): number {
+    return (this.REPORTE_VALOR_AGREGADO / this.GastosOperacionColumna1) * 100;
   }
-  get RentabilidadGanancia(): number{
-    return (this.gananciaPrimero/ this.precio_unitario) * this.porcentaje_global_100;
+
+  get RentabilidadGanacia7(): number {
+    return (this.ganaciaColumna1 / this.GastosOperacionColumna1) * 100;
   }
-  get RentabilidadCompensacionDueno(): number{
-    return (this.CompensacionDueno/ this.precio_unitario) * this.porcentaje_global_100;
+
+  get RentabilidadCompensacionDuenio(): number {
+    return (this.CompensacioDuenoColumna1 / this.GastosOperacionColumna1) * 100;
   }
-  get RentabilidadImpuestos(): number{
-    return (this.SumaImpuestos/ this.precio_unitario) * this.porcentaje_global_100;
-  } 
+
+  get RentabilidadImpuestos(): number {
+    return (this.ImpuestosColumna1 / this.GastosOperacionColumna1) * 100;
+  }
+
   // ========================
-  //  SECCIÓN 8
+  // SECCIÓN 8
   // ========================
-  get Retorno():number{
-    return this.precio_unitario/ this.gananciaPrimero
+  get RetornoInversion8(): number {
+    return this.GastosOperacionColumna1 / this.ganaciaColumna1;
   }
+
+  // ========================
+  // NAVEGACIÓN
+  // ========================
   navigateToHome(): void {
     this.router.navigate(['/panel-control/proyectos']);
   }
 
+  // =========================
+  // NUEVO MÉTODO: GENERAR PDF
+  // =========================
+  generarReportePDF() {
+    const data = document.getElementById('contentToExport');
+    if (!data) return;
+
+    const originalFontSize = window.getComputedStyle(data).fontSize;
+    data.style.fontSize = '30px';
+
+    // ===============================
+    // 2. FORZAR BORDES DE TABLAS
+    // ===============================
+    data.querySelectorAll('table, th, td').forEach((el) => {
+      const htmlEl = el as HTMLElement;
+      htmlEl.style.border = '0.2px solid #1b1b1b';
+      htmlEl.style.borderCollapse = 'collapse';
+      htmlEl.style.fontSize = 'inherit';
+    });
+
+    // ===============================
+    // 3. GENERAR PDF CON MÁRGENES
+    // ===============================
+    html2canvas(data, { scale: 2 }).then((canvas) => {
+      const pdf = new jsPDF('p', 'mm', 'a4');
+
+      const marginX = 15;
+      const marginY = 15;
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const imgWidth = pageWidth - marginX * 2;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+      const imgData = canvas.toDataURL('image/png');
+
+      pdf.addImage(imgData, 'PNG', marginX, marginY, imgWidth, imgHeight);
+      pdf.save('reporte.pdf');
+
+      // ===============================
+      // LIMPIEZA
+      // ===============================
+      data.style.fontSize = originalFontSize;
+    });
+  }
 }

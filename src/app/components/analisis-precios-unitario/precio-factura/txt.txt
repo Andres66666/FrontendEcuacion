@@ -1,0 +1,657 @@
+import { Component } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { ActivatedRoute, Router } from '@angular/router';
+import { ExportService } from '../../../services/export.service';
+
+@Component({
+  selector: 'app-precio-factura',
+  imports: [CommonModule, FormsModule],
+  templateUrl: './precio-factura.component.html',
+  styleUrl: './precio-factura.component.css',
+})
+export class PrecioFacturaComponent {
+  id_gasto_operaciones: number = 0;
+  identificadorGeneral: number = 0;
+  precio_unitario: number = 0; // De cada Item
+  //  NUEVAS PROPIEDADES PARA LOS TOTALES
+  totalGastosOperacionGeneral: number = 0;
+  totalValorAgregado: number = 0;
+  totalFactura: number = 0;
+
+  iva_tasa_nominal: number = 0; // IVA % mostrado Variable Principal
+  it: number = 0; // IT % mostrado Variable Principal
+  iue: number = 0; // IUE % mostrado Variable Principal
+  ganancia: number = 0; // Ganancia mostrada Variable Principal
+
+  margen_utilidad: number = 0; // % B ingresado (ej: 10)
+  porcentaje_global_100: number = 100; // Porcentaje de ganancia
+
+  constructor(
+    private route: ActivatedRoute,
+    public router: Router,
+    private exportService: ExportService
+  ) {}
+
+  ngOnInit(): void {
+    this.route.queryParams.subscribe((params) => {
+      this.id_gasto_operaciones = Number(params['id_gasto_operaciones']) || 0;
+      this.identificadorGeneral = Number(params['identificadorGeneral']) || 0;
+
+      //  Detectar si viene desde la otra vista con totales
+      if (params['totalGastosOperacion']) {
+        this.totalGastosOperacionGeneral = Number(
+          params['totalGastosOperacion']
+        );
+        this.totalValorAgregado = Number(params['totalValorAgregado']) || 0;
+        this.totalFactura = Number(params['totalFactura']) || 0;
+
+        //  Asignar al precio_unitario solo en este caso
+        this.precio_unitario = this.totalGastosOperacionGeneral;
+      } else {
+        this.precio_unitario = Number(params['precio_unitario']) || 0;
+      }
+
+      this.iva_tasa_nominal = Number(params['iva_tasa_nominal']) || 0;
+      this.it = Number(params['it']) || 0;
+      this.iue = Number(params['iue']) || 0;
+      this.ganancia = Number(params['ganancia']) || 0;
+      this.margen_utilidad = Number(params['b_margen_utilidad']) || 0;
+      this.porcentaje_global_100 = Number(params['porcentaje_global_100']) || 0;
+    });
+  }
+  formatearNumero(valor: number): string {
+    return new Intl.NumberFormat('es-BO', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(valor);
+  }
+
+  // ========================
+  //  SECCIÓN 1
+  // ========================
+  get creditoFiscal(): number {
+    return (
+      this.precio_unitario *
+      (this.iva_tasa_nominal / this.porcentaje_global_100)
+    );
+  }
+  get costoVenta(): number {
+    return this.precio_unitario - this.creditoFiscal;
+  }
+  // ========================
+  //  SECCIÓN 2
+  // ========================
+  get SumaAB(): number {
+    return this.margen_utilidad;
+  }
+  get mensajeErrorAB(): string | null {
+    return this.SumaAB !== 87 ? 'PORCENTAJE INCORRECTO' : null;
+  }
+  get SumaIva_SumaAB(): number {
+    return this.SumaAB + this.iva_tasa_nominal;
+  }
+  get mensajeErrorIva(): string | null {
+    return this.SumaIva_SumaAB !== this.porcentaje_global_100
+      ? 'DATOS INCORRECTOS'
+      : null;
+  }
+  get margenUtilidad(): number {
+    return (this.margen_utilidad / 100) * this.costoVenta;
+  }
+  get ivaEfectivaCalculo(): number {
+    return this.iva_tasa_nominal / this.SumaAB;
+  }
+  get ivaEfectiva(): number {
+    return (this.costoVenta + this.margenUtilidad) * this.ivaEfectivaCalculo;
+  }
+  get precioFacturaS2(): number {
+    return this.costoVenta + this.margenUtilidad + this.ivaEfectiva;
+  }
+  // ========================
+  //  SECCIÓN 3
+  // ========================
+  get costoVentaT3(): number {
+    return this.porcentaje_global_100 * this.precioFacturaS2;
+  }
+  get MargenDeUtilidad(): number {
+    return (
+      (this.margen_utilidad / this.porcentaje_global_100) * this.precioFacturaS2
+    );
+  }
+  get IVAenFactura(): number {
+    return (
+      (this.iva_tasa_nominal / this.porcentaje_global_100) *
+      this.precioFacturaS2
+    );
+  }
+  get SumaFactura(): number {
+    return this.costoVentaT3 + this.MargenDeUtilidad + this.IVAenFactura;
+  }
+  // ========================
+  //  SECCIÓN 4
+  // ========================
+  get metodoMallaFinitapreciounitariomasvaloragregado(): number {
+    return this.precio_unitario + this.ValorAgregado;
+  }
+  get restaPfacturamenosPunitario(): number {
+    return this.precioFacturaS2 - this.precio_unitario;
+  }
+  get gastosdeoperacionC2(): number {
+    return (
+      (this.precio_unitario * this.porcentaje_global_100) /
+      this.metodoMallaFinitapreciounitariomasvaloragregado
+    );
+  }
+  get valoragradoC2(): number {
+    return (
+      (this.ValorAgregado * this.porcentaje_global_100) /
+      this.metodoMallaFinitapreciounitariomasvaloragregado
+    );
+  }
+  get preciofacturaC2(): number {
+    return this.gastosdeoperacionC2 + this.valoragradoC2;
+  }
+  // ========================
+  //  SECCIÓN 5
+  // ========================
+  get ValorAgregado(): number {
+    return this.precioFacturaS2 - this.precio_unitario;
+  }
+  get ImpuestoIva(): number {
+    return (
+      (this.iva_tasa_nominal / this.porcentaje_global_100) * this.ValorAgregado
+    );
+  }
+  get itFactura(): number {
+    return (this.it / this.porcentaje_global_100) * this.precioFacturaS2;
+  }
+  get iueUtilidad(): number {
+    return (
+      (this.ValorAgregado - this.ImpuestoIva - this.itFactura) *
+      (this.iue / this.porcentaje_global_100)
+    );
+  }
+  get SumaImpuestos(): number {
+    return this.ImpuestoIva + this.itFactura + this.iueUtilidad;
+  }
+  get SumaTotalNeta(): number {
+    return this.ValorAgregado - this.SumaImpuestos;
+  }
+  // ========================
+  //  SECCIÓN 6
+  // ========================
+  get gananciaPrimero(): number {
+    return this.SumaTotalNeta * (this.ganancia / this.porcentaje_global_100);
+  }
+  get CompensacionDueno(): number {
+    return this.SumaTotalNeta * (this.ganancia / this.porcentaje_global_100);
+  }
+  get PrecioFacturaPrimero(): number {
+    return (
+      this.gananciaPrimero +
+      this.CompensacionDueno +
+      this.SumaImpuestos +
+      this.precio_unitario
+    );
+  }
+  //Columna 2
+  get gananciaPrimeroPorcentage(): number {
+    return (
+      (this.gananciaPrimero / this.PrecioFacturaPrimero) *
+      this.porcentaje_global_100
+    );
+  }
+  get CompensacionDuenoPorcentage(): number {
+    return (
+      (this.CompensacionDueno / this.PrecioFacturaPrimero) *
+      this.porcentaje_global_100
+    );
+  }
+  get ImpuestoPorcentage(): number {
+    return (
+      (this.SumaImpuestos / this.PrecioFacturaPrimero) *
+      this.porcentaje_global_100
+    );
+  }
+  get gastoOperacionPorcentage(): number {
+    return (
+      (this.precio_unitario / this.PrecioFacturaPrimero) *
+      this.porcentaje_global_100
+    );
+  }
+  get PorcentajeTotalGananciaPrimero(): number {
+    return (
+      this.gananciaPrimeroPorcentage +
+      this.CompensacionDuenoPorcentage +
+      this.ImpuestoPorcentage +
+      this.gastoOperacionPorcentage
+    );
+  }
+  // ========================
+  // SECCIÓN 7
+  // ========================
+  get RentabilidadProyecto(): number {
+    return (
+      (this.ValorAgregado / this.precio_unitario) * this.porcentaje_global_100
+    );
+  }
+  get RentabilidadGanancia(): number {
+    return (
+      (this.gananciaPrimero / this.precio_unitario) * this.porcentaje_global_100
+    );
+  }
+  get RentabilidadCompensacionDueno(): number {
+    return (
+      (this.CompensacionDueno / this.precio_unitario) *
+      this.porcentaje_global_100
+    );
+  }
+  get RentabilidadImpuestos(): number {
+    return (
+      (this.SumaImpuestos / this.precio_unitario) * this.porcentaje_global_100
+    );
+  }
+  // ========================
+  //  SECCIÓN 8
+  // ========================
+  get Retorno(): number {
+    return this.precio_unitario / this.gananciaPrimero;
+  }
+  navigateToHome(): void {
+    this.router.navigate(['/panel-control/proyectos']);
+  }
+}
+<div class="d-flex gap-0">
+  <div id="contentToExport" class="flex-grow-1 mb-3 p-3 rounded-3">
+    <h2 class="mb-5 text-primary text-center text-uppercase">
+      REPORTE FINANCIERO
+    </h2>
+    <!-- <p class="mb-1"><strong>Codigo ID Proyecto:</strong> {{ identificadorGeneral }}</p> -->
+    <!-- Página 1 -->
+    <div class="pdf-page-section" id="page1-content">
+      <!-- 1.- GASTOS DE OPERACIÓN Y COSTO DE VENTA -->
+      <div class="table-responsive">
+        <table class="table table-bordered table-hover align-middle mb-3">
+          <thead class="table-active text-center">
+            <tr>
+              <th colspan="3">1.- GASTOS DE OPERACIÓN Y COSTO DE VENTA</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td colspan="2" class="fw-bold">GASTOS DE OPERACIÓN</td>
+              <td class="text-end fw-bold">
+                {{ formatearNumero(precio_unitario) }}
+              </td>
+            </tr>
+            <tr>
+              <td colspan="2" class="fw-bold">
+                CREDITO FISCAL IVA TASA NOMINAL: (
+                {{ formatearNumero(iva_tasa_nominal) }} %)
+              </td>
+              <td class="text-end fw-bold">
+                -{{ formatearNumero(creditoFiscal) }}
+              </td>
+            </tr>
+            <tr>
+              <td colspan="2" class="fw-bold">COSTO DE VENTA</td>
+              <td class="text-end fw-bold">
+                {{ formatearNumero(costoVenta) }}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- 2.- PRECIO FACTURA -->
+      <h3 class="section-title">2.- PRECIO FACTURA</h3>
+      <div class="table-responsive">
+        <table class="table table-bordered table-hover align-middle mb-3">
+          <thead class="table-primary text-center">
+            <tr>
+              <th colspan="2">PORCENTAJES DE ALICUOTAS</th>
+              <th colspan="2">DESCRIPCION</th>
+              <th>MONTO (Bs)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="text-center fw-bold" rowspan="3">
+                {{ SumaIva_SumaAB }}%
+              </td>
+              <td class="text-center fw-bold" rowspan="2">{{ SumaAB }}%</td>
+              <td class="fw-bold">A = %</td>
+              <td>COSTO DE VENTA</td>
+              <td class="text-end">{{ formatearNumero(costoVenta) }}</td>
+            </tr>
+            <tr class="table-border-bottom">
+              <td class="fw-bold">
+                B = {{ formatearNumero(margen_utilidad) }} %
+              </td>
+              <td>MARGEN DE UTILIDAD</td>
+              <td class="text-end">{{ formatearNumero(margenUtilidad) }}</td>
+            </tr>
+            <tr>
+              <td colspan="2" class="text-center fw-bold">
+                {{ formatearNumero(iva_tasa_nominal) }} %
+              </td>
+              <td>
+                IVA (TASA EFECTIVA 14,94%) DE COSTO DE VENTA MAS MARGEN DE
+                UTILIDAD
+              </td>
+              <td class="text-end">{{ formatearNumero(ivaEfectiva) }}</td>
+            </tr>
+            <tr class="fw-bold">
+              <td colspan="4" class="text-end">PRECIO FACTURA</td>
+              <td class="text-end">{{ formatearNumero(precioFacturaS2) }}</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div *ngIf="mensajeErrorAB" class="alert alert-danger text-center">
+          {{ mensajeErrorAB }}
+        </div>
+        <div *ngIf="mensajeErrorIva" class="alert alert-warning text-center">
+          {{ mensajeErrorIva }}
+        </div>
+      </div>
+
+      <!-- 3.- FISCALIZACION POR IMPUESTOS INTERNOS -->
+      <h3 class="section-title">3.- FISCALIZACION POR IMPUESTOS INTERNOS</h3>
+      <div class="table-responsive">
+        <table class="table table-bordered table-hover align-middle mb-3">
+          <thead class="table-secondary text-center">
+            <tr>
+              <th>DESCRIPCION</th>
+              <th style="width: 8%">MONTO (Bs)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="table-border-bottom">
+              <td>COSTO DE VENTA</td>
+              <td class="text-end bg-light w-auto">
+                {{ formatearNumero(costoVentaT3) }}
+              </td>
+            </tr>
+            <tr class="table-border-bottom">
+              <td>MARGEN DE UTILIDAD</td>
+              <td class="text-end bg-light w-auto">
+                {{ formatearNumero(MargenDeUtilidad) }}
+              </td>
+            </tr>
+            <tr class="table-border-bottom">
+              <td>IVA 13% DE PRECIO FACTURA</td>
+              <td class="text-end bg-light w-auto">
+                {{ formatearNumero(IVAenFactura) }}
+              </td>
+            </tr>
+            <tr class="fw-bold table-border-bottom">
+              <td class="text-end">PRECIO FACTURA</td>
+              <td class="text-end bg-light w-auto">
+                {{ formatearNumero(SumaFactura) }}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <!-- 4.- PRECIO FACTURA - METODO MALLA FINITA -->
+      <h3 class="section-title">4.- PRECIO FACTURA - METODO MALLA FINITA</h3>
+      <div class="table-responsive">
+        <table class="table table-bordered table-hover align-middle mb-3">
+          <thead class="table-success text-center">
+            <tr>
+              <th>DESCRIPCION</th>
+              <th style="width: 8%">MONTO (Bs)</th>
+              <th style="width: 8%">%</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>GASTOS DE OPERACIÓN</td>
+              <td class="text-end bg-light w-auto">
+                {{ formatearNumero(precio_unitario) }}
+              </td>
+              <td class="text-end bg-light w-auto">
+                {{ formatearNumero(gastosdeoperacionC2) }}%
+              </td>
+            </tr>
+            <tr>
+              <td>VALOR AGREGADO</td>
+              <td class="text-end bg-light w-auto">
+                {{ formatearNumero(ValorAgregado) }}
+              </td>
+              <td class="text-end bg-light w-auto">
+                {{ formatearNumero(valoragradoC2) }}%
+              </td>
+            </tr>
+            <tr class="border-bottom fw-bold text-danger">
+              <td>PRECIO FACTURA</td>
+              <td class="text-end bg-light w-auto">
+                {{
+                  formatearNumero(
+                    metodoMallaFinitapreciounitariomasvaloragregado
+                  )
+                }}
+              </td>
+              <td class="text-end bg-light w-auto">
+                {{ formatearNumero(preciofacturaC2) }}%
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- 5.- ESTADO DE RESULTADOS -->
+      <h3 class="section-title">5.- ESTADO DE RESULTADOS</h3>
+      <div class="table-responsive">
+        <table class="table table-bordered table-hover align-middle mb-3">
+          <thead class="table-success text-center">
+            <tr>
+              <th>DESCRIPCION</th>
+              <th style="width: 8%">En bolivianos (Bs)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="fw-bold">
+              <td>PRECIO FACTURA</td>
+              <td class="text-end bg-light w-auto">
+                {{ formatearNumero(precioFacturaS2) }}
+              </td>
+            </tr>
+            <tr>
+              <td>GASTOS DE OPERACIÓN</td>
+              <td class="text-end bg-light w-auto">
+                -{{ formatearNumero(precio_unitario) }}
+              </td>
+            </tr>
+            <tr class="border-bottom fw-bold text-danger">
+              <td>VALOR AGREGADO</td>
+              <td class="text-end bg-light w-auto">
+                {{ formatearNumero(ValorAgregado) }}
+              </td>
+            </tr>
+            <tr>
+              <td>Impuestos IVA 13%</td>
+              <td class="text-end bg-light w-auto">
+                {{ formatearNumero(ImpuestoIva) }}
+              </td>
+            </tr>
+            <tr>
+              <td>IT 3% de la factura</td>
+              <td class="text-end bg-light w-auto">
+                {{ formatearNumero(itFactura) }}
+              </td>
+            </tr>
+            <tr class="border-bottom">
+              <td>IUE 25% utilidad</td>
+              <td class="text-end bg-light w-auto">
+                {{ formatearNumero(iueUtilidad) }}
+              </td>
+            </tr>
+            <tr class="border-bottom fw-bold text-danger">
+              <td>TOTAL IMPUESTOS</td>
+              <td class="text-end bg-light w-auto">
+                {{ formatearNumero(SumaImpuestos) }}
+              </td>
+            </tr>
+            <tr class="fw-bold text-danger">
+              <td>TOTAL UTILIDAD NETA</td>
+              <td class="text-end bg-light w-auto">
+                {{ formatearNumero(SumaTotalNeta) }}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- 6.- METODOLOGIA LA GANANCIA ES PRIMERO -->
+      <h3 class="section-title">6.- METODOLOGIA LA GANANCIA ES PRIMERO</h3>
+      <div class="table-responsive">
+        <table class="table table-bordered table-hover align-middle mb-3">
+          <thead class="table-danger text-center">
+            <tr>
+              <th>DESCRIPCION</th>
+              <th>GANANCIAS NETAS</th>
+              <th>% DE DISTRIBUCION META</th>
+              <th>IDEAL</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="table-border-bottom">
+              <td>GANANCIA</td>
+              <td class="text-end bg-light w-auto">
+                {{ formatearNumero(gananciaPrimero) }}
+              </td>
+              <td class="text-end">
+                {{ formatearNumero(gananciaPrimeroPorcentage) }}%
+              </td>
+              <td class="text-center">10%</td>
+            </tr>
+            <tr class="table-border-bottom">
+              <td>COMPENSACION DEL DUEÑO</td>
+              <td class="text-end bg-light w-auto">
+                {{ formatearNumero(CompensacionDueno) }}
+              </td>
+              <td class="text-end">
+                {{ formatearNumero(CompensacionDuenoPorcentage) }}%
+              </td>
+              <td class="text-center">10%</td>
+            </tr>
+            <tr class="table-border-bottom">
+              <td>IMPUESTOS</td>
+              <td class="text-end bg-light w-auto">
+                {{ formatearNumero(SumaImpuestos) }}
+              </td>
+              <td class="text-end">
+                {{ formatearNumero(ImpuestoPorcentage) }}%
+              </td>
+              <td class="text-center">15%</td>
+            </tr>
+            <tr class="table-border-bottom">
+              <td>GASTOS DE OPERACIÓN</td>
+              <td class="text-end bg-light w-auto">
+                {{ formatearNumero(precio_unitario) }}
+              </td>
+              <td class="text-end">
+                {{ formatearNumero(gastoOperacionPorcentage) }}%
+              </td>
+              <td class="text-center">65%</td>
+            </tr>
+            <tr class="fw-bold table-border-bottom">
+              <td>PRECIO FACTURA</td>
+              <td class="text-end bg-light w-auto">
+                {{ formatearNumero(PrecioFacturaPrimero) }}
+              </td>
+              <td class="text-end">
+                {{ formatearNumero(PorcentajeTotalGananciaPrimero) }}%
+              </td>
+              <td class="text-center">100%</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Página 2 -->
+    <div class="pdf-page-section" id="page2-content">
+      <!-- 7.- RENTABILIDAD -->
+      <h3 class="section-title">7.- RENTABILIDAD</h3>
+      <div class="table-responsive">
+        <table class="table table-bordered table-hover align-middle mb-3">
+          <thead class="table-warning text-center">
+            <tr>
+              <th>DESCRIPCION</th>
+              <th>MONTO (Bs)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="fw-bold text-danger table-border-bottom">
+              <td>RENTABILIDAD (PROYECTO)</td>
+              <td class="text-end bg-light w-auto">
+                {{ formatearNumero(RentabilidadProyecto) }}%
+              </td>
+            </tr>
+            <tr class="table-border-bottom">
+              <td>RENTABILIDAD (GANANCIA)</td>
+              <td class="text-end bg-light w-auto">
+                {{ formatearNumero(RentabilidadGanancia) }}%
+              </td>
+            </tr>
+            <tr class="table-border-bottom">
+              <td>RENTABILIDAD (COMPENSACIÓN DEL DUEÑO)</td>
+              <td class="text-end bg-light w-auto">
+                {{ formatearNumero(RentabilidadCompensacionDueno) }}%
+              </td>
+            </tr>
+            <tr class="table-border-bottom">
+              <td>RENTABILIDAD (IMPUESTOS)</td>
+              <td class="text-end bg-light w-auto">
+                {{ formatearNumero(RentabilidadImpuestos) }}%
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- 8.- RETORNO DE GASTOS DE OPERACIÓN -->
+      <h3 class="section-title">8.- RETORNO DE GASTOS DE OPERACIÓN</h3>
+      <div class="table-responsive">
+        <table class="table table-bordered table-hover align-middle mb-3">
+          <thead class="table-info text-white text-center">
+            <tr>
+              <th>DESCRIPCION</th>
+              <th>NUMERO DE TRANSACCIONES</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="fw-bold text-danger table-border-bottom">
+              <td>RETORNO</td>
+              <td class="text-end bg-light w-auto">
+                {{ formatearNumero(Retorno) }}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div
+    class="position-sticky top-50 translate-middle-y align-self-start z-3"
+    style="width: 60px"
+  >
+    <!-- Botón Home -->
+    <a
+      class="btn d-flex align-items-center justify-content-center p-0 mb-3"
+      (click)="navigateToHome()"
+      style="width: 60px; height: 60px"
+    >
+      <img
+        src="https://cdn-icons-png.flaticon.com/128/3487/3487330.png"
+        class="img-fluid"
+        style="width: 40px; height: 40px"
+      />
+    </a>
+  </div>
+</div>
