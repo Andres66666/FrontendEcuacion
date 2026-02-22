@@ -1,0 +1,85 @@
+/* Ocultar los spin buttons en Chrome, Safari, Edge */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button,
+input[type="text"]::-webkit-outer-spin-button,
+input[type="text"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Ocultar los spin buttons en Firefox */
+input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+input[type="text"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+  border: none;
+  background: transparent;
+}
+
+/* Quitar outline y sombra al enfocar */
+input[type="number"]:focus,
+input[type="text"]:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+/* items-gasto-operacion.css (PARTE RELEVANTE) */
+
+/* Centrado vertical general en la tabla */
+.table td,
+.table th {
+  vertical-align: middle;
+}
+
+/* ÍTEM centrado H + V */
+.td-item {
+  text-align: center !important;
+  vertical-align: middle !important;
+  font-weight: 600;
+  width: 60px;
+  white-space: nowrap;
+}
+
+/* UNIDAD centrado H + V */
+.td-unidad {
+  text-align: center !important;
+  vertical-align: middle !important;
+  width: 85px;
+  white-space: nowrap;
+}
+
+/* Columna acciones */
+.td-actions {
+  vertical-align: middle !important;
+  white-space: nowrap;
+}
+
+/* Fila de acciones: en una línea y responsive */
+.actions-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.35rem;
+  flex-wrap: wrap; /* si no entra, baja ordenado */
+}
+
+/* Select: tamaño consistente */
+.actions-select {
+  min-width: 170px;
+  width: 190px;
+  max-width: 100%;
+}
+
+/* En pantallas chicas, el select ocupa fila completa y botones abajo */
+@media (max-width: 576px) {
+  .actions-select {
+    width: 100%;
+    min-width: 0;
+  }
+  .actions-row {
+    justify-content: stretch;
+  }
+}

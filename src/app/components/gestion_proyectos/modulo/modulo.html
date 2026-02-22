@@ -1,0 +1,154 @@
+<div class="position-relative d-inline-block w-100 w-md-auto">
+  <!-- BOTÓN MODULOS (MISMO ESTILO QUE LOS DEMÁS BOTONES) -->
+  <button
+    class="btn btn-outline-secondary btn-sm d-flex align-items-center gap-1"
+    type="button"
+    (click)="toggleModulos(); $event.stopPropagation()"
+  >
+    <i class="bi bi-grid-3x3-gap-fill"></i>
+    <span class="d-none d-sm-inline">Modulo</span>
+    <i
+      class="bi ms-auto"
+      [ngClass]="modulosAbierto ? 'bi-chevron-up' : 'bi-chevron-down'"
+    ></i>
+  </button>
+
+  <!-- PANEL DESPLEGABLE -->
+  <div
+    *ngIf="modulosAbierto"
+    class="position-absolute top-100 end-0 mt-2 z-3"
+    style="min-width: 250px; max-width: 90vw"
+    (click)="$event.stopPropagation()"
+  >
+    <div class="card shadow w-100">
+      <div class="card-body p-2">
+        <!-- BOTÓN AGREGAR MODULO -->
+        <div class="d-flex justify-content-end mb-2">
+          <button class="btn btn-success btn-sm" (click)="abrirNuevo()">
+            <i class="bi bi-plus-circle"></i> AGREGAR MODULO
+          </button>
+        </div>
+
+        <!-- TABLA RESPONSIVE -->
+        <div class="table-responsive">
+          <div class="mb-2">
+            <input
+              type="text"
+              class="form-control form-control-sm"
+              placeholder="Buscar por código o nombre..."
+              [(ngModel)]="busqueda"
+              (ngModelChange)="aplicarFiltro()"
+            />
+          </div>
+
+          <table class="table table-sm table-bordered mb-0 text-nowrap">
+            <thead>
+              <tr>
+                <th class="text-nowrap">CODIGO</th>
+                <th class="text-nowrap">NOMBRE</th>
+                <th class="text-nowrap text-center" style="width: 90px"></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let m of modulosFiltrados">
+                <td class="text-nowrap">{{ m.codigo }}</td>
+                <td class="text-nowrap">{{ m.nombre }}</td>
+                <td class="text-center text-nowrap">
+                  <button
+                    class="btn btn-outline-primary btn-sm me-1"
+                    (click)="abrirEditar(m)"
+                  >
+                    <i class="bi bi-pencil"></i>
+                  </button>
+                  <button
+                    class="btn btn-outline-danger btn-sm"
+                    (click)="confirmarEliminarModulo(m.id)"
+                  >
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- MODAL CREAR/EDITAR COMPLETAMENTE RESPONSIVE -->
+  <div
+    class="modal fade show d-block"
+    *ngIf="mostrarModal"
+    style="background: rgba(0, 0, 0, 0.5)"
+  >
+    <div
+      class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg modal-fullscreen-sm-down"
+    >
+      <div class="modal-content">
+        <!-- HEADER -->
+        <div class="modal-header">
+          <h5 class="modal-title">
+            {{ modoEdicion ? 'Editar Módulo' : 'Nuevo Módulo' }}
+          </h5>
+          <button class="btn-close" (click)="mostrarModal = false"></button>
+        </div>
+
+        <!-- BODY -->
+        <div class="modal-body">
+          <div class="container-fluid">
+            <div class="row g-2">
+              <div class="col-12 col-md-6">
+                <input
+                  class="form-control"
+                  placeholder="Código"
+                  [(ngModel)]="moduloForm.codigo"
+                  (ngModelChange)="toUpper('codigo')"
+                />
+              </div>
+              <div class="col-12 col-md-6">
+                <input
+                  class="form-control"
+                  placeholder="Nombre del módulo"
+                  [(ngModel)]="moduloForm.nombre"
+                  (ngModelChange)="toUpper('nombre')"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- FOOTER -->
+        <div class="modal-footer">
+          <button class="btn btn-secondary" (click)="mostrarModal = false">
+            CANCELAR
+          </button>
+          <button class="btn btn-success" (click)="guardarDesdeModal()">
+            GUARDAR
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- Modales -->
+<app-ok
+  *ngIf="mensajeExito"
+  [mensaje]="mensajeExito"
+  (close)="manejarOk()"
+></app-ok>
+<app-error
+  *ngIf="mensajeError"
+  [mensaje]="mensajeError"
+  (close)="manejarError()"
+></app-error>
+<app-advertencia
+  *ngIf="mensajeAdvertencia"
+  [mensaje]="mensajeAdvertencia"
+  (close)="manejarAdvertencia()"
+></app-advertencia>
+<app-confirmacion
+  *ngIf="mostrarConfirmacion"
+  [mensaje]="mensajeConfirmacion"
+  (aceptar)="accionConfirmada()"
+  (cancelar)="mostrarConfirmacion = false"
+>
+</app-confirmacion>

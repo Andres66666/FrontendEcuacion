@@ -1,0 +1,262 @@
+/* ==========================================================================
+   0. RESET & BASE
+   ========================================================================== */
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background-color: #ffffff;
+  font-family:
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+}
+
+/* ==========================================================================
+   1. LAYOUT GENERAL
+   ========================================================================== */
+.layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: #ffffff;
+}
+
+/* ==========================================================================
+   2. NAVBAR / HEADER (RESPONSIVE)
+   ========================================================================== */
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 1030;
+  height: 65px;
+  background: #11998e !important;
+  display: flex;
+  align-items: center;
+  padding: 0 1rem;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.header .bi,
+.header .btn,
+.header .dropdown-toggle,
+.header span {
+  color: #fff !important;
+}
+
+.toggle-button {
+  width: 42px;
+  height: 42px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 10px;
+  background-color: rgba(255, 255, 255, 0.15);
+  transition: 0.3s ease;
+}
+
+.toggle-button:hover {
+  background-color: rgba(255, 255, 255, 0.3);
+  transform: scale(1.05);
+}
+
+.header img {
+  max-width: 140px;
+}
+
+/* ==========================================================================
+   3. SIDEBAR (MOBILE FIRST – OFF CANVAS)
+   ========================================================================== */
+.leftSide {
+  position: fixed;
+  top: 65px;
+  left: 0;
+  height: calc(100vh - 65px);
+  width: 260px;
+  background: #ffffff;
+  border-right: 1px solid #f0f0f0;
+  padding: 1rem 0.5rem;
+  overflow-x: hidden;
+  transform: translateX(-100%);
+  transition:
+    transform 0.3s ease,
+    width 0.3s ease;
+  z-index: 1040;
+}
+
+/* Abierto */
+.sidebar-open {
+  transform: translateX(0);
+}
+
+/* Cerrado */
+.sidebar-closed {
+  transform: translateX(-100%);
+}
+
+/* Sidebar items */
+.leftSide .list-group li {
+  transition: background 0.3s ease;
+}
+
+.leftSide .list-group li:hover {
+  background-color: rgba(17, 153, 142, 0.12);
+}
+
+.leftSide .list-group li:hover i,
+.leftSide .list-group li:hover span {
+  color: #11998e;
+}
+
+/* ==========================================================================
+   4. MAIN CONTENT (MOBILE FIRST)
+   ========================================================================== */
+.main-content {
+  flex: 1;
+  min-height: 100vh;
+
+  margin-left: 0;
+  padding: 1rem;
+  transition: margin-left 0.3s ease;
+}
+
+/* ==========================================================================
+   5. OVERLAY (MÓVIL & TABLET)
+   ========================================================================== */
+.overlay {
+  position: fixed;
+  top: 65px;
+  left: 0;
+  width: 100%;
+  height: calc(100vh - 65px);
+  background: rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(2px);
+  z-index: 1035;
+}
+
+/* ==========================================================================
+   6. CONTENT CARD
+   ========================================================================== */
+.content-card {
+  width: 100%;
+  max-width: 100%;
+  border-radius: 15px;
+  min-height: 80vh;
+  padding: 1.2rem;
+}
+
+/* ==========================================================================
+   7. TARJETAS / SERVICIOS (RESPONSIVE)
+   ========================================================================== */
+.pricing-wrapper {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  justify-content: center;
+}
+
+.plan-card {
+  width: 100%;
+  max-width: 320px;
+  background: #ffffff;
+  border-radius: 30px;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+  transition:
+    transform 0.4s ease,
+    box-shadow 0.4s ease;
+}
+
+.plan-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+}
+
+/* ==========================================================================
+   8. TABLET ≥ 768px
+   ========================================================================== */
+@media (min-width: 768px) {
+  .header img {
+    max-width: 160px;
+  }
+
+  .content-card {
+    padding: 1.5rem;
+  }
+
+  .plan-card {
+    max-width: 340px;
+  }
+}
+
+/* ==========================================================================
+   9. DESKTOP ≥ 992px (SIDEBAR PUSH)
+   ========================================================================== */
+@media (min-width: 992px) {
+  .leftSide {
+    transform: translateX(0);
+    width: 85px;
+  }
+
+  .sidebar-open {
+    width: 260px;
+  }
+
+  .sidebar-closed {
+    width: 85px;
+  }
+
+  .sidebar-closed span,
+  .sidebar-closed .list-group.ps-3 {
+    display: none !important;
+  }
+
+  .sidebar-closed i {
+    font-size: 1.5rem;
+  }
+
+  .main-content {
+    margin-left: 85px;
+  }
+
+  .content-shifted {
+    margin-left: 260px;
+  }
+
+  .overlay {
+    display: none;
+  }
+}
+
+/* ==========================================================================
+   10. LARGE SCREENS ≥ 1400px
+   ========================================================================== */
+@media (min-width: 1400px) {
+  .content-card {
+    max-width: auto;
+    margin: auto;
+  }
+
+  .plan-card {
+    max-width: 360px;
+  }
+}
+
+/* ==========================================================================
+   11. ACCESSIBILITY & PERFORMANCE
+   ========================================================================== */
+.toggle-button:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+  }
+}

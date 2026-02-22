@@ -1,0 +1,94 @@
+<!-- ========== 4. GASTOS GENERALES ========== -->
+<div class="card mb-3">
+  <div class="card-header py-2">
+    <h6 class="mb-0 small fw-semibold">
+      <i class="bi bi-cash-stack me-2"></i>4. GASTOS GENERALES Y ADMINISTRATIVOS
+    </h6>
+  </div>
+
+  <div class="card-body py-2">
+    <table class="table table-bordered table-sm mb-0 small align-middle">
+      <tbody>
+        <tr>
+          <td class="py-1">
+            GASTOS GENERALES ({{ formatearNumero(gastos_generales) }} %) *
+            (1+2+3)
+          </td>
+          <td class="py-1 text-end fw-semibold">
+            {{ formatearNumero(totalGastosGenerales) }}
+          </td>
+        </tr>
+
+        <tr class="fw-bold">
+          <td class="py-1 text-end">
+            TOTAL GASTOS GENERALES Y ADMINISTRATIVOS
+          </td>
+          <td class="py-1 text-end">
+            {{ formatearNumero(totalOperacion) }}
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ========== 5. VALOR AGREGADO ========== -->
+<div class="card mb-3">
+  <div class="card-header py-2">
+    <h6 class="mb-0 small fw-semibold">
+      <i class="bi bi-cash-stack me-2"></i>5. VALOR AGREGADO
+    </h6>
+  </div>
+
+  <div class="card-body py-2">
+    <table class="table table-bordered table-sm mb-2 small align-middle">
+      <tbody>
+        <tr>
+          <td class="py-1">
+            MARGEN DE UTILIDAD ({{ formatearNumero(margen_utilidad) }} %)
+          </td>
+          <td class="py-1 text-end fw-semibold">
+            {{ formatearNumero(TotalesS5) }}
+          </td>
+        </tr>
+
+        <tr class="fw-bold">
+          <td class="py-1 text-end">TOTAL VALOR AGREGADO</td>
+          <td class="py-1 text-end">
+            {{ formatearNumero(TotalesS5) }}
+          </td>
+        </tr>
+
+        <tr class="fw-bold">
+          <td class="py-1 text-end">TOTAL PRECIO UNITARIO (1+2+3+4+5)</td>
+          <td class="py-1 text-end">
+            {{ formatearNumero(sumaTotalGeneral12345) }}
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="d-flex justify-content-end gap-2 no-export">
+      <button
+        class="btn btn-success btn-sm"
+        type="button"
+        (click)="registrarGastosGenerales()"
+        [disabled]="gastoExistente"
+      >
+        Registrar
+      </button>
+    </div>
+  </div>
+</div>
+
+<app-ok
+  *ngIf="mensajeExito"
+  [mensaje]="mensajeExito"
+  (close)="manejarOk()"
+></app-ok>
+
+<app-error
+  *ngIf="mensajeError"
+  [mensaje]="mensajeError"
+  (close)="manejarError()"
+></app-error>

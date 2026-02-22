@@ -1,0 +1,791 @@
+<!-- UNA SOLA TABLA (CORREGIDO) -->
+<div class="card-body">
+  <div class="d-flex flex-wrap align-items-end mb-3">
+    <div class="me-3 flex-grow-1">
+      <label class="form-label"
+        >Buscar por descripción o módulo (nombre/código)</label
+      >
+      <input
+        type="text"
+        class="form-control"
+        [(ngModel)]="searchTerm"
+        (input)="onSearchChange()"
+        placeholder="Escribe para buscar..."
+        style="
+          border: 1px solid #ced4da;
+          background-color: #fff;
+          box-shadow: none;
+        "
+      />
+    </div>
+
+    <div class="d-flex">
+      <button
+        class="btn btn-outline-success me-2 mb-2 mb-md-0"
+        (click)="abrirModalRegistrar()"
+      >
+        <i class="bi bi-plus-circle"></i> AGREGAR ÍTEM
+      </button>
+
+      <button
+        class="btn btn-outline-secondary ms-2 mb-2 mb-md-0"
+        (click)="abrirModalInsumos()"
+        title="Actualizar precios de insumos"
+      >
+        <i class="bi bi-arrow-clockwise"></i> INSUMOS
+      </button>
+
+      <button
+        class="btn btn-warning ms-2 mb-2 mb-md-0"
+        *ngIf="hayCambios()"
+        (click)="actualizarTodosLosCambios()"
+        title="Actualizar todos los ítems con cambios"
+      >
+        <i class="bi bi-arrow-clockwise"></i> CAMBIOS
+      </button>
+    </div>
+  </div>
+
+  <!-- UNA SOLA TABLA -->
+  <div class="table-responsive" #tableContainer>
+    <div *ngIf="!gastosFiltrados.length && searchTerm" class="alert alert-info">
+      No se encontraron ítems o módulos que coincidan con "{{ searchTerm }}".
+    </div>
+
+    <table class="table table-sm table-bordered" *ngIf="gastosFiltrados.length">
+      <thead class="table-light">
+        <tr class="text-center">
+          <th>ÍTEM</th>
+          <th>DESCRIPCIÓN</th>
+          <th>UNIDAD</th>
+          <th>CANTIDAD</th>
+          <th>PRECIO UNITARIO</th>
+          <th>PRECIO TOTAL</th>
+          <th>GASTOS DE OPERACIÓN</th>
+          <th>VALOR AGREGADO</th>
+          <th>ACCIONES</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <!-- UN SOLO NG-FOR DE MÓDULOS -->
+        <ng-container *ngFor="let m of modulosConGastos()">
+          <!-- FILA CABECERA DEL MÓDULO -->
+          <tr class="table-secondary fw-bold">
+            <td colspan="9">
+              {{ m.codigo }} - {{ m.nombre }}
+
+              <div class="actions-row float-end ms-2 me-2">
+                <select
+                  class="form-select form-select-sm actions-select"
+                  [(ngModel)]="selectedPdfModulo[m.id]"
+                >
+                  <option value="" selected>Seleccione un PDF</option>
+                  <option value="materiales">MATERIALES</option>
+                  <option value="manoDeObra">MANO DE OBRA</option>
+                  <option value="equipos">EQUIPO Y HERRAMIENTAS</option>
+                  <option value="financiero">REPORTE FINANCIERO</option>
+                </select>
+
+                <button
+                  class="btn btn-outline-danger btn-sm"
+                  title="Generar PDF del Módulo"
+                  (click)="generarPDF('MODULO', { id_modulo: m.id, nombreModulo: m.codigo + ' - ' + m.nombre })"
+                >
+                  <i class="bi bi-filetype-pdf"></i>
+                </button>
+
+                <button
+                  class="btn btn-outline-success btn-sm"
+                  title="Reporte Financiero del Módulo"
+                  (click)="enviarModuloAGastoOperacionParcialValorAgregado(m.id)"
+                >
+                  <i class="bi bi-ui-checks-grid"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+
+          <!-- FILAS DE ÍTEMS -->
+          <tr
+            *ngFor="let g of getGastosPorModulo(m.id); let i = index"
+            [class.table-danger]="hasChanges(g)"
+          >
+            <td
+              class="td-item"
+              (click)="abrirModalAccion(g)"
+              style="cursor: pointer"
+            >
+              {{ getIndiceGlobal(m.id, i) }}
+            </td>
+
+            <td>{{ g.descripcion }}</td>
+
+            <td class="td-unidad">{{ g.unidad }}</td>
+
+            <td class="text-end">{{ formatearNumero(g.cantidad) }}</td>
+            <td class="text-end">{{ formatearNumero(getTotalFinal(g)) }}</td>
+            <td class="text-end">{{ formatearNumero(getPrecioTotal(g)) }}</td>
+            <td class="text-end">
+              {{ formatearNumero(getTotalItemGastosOperacionesParcial(g)) }}
+            </td>
+            <td class="text-end">{{ formatearNumero(getValorAgregado(g)) }}</td>
+
+            <td class="td-actions">
+              <div class="actions-row">
+                <select
+                  class="form-select form-select-sm actions-select"
+                  [(ngModel)]="selectedPdfItem[g.id]"
+                >
+                  <option value="" selected>Seleccione un PDF</option>
+                  <option value="materiales">MATERIALES</option>
+                  <option value="manoDeObra">MANO DE OBRA</option>
+                  <option value="equipos">EQUIPO Y HERRAMIENTAS</option>
+                  <option value="financiero">REPORTE FINANCIERO</option>
+                </select>
+
+                <button
+                  class="btn btn-outline-danger btn-sm"
+                  title="Generar PDF del Ítem"
+                  (click)="generarPDF('ITEM', { id_item: g.id, descripcionItem: g.descripcion })"
+                >
+                  <i class="bi bi-filetype-pdf"></i>
+                </button>
+
+                <button
+                  class="btn btn-outline-primary btn-sm"
+                  (click)="abrirEditar(g)"
+                  title="Editar Ítem"
+                >
+                  <i class="bi bi-pencil"></i>
+                </button>
+
+                <button
+                  class="btn btn-outline-success btn-sm"
+                  title="Registro de materiales, equipo y mano de obra"
+                  (click)="enviarAEcuacion(g)"
+                >
+                  <i class="bi bi-tools"></i>
+                </button>
+
+                <button
+                  class="btn btn-outline-danger btn-sm"
+                  (click)="eliminarGasto(g.id!)"
+                  title="Eliminar Ítem"
+                >
+                  <i class="bi bi-trash"></i>
+                </button>
+
+                <button
+                  class="btn btn-outline-success btn-sm"
+                  title="Reporte Financiero del Ítem"
+                  (click)="enviarItemAGastoOperacionParcialValorAgregado(g)"
+                >
+                  <i class="bi bi-list-ul"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </ng-container>
+
+        <!-- TOTAL PROYECTO -->
+        <tr class="table-secondary fw-bold">
+          <td colspan="5" class="text-end">TOTAL PROYECTO:</td>
+
+          <td class="text-end">
+            {{ formatearNumero(getTotalCostoParcial()) }}
+          </td>
+
+          <td class="text-end">
+            {{ formatearNumero(getTotalProyectoGastosOperacionParcial()) }}
+          </td>
+
+          <td class="text-end">
+            {{ formatearNumero(getTotalProyectoValorAgregado()) }}
+          </td>
+
+          <td class="td-actions">
+            <div class="actions-row">
+              <select
+                class="form-select form-select-sm actions-select"
+                [(ngModel)]="selectedPdfProyecto"
+              >
+                <option value="" selected>Seleccione un PDF</option>
+                <option value="preciogeneral">PRECIO GENERAL</option>
+                <option value="analisis">ANALISIS DE PRECIO UNITARIO</option>
+                <option value="materiales">MATERIALES</option>
+                <option value="manoDeObra">MANO DE OBRA</option>
+                <option value="equipos">EQUIPO Y HERRAMIENTAS</option>
+                <option value="financiero">REPORTE FINANCIERO..</option>
+              </select>
+
+              <button
+                class="btn btn-outline-danger btn-sm"
+                title="Generar PDF del Proyecto"
+                (click)="generarPDF('PROYECTO', {})"
+              >
+                <i class="bi bi-filetype-pdf"></i>
+              </button>
+
+              <button
+                class="btn btn-outline-success btn-sm"
+                title="Reporte Financiero del Proyecto"
+                (click)="enviarGastoOperacionParcialValorAgregado()"
+              >
+                <i class="bi bi-receipt"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- MODAL Registrar Item-->
+<div
+  class="modal fade show d-block"
+  *ngIf="mostrarModal"
+  tabindex="-1"
+  aria-modal="true"
+  role="dialog"
+  style="background: rgba(0, 0, 0, 0.55)"
+>
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content shadow-sm border-0">
+      <!-- Header -->
+      <div class="modal-header bg-light">
+        <div>
+          <h5 class="modal-title mb-0">
+            {{ modoEdicion ? 'Editar Ítem' : 'Nuevo Ítem' }}
+          </h5>
+          <small class="text-muted">
+            Complete los datos y luego presione {{ modoEdicion ? 'Actualizar' :
+            'Guardar' }}.
+          </small>
+        </div>
+
+        <button
+          type="button"
+          class="btn-close"
+          aria-label="Cerrar"
+          (click)="mostrarModal=false"
+        ></button>
+      </div>
+
+      <!-- Body -->
+      <div class="modal-body">
+        <!-- Caja “card” interna para aspecto corporativo -->
+        <div class="border rounded-3 p-3 bg-white">
+          <div class="row g-3">
+            <!-- MÓDULO -->
+            <div class="col-12 col-md-6">
+              <label class="form-label fw-semibold">Módulo</label>
+
+              <div class="dropdown w-100">
+                <button
+                  class="btn btn-outline-secondary dropdown-toggle w-100 text-truncate"
+                  type="button"
+                  id="dropdownModuloForm"
+                  data-bs-toggle="dropdown"
+                  aria-expanded="false"
+                  title="{{ getModuloFormLabel() }}"
+                >
+                  {{ getModuloFormLabel() }}
+                </button>
+
+                <ul class="dropdown-menu w-100 position-absolute z-3 p-0">
+                  <li class="px-3 py-2 border-bottom bg-white">
+                    <input
+                      type="text"
+                      class="form-control form-control-sm"
+                      placeholder="Buscar módulo..."
+                      [(ngModel)]="filtroModulosForm"
+                      (input)="aplicarFiltroModulosForm()"
+                    />
+                  </li>
+
+                  <li *ngFor="let m of modulosFormFiltrados">
+                    <button
+                      type="button"
+                      class="dropdown-item text-truncate"
+                      (click)="seleccionarModuloForm(m)"
+                      title="{{ m.codigo }} - {{ m.nombre }}"
+                    >
+                      {{ m.codigo }} - {{ m.nombre }}
+                    </button>
+                  </li>
+
+                  <li *ngIf="modulosFormFiltrados.length === 0">
+                    <span class="dropdown-item text-muted text-center">
+                      No hay resultados.
+                    </span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            <!-- DESCRIPCIÓN -->
+            <div class="col-12 col-md-6">
+              <label class="form-label fw-semibold">Descripción</label>
+              <div class="input-group">
+                <span class="input-group-text">
+                  <i class="bi bi-card-text"></i>
+                </span>
+                <input
+                  class="form-control"
+                  [(ngModel)]="itemForm.descripcion"
+                  (input)="toUpper('descripcion')"
+                  placeholder="Ej: Excavación manual"
+                />
+              </div>
+            </div>
+
+            <!-- UNIDAD -->
+            <div class="col-12 col-md-6 position-relative">
+              <label class="form-label fw-semibold">Unidad</label>
+              <div class="input-group">
+                <span class="input-group-text">
+                  <i class="bi bi-rulers"></i>
+                </span>
+                <input
+                  class="form-control"
+                  [(ngModel)]="itemForm.unidad"
+                  (focus)="mostrarUnidad()"
+                  (input)="filtrarUnidad(); toUpper('unidad')"
+                  (blur)="ocultarUnidad()"
+                  placeholder="Ej: m3, m2, und"
+                  autocomplete="off"
+                />
+              </div>
+
+              <!-- Sugerencias (list-group) -->
+              <div
+                *ngIf="opcionesUnidad.length"
+                class="list-group position-absolute w-100 shadow-sm"
+                style="z-index: 1056; max-height: 220px; overflow-y: auto"
+              >
+                <button
+                  type="button"
+                  class="list-group-item list-group-item-action"
+                  *ngFor="let u of opcionesUnidad"
+                  (mousedown)="seleccionarUnidad(u)"
+                >
+                  {{ u }}
+                </button>
+              </div>
+            </div>
+
+            <!-- CANTIDAD -->
+            <div class="col-12 col-md-6">
+              <label class="form-label fw-semibold">Cantidad</label>
+              <div class="input-group">
+                <span class="input-group-text">
+                  <i class="bi bi-123"></i>
+                </span>
+                <input
+                  type="number"
+                  class="form-control text-end"
+                  [(ngModel)]="itemForm.cantidad"
+                  (input)="calcularCosto()"
+                  min="0"
+                  step="0.01"
+                  placeholder="0.00"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="modal-footer bg-light">
+        <button
+          type="button"
+          class="btn btn-outline-secondary"
+          (click)="mostrarModal=false"
+        >
+          <i class="bi bi-x-circle me-1"></i>
+          Cancelar
+        </button>
+
+        <button
+          type="button"
+          class="btn btn-success"
+          (click)="guardarDesdeModal()"
+        >
+          <i class="bi bi-check2-circle me-1"></i>
+          {{ modoEdicion ? 'Actualizar' : 'Guardar' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL INSUMOS-->
+<div
+  class="modal fade show d-block"
+  *ngIf="mostrarModalInsumos"
+  tabindex="-1"
+  aria-modal="true"
+  role="dialog"
+  style="background: rgba(0, 0, 0, 0.55)"
+>
+  <div class="modal-dialog modal-md modal-dialog-centered">
+    <div class="modal-content border-0 shadow-sm">
+      <!-- Header -->
+      <div class="modal-header bg-light">
+        <div>
+          <h5 class="modal-title mb-0">Actualizar precios de insumos</h5>
+          <small class="text-muted"
+            >Los cambios se aplicarán en todo el proyecto.</small
+          >
+        </div>
+
+        <button
+          type="button"
+          class="btn-close"
+          aria-label="Cerrar"
+          (click)="cerrarModalInsumos()"
+        ></button>
+      </div>
+
+      <!-- Body -->
+      <div class="modal-body">
+        <!-- Selector tipo -->
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Tipo de insumo</label>
+          <div class="input-group">
+            <span class="input-group-text">
+              <i class="bi bi-box-seam"></i>
+            </span>
+            <select
+              class="form-select"
+              [(ngModel)]="tipoInsumoSeleccionado"
+              (change)="cargarInsumosProyecto()"
+            >
+              <option [ngValue]="''">Seleccione</option>
+              <option [ngValue]="'material'">Materiales</option>
+              <option [ngValue]="'manoDeObra'">Mano de Obra</option>
+              <option [ngValue]="'equipo'">Equipo y Herramientas</option>
+            </select>
+          </div>
+        </div>
+
+        <div
+          class="row g-2 align-items-end mb-3"
+          *ngIf="tipoInsumoSeleccionado"
+        >
+          <div class="col-12">
+            <label class="form-label fw-semibold mb-1">Filtrar</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-search"></i></span>
+              <input
+                class="form-control"
+                [(ngModel)]="filtroInsumos"
+                (input)="onFiltroInsumosChange()"
+                placeholder="Buscar por descripción..."
+              />
+              <button
+                type="button"
+                class="btn btn-outline-secondary"
+                (click)="limpiarFiltroInsumos()"
+                [disabled]="!filtroInsumos"
+                title="Limpiar"
+              >
+                <i class="bi bi-x-lg"></i>
+              </button>
+            </div>
+
+            <div
+              class="d-flex justify-content-between mt-2"
+              *ngIf="insumosProyecto.length"
+            >
+              <small class="text-muted">
+                Mostrando {{ insumosFiltrados.length }} de {{
+                insumosProyecto.length }}
+              </small>
+              <span class="badge text-bg-secondary"
+                >{{ tipoInsumoSeleccionado }}</span
+              >
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="insumosFiltrados.length" class="border rounded-3">
+          <!-- Toolbar -->
+          <div
+            class="d-flex justify-content-between align-items-center p-2 bg-light border-bottom"
+          >
+            <div class="fw-semibold">
+              <i class="bi bi-list-check me-1"></i>
+              Insumos encontrados
+            </div>
+            <span class="badge text-bg-secondary"
+              >{{ insumosFiltrados.length }}</span
+            >
+          </div>
+
+          <div
+            class="list-group list-group-flush"
+            style="max-height: 360px; overflow-y: auto"
+          >
+            <div
+              class="list-group-item py-2"
+              *ngFor="let i of insumosFiltrados"
+            >
+              <div
+                class="d-flex align-items-center justify-content-between gap-2"
+              >
+                <div class="flex-grow-1" style="min-width: 0">
+                  <div
+                    class="fw-semibold text-nowrap"
+                    style="overflow-x: auto; white-space: nowrap"
+                    [title]="i.descripcion"
+                  >
+                    {{ i.descripcion }}
+                  </div>
+                  <small class="text-muted">Precio unitario (Bs.)</small>
+                </div>
+
+                <div class="d-flex align-items-center flex-nowrap">
+                  <div class="input-group input-group-sm flex-nowrap">
+                    <span class="input-group-text">Bs</span>
+                    <input
+                      type="number"
+                      class="form-control text-end"
+                      style="width: 140px"
+                      [(ngModel)]="i.precio_unitario"
+                      min="0"
+                      step="0.01"
+                      placeholder="0.00"
+                    />
+                  </div>
+
+                  <button
+                    type="button"
+                    class="btn btn-outline-primary btn-sm ms-2 text-nowrap"
+                    *ngIf="i.precio_unitario !== i.precioOriginal"
+                    (click)="actualizarPrecioDesdeModal(i)"
+                    title="Actualizar precio"
+                  >
+                    <i class="bi bi-arrow-repeat me-1"></i>Actualizar
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Vacíos -->
+        <div
+          *ngIf="tipoInsumoSeleccionado && !insumosFiltrados.length"
+          class="text-center text-muted border rounded-3 p-4"
+        >
+          <div class="mb-2"><i class="bi bi-search"></i></div>
+          <div class="fw-semibold">No hay resultados con el filtro</div>
+          <small>Pruebe con otra búsqueda o limpie el filtro.</small>
+        </div>
+
+        <div
+          *ngIf="!tipoInsumoSeleccionado"
+          class="text-center text-muted border rounded-3 p-4"
+        >
+          <div class="mb-2"><i class="bi bi-info-circle"></i></div>
+          <div class="fw-semibold">Seleccione un tipo de insumo</div>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="modal-footer bg-light">
+        <button
+          type="button"
+          class="btn btn-outline-secondary"
+          (click)="cerrarModalInsumos()"
+        >
+          <i class="bi bi-x-circle me-1"></i>
+          Cerrar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL ÚNICO-->
+<div
+  class="modal fade show d-block"
+  *ngIf="mostrarModalAccion"
+  tabindex="-1"
+  aria-modal="true"
+  role="dialog"
+  style="background: rgba(0, 0, 0, 0.55)"
+>
+  <div class="modal-dialog modal-md modal-dialog-centered">
+    <div class="modal-content border-0 shadow-sm">
+      <!-- Header -->
+      <div class="modal-header bg-light">
+        <div>
+          <h5 class="modal-title mb-0">Acción del ítem</h5>
+          <small class="text-muted" *ngIf="itemSeleccionado">
+            {{ itemSeleccionado.descripcion }}
+          </small>
+        </div>
+        <button
+          type="button"
+          class="btn-close"
+          aria-label="Cerrar"
+          (click)="cerrarModalAccion()"
+        ></button>
+      </div>
+
+      <!-- Body -->
+      <div class="modal-body">
+        <!-- Acción: mover / duplicar -->
+        <div class="mb-3">
+          <label class="form-label fw-semibold">¿Qué deseas hacer?</label>
+          <div class="btn-group w-100" role="group">
+            <button
+              type="button"
+              class="btn"
+              [class.btn-primary]="accionAccionModal==='MOVER'"
+              [class.btn-outline-primary]="accionAccionModal!=='MOVER'"
+              (click)="setAccionModal('MOVER')"
+            >
+              <i class="bi bi-arrows-move me-1"></i> Mover
+            </button>
+            <button
+              type="button"
+              class="btn"
+              [class.btn-primary]="accionAccionModal==='DUPLICAR'"
+              [class.btn-outline-primary]="accionAccionModal!=='DUPLICAR'"
+              (click)="setAccionModal('DUPLICAR')"
+            >
+              <i class="bi bi-files me-1"></i> Duplicar
+            </button>
+          </div>
+        </div>
+
+        <!-- Filtro + select módulo destino -->
+        <div class="row g-2 align-items-end mb-3">
+          <div class="col-12 mt-2">
+            <label class="form-label fw-semibold mb-1">Módulo destino</label>
+
+            <div class="dropdown w-100">
+              <button
+                class="btn btn-outline-secondary dropdown-toggle w-100 text-truncate"
+                type="button"
+                id="dropdownModuloDestino"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+                title="{{ getModuloDestinoLabel() }}"
+              >
+                {{ getModuloDestinoLabel() }}
+              </button>
+
+              <ul class="dropdown-menu w-100 position-absolute z-3 p-0">
+                <li class="px-3 py-2 border-bottom bg-white">
+                  <input
+                    type="text"
+                    class="form-control form-control-sm"
+                    placeholder="Buscar módulo..."
+                    [(ngModel)]="filtroModulosDestino"
+                    (input)="aplicarFiltroModulosDestino()"
+                  />
+                </li>
+
+                <li *ngFor="let m of modulosDestinoFiltrados">
+                  <button
+                    type="button"
+                    class="dropdown-item text-truncate"
+                    (click)="seleccionarModuloDestino(m)"
+                    title="{{ m.codigo }} - {{ m.nombre }}"
+                  >
+                    {{ m.codigo }} - {{ m.nombre }}
+                  </button>
+                </li>
+
+                <li *ngIf="modulosDestinoFiltrados.length === 0">
+                  <span class="dropdown-item text-muted text-center">
+                    No hay resultados.
+                  </span>
+                </li>
+              </ul>
+            </div>
+
+            <small
+              class="text-muted d-block mt-1"
+              *ngIf="modulosDestinoFiltrados?.length"
+            >
+              Mostrando {{ modulosDestinoFiltrados.length }} módulos
+            </small>
+          </div>
+        </div>
+
+        <!-- Posición -->
+        <div class="mb-2">
+          <label class="form-label fw-semibold">Posición (N)</label>
+          <select
+            class="form-select"
+            [(ngModel)]="posicionDestino"
+            [disabled]="!toNumber(moduloDestino)"
+          >
+            <option
+              *ngFor="let p of getPosicionesDisponibles(toNumber(moduloDestino))"
+              [ngValue]="p"
+            >
+              {{ p }}
+            </option>
+          </select>
+          <div class="form-text" *ngIf="!toNumber(moduloDestino)">
+            Seleccione un módulo para habilitar posiciones.
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="modal-footer bg-light">
+        <button
+          type="button"
+          class="btn btn-outline-secondary"
+          (click)="cerrarModalAccion()"
+        >
+          <i class="bi bi-x-circle me-1"></i> Cancelar
+        </button>
+
+        <button
+          type="button"
+          class="btn btn-primary"
+          [disabled]="!itemSeleccionado || !toNumber(moduloDestino)"
+          (click)="confirmarAccionModal()"
+        >
+          <i class="bi bi-check2-circle me-1"></i>
+          {{ accionAccionModal === 'MOVER' ? 'Mover' : 'Duplicar' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modales -->
+<app-ok
+  *ngIf="mensajeExito"
+  [mensaje]="mensajeExito"
+  (close)="manejarOk()"
+></app-ok>
+<app-error
+  *ngIf="mensajeError"
+  [mensaje]="mensajeError"
+  (close)="manejarError()"
+></app-error>
+<app-advertencia
+  *ngIf="mensajeAdvertencia"
+  [mensaje]="mensajeAdvertencia"
+  (close)="manejarAdvertencia()"
+></app-advertencia>
+<app-confirmacion
+  *ngIf="mostrarConfirmacion"
+  [mensaje]="mensajeConfirmacion"
+  (aceptar)="accionConfirmada()"
+  (cancelar)="mostrarConfirmacion = false"
+>
+</app-confirmacion>

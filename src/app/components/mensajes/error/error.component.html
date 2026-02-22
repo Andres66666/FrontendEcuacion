@@ -1,0 +1,56 @@
+<div
+  class="modal-backdrop fade show shadow"
+  style="backdrop-filter: blur(4px)"
+></div>
+
+<div class="modal d-block" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow-lg rounded-4">
+      <div class="modal-body p-5 text-center">
+        <div
+          class="d-inline-flex align-items-center justify-content-center bg-danger-subtle rounded-circle mb-4"
+          style="width: 85px; height: 85px"
+        >
+          <i
+            class="bi bi-exclamation-triangle-fill text-danger"
+            style="font-size: 3rem"
+          ></i>
+        </div>
+
+        <h4 class="fw-bold text-dark mb-2">Ha ocurrido un error</h4>
+        <p
+          class="text-muted mb-4 px-3"
+          style="font-size: 1rem; line-height: 1.5"
+        >
+          {{
+            mensaje ||
+              "No se pudo completar la solicitud. Por favor, intente de nuevo."
+          }}
+        </p>
+
+        <div class="d-grid">
+          <button
+            type="button"
+            class="btn py-3 fw-bold text-white shadow-sm border-0"
+            style="
+              background-color: #e11d48;
+              border-radius: 12px;
+              transition: all 0.3s ease;
+            "
+            onmouseover="
+              this.style.backgroundColor = '#be123c';
+              this.style.transform = 'translateY(-2px)';
+            "
+            onmouseout="
+              this.style.backgroundColor = '#e11d48';
+              this.style.transform = 'translateY(0)';
+            "
+            (click)="manejarCerrar()"
+          >
+            Entendido
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,178 @@
+/* ===== Título y Decoración ===== */
+.header-title {
+  color: #2c3e50;
+  letter-spacing: -1px;
+}
+
+.header-divider {
+  width: 60px;
+  height: 4px;
+  background: #11998e;
+  border-radius: 10px;
+}
+
+/* ===== Contenedor de Tarjetas ===== */
+.pricing-wrapper {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem;
+  justify-content: center;
+  padding-bottom: 50px;
+  background: transparent !important;
+}
+
+/* ===== Tarjeta estilo moderno ===== */
+.plan-card {
+  width: 300px; /* ancho por defecto */
+  background: #ffffff;
+  border-radius: 30px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  display: flex;
+  flex-direction: column;
+}
+
+.plan-card:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+}
+
+/* Header con gradiente */
+.card-header-gradient {
+  padding: 35px 20px;
+  border-radius: 30px 30px 0 30px;
+  position: relative;
+}
+
+/* Ribbon Nombre */
+.ribbon-name {
+  background: white;
+  color: #333;
+  width: fit-content;
+  margin: 0 auto 20px;
+  padding: 6px 20px;
+  border-radius: 50px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  letter-spacing: 1px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+}
+
+/* Precio */
+.price-number {
+  font-size: 3.5rem;
+  font-weight: 800;
+  color: #ffffff;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.currency-symbol {
+  font-size: 1.2rem;
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 600;
+}
+
+.price-bubble-tail {
+  position: absolute;
+  bottom: -14px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 30px;
+  height: 15px;
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+}
+
+/* Lista de Beneficios */
+.benefits-list {
+  padding: 20px 25px;
+  list-style: none;
+  flex-grow: 1;
+  margin-bottom: 0;
+}
+
+.benefit-item {
+  padding: 8px 0;
+  display: flex;
+  align-items: center;
+  color: #555;
+}
+
+.benefit-item i {
+  margin-right: 12px;
+  font-size: 1.1rem;
+}
+
+/* Botón COMPRAR */
+.btn-action {
+  margin: 0 25px 30px;
+  padding: 14px;
+  border-radius: 15px;
+  border: none;
+  color: white;
+  font-weight: 800;
+  font-size: 0.9rem;
+  transition: 0.3s;
+}
+
+.btn-action:hover {
+  filter: brightness(1.1);
+  transform: translateY(-2px);
+}
+
+/* Selector de tiempo */
+.btn-group .btn {
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+/* ===== RESPONSIVE ===== */
+
+/* Celular pequeño */
+@media (max-width: 575px) {
+  .plan-card {
+    width: 100%;
+    max-width: 95%;
+  }
+
+  .price-number {
+    font-size: 2.5rem;
+  }
+
+  .btn-action {
+    font-size: 0.8rem;
+    padding: 12px;
+  }
+}
+
+/* Celular grande / Tablet */
+@media (min-width: 576px) and (max-width: 767px) {
+  .plan-card {
+    width: 45%;
+  }
+
+  .price-number {
+    font-size: 3rem;
+  }
+}
+
+/* Tablet horizontal / Laptop pequeño */
+@media (min-width: 768px) and (max-width: 991px) {
+  .plan-card {
+    width: 40%;
+  }
+}
+
+/* Desktop normal */
+@media (min-width: 992px) and (max-width: 1199px) {
+  .plan-card {
+    width: 30%;
+  }
+}
+
+/* Pantallas grandes */
+@media (min-width: 1200px) {
+  .plan-card {
+    width: 25%;
+  }
+}

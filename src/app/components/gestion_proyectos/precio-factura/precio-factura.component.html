@@ -1,0 +1,736 @@
+<div class="d-flex gap-0">
+  <div
+    id="contentToExport"
+    class="flex-grow-1 mb-3 p-3 rounded-3"
+    role="main"
+    aria-label="Reporte Financiero"
+  >
+    <h2 class="mb-2 text-center text-uppercase">REPORTE FINANCIERO</h2>
+
+    <div class="mb-3 text-uppercase fs-3">
+      <div class="row justify-content-center">
+        <div class="col-12 col-md-10">
+          <!-- Proyecto -->
+          <div
+            class="mb-1 d-flex justify-content-center justify-content-md-start"
+          >
+            <div class="fw-semibold fw-bold" style="width: 160px">
+              Proyecto:
+            </div>
+            <div class="fw-semibold">{{ nombreProyecto }}</div>
+          </div>
+
+          <!-- Ítem -->
+          <div
+            *ngIf="origen === 'ITEM'"
+            class="mb-1 d-flex justify-content-center justify-content-md-start"
+          >
+            <div class="fw-semibold fw-bold" style="width: 160px">Ítem:</div>
+            <div class="fw-semibold">{{ descripcionItem }}</div>
+          </div>
+
+          <!-- Módulo -->
+          <div
+            *ngIf="origen === 'MODULO'"
+            class="mb-1 d-flex justify-content-center justify-content-md-start"
+          >
+            <div class="fw-semibold fw-bold" style="width: 160px">Módulo:</div>
+            <div class="fw-semibold">{{ nombreModulo }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="pdf-page-section" id="page1-content">
+      <!-- 1.- GASTOS DE OPERACIÓN Y COSTO DE VENTA -->
+      <h5 class="section-title">1.- GASTOS DE OPERACIÓN Y COSTO DE VENTA</h5>
+      <div class="table-responsive">
+        <table
+          class="table table-bordered table-hover align-middle mb-4"
+          role="table"
+          aria-label="Gastos de Operación y Costo de Venta"
+          style="width: 40%; max-width: 40%; table-layout: auto"
+        >
+          <thead class="text-center">
+            <tr>
+              <th scope="col" style="width: auto; padding: 0.275rem">
+                DESCRIPCION
+              </th>
+              <th scope="col" style="width: auto; padding: 0.275rem">
+                MONTO (Bs)
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td
+                style="
+                  width: auto;
+                  padding: 0.275rem;
+                  word-wrap: break-word;
+                  overflow-wrap: break-word;
+                "
+              >
+                GASTOS DE OPERACIÓN
+              </td>
+              <td class="text-end" style="width: auto; padding: 0.275rem">
+                {{ formatearNumero(REPORTE_GASTOS_DE_OPERACION) }}
+              </td>
+            </tr>
+            <tr>
+              <td
+                style="
+                  width: auto;
+                  padding: 0.275rem;
+                  word-wrap: break-word;
+                  overflow-wrap: break-word;
+                "
+              >
+                CREDITO FISCAL IVA TASA NOMINAL: ({{
+                  formatearNumero(iva_tasa_nominal)
+                }}%)
+              </td>
+              <td class="text-end" style="width: auto; padding: 0.275rem">
+                -{{ formatearNumero(creditoFiscal) }}
+              </td>
+            </tr>
+            <tr class="fw-bold">
+              <td
+                style="
+                  width: auto;
+                  padding: 0.275rem;
+                  word-wrap: break-word;
+                  overflow-wrap: break-word;
+                "
+              >
+                COSTO DE VENTA
+              </td>
+              <td
+                class="text-end fw-bold"
+                style="width: auto; padding: 0.275rem"
+              >
+                {{ formatearNumero(costoVenta) }}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- 2.- VALOR AGREGADO -->
+      <h5 class="section-title">2.- VALOR AGREGADO</h5>
+      <div class="table-responsive">
+        <table
+          class="table table-bordered table-hover align-middle mb-4"
+          role="table"
+          aria-label="Valor Agregado"
+          style="width: 40%; max-width: 40%; table-layout: auto"
+        >
+          <thead class="text-center">
+            <tr>
+              <th scope="col" style="width: auto; padding: 0.275rem">
+                DESCRIPCION
+              </th>
+              <th scope="col" style="width: auto; padding: 0.275rem">
+                MONTO (Bs)
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="fw-bold text-danger">
+              <td
+                style="
+                  width: auto;
+                  padding: 0.275rem;
+                  word-wrap: break-word;
+                  overflow-wrap: break-word;
+                "
+              >
+                VALOR AGREGADO
+              </td>
+              <td class="text-end" style="width: auto; padding: 0.275rem">
+                {{ formatearNumero(REPORTE_VALOR_AGREGADO) }}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- 3.- PRECIO FACTURA - METODO MALLA FINITA -->
+      <h5 class="section-title">3.- PRECIO FACTURA - METODO MALLA FINITA</h5>
+      <div class="table-responsive">
+        <table
+          class="table table-bordered table-hover align-middle mb-3"
+          role="table"
+          aria-label="Precio Factura - Método Malla Finita"
+          style="width: 50%; max-width: 50%; table-layout: auto"
+        >
+          <thead class="text-center">
+            <tr>
+              <th scope="col" style="width: auto; padding: 0.25rem">
+                DESCRIPCION
+              </th>
+              <th scope="col" style="width: auto; padding: 0.25rem">
+                MONTO (Bs)
+              </th>
+              <th scope="col" style="width: auto; padding: 0.25rem">%</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td
+                style="
+                  width: auto;
+                  padding: 0.25rem;
+                  word-wrap: break-word;
+                  overflow-wrap: break-word;
+                "
+              >
+                GASTOS DE OPERACIÓN
+              </td>
+              <td class="text-end" style="width: auto; padding: 0.25rem">
+                {{ formatearNumero(GastoOperacion3) }}
+              </td>
+              <td class="text-end" style="width: auto; padding: 0.25rem">
+                {{ formatearNumero(GastoOperacion31) }}%
+              </td>
+            </tr>
+            <tr>
+              <td
+                style="
+                  width: auto;
+                  padding: 0.25rem;
+                  word-wrap: break-word;
+                  overflow-wrap: break-word;
+                "
+              >
+                VALOR AGREGADO
+              </td>
+              <td class="text-end" style="width: auto; padding: 0.25rem">
+                {{ formatearNumero(ValorAgregado3) }}
+              </td>
+              <td class="text-end" style="width: auto; padding: 0.25rem">
+                {{ formatearNumero(ValorAgregado31) }}%
+              </td>
+            </tr>
+            <tr class="fw-bold text-danger">
+              <td
+                style="
+                  width: auto;
+                  padding: 0.25rem;
+                  word-wrap: break-word;
+                  overflow-wrap: break-word;
+                "
+              >
+                PRECIO FACTURA
+              </td>
+              <td class="text-end" style="width: auto; padding: 0.25rem">
+                {{ formatearNumero(precioFactura3) }}
+              </td>
+              <td class="text-end" style="width: auto; padding: 0.25rem">
+                {{ formatearNumero(precioFactura31) }}%
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- 4.- FISCALIZACION POR IMPUESTOS INTERNOS -->
+      <h5 class="section-title">4.- FISCALIZACION POR IMPUESTOS INTERNOS</h5>
+      <div class="table-responsive">
+        <table
+          class="table table-bordered table-hover align-middle mb-3"
+          role="table"
+          aria-label="Fiscalización por Impuestos Internos"
+          style="width: 40%; max-width: 40%; table-layout: auto"
+        >
+          <thead class="text-center">
+            <tr>
+              <th scope="col" style="width: auto; padding: 0.25rem">
+                DESCRIPCION
+              </th>
+              <th scope="col" style="width: auto; padding: 0.25rem">
+                MONTO (Bs)
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td
+                style="
+                  width: auto;
+                  padding: 0.25rem;
+                  word-wrap: break-word;
+                  overflow-wrap: break-word;
+                "
+              >
+                COSTO DE VENTA
+              </td>
+              <td class="text-end" style="width: auto; padding: 0.25rem">
+                {{ formatearNumero(costoVenta4) }}
+              </td>
+            </tr>
+            <tr>
+              <td
+                style="
+                  width: auto;
+                  padding: 0.25rem;
+                  word-wrap: break-word;
+                  overflow-wrap: break-word;
+                "
+              >
+                MARGEN DE UTILIDAD
+              </td>
+              <td class="text-end" style="width: auto; padding: 0.25rem">
+                {{ formatearNumero(margenUtilidad) }}
+              </td>
+            </tr>
+            <tr>
+              <td
+                style="
+                  width: auto;
+                  padding: 0.25rem;
+                  word-wrap: break-word;
+                  overflow-wrap: break-word;
+                "
+              >
+                IVA {{ formatearNumero(iva_tasa_nominal) }}% DE PRECIO FACTURA
+              </td>
+              <td class="text-end" style="width: auto; padding: 0.25rem">
+                {{ formatearNumero(iva13) }}
+              </td>
+            </tr>
+            <tr class="fw-bold">
+              <td
+                style="
+                  width: auto;
+                  padding: 0.25rem;
+                  word-wrap: break-word;
+                  overflow-wrap: break-word;
+                "
+              >
+                PRECIO FACTURA
+              </td>
+              <td class="text-end" style="width: auto; padding: 0.25rem">
+                {{ formatearNumero(precioFactura3) }}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- 5.- ESTADO DE RESULTADOS -->
+      <h5 class="section-title">5.- ESTADO DE RESULTADOS</h5>
+      <div class="table-responsive">
+        <table
+          class="table table-bordered table-hover align-middle mb-3"
+          role="table"
+          aria-label="Estado de Resultados"
+          style="width: 40%; max-width: 40%; table-layout: auto"
+        >
+          <thead class="text-center">
+            <tr>
+              <th scope="col" style="width: auto; padding: 0.25rem">
+                DESCRIPCION
+              </th>
+              <th scope="col" style="width: auto; padding: 0.25rem">
+                MONTO (Bs)
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="fw-bold">
+              <td
+                style="
+                  width: auto;
+                  padding: 0.25rem;
+                  word-wrap: break-word;
+                  overflow-wrap: break-word;
+                "
+              >
+                PRECIO FACTURA
+              </td>
+              <td class="text-end" style="width: auto; padding: 0.25rem">
+                {{ formatearNumero(precioFactura3) }}
+              </td>
+            </tr>
+            <tr>
+              <td
+                style="
+                  width: auto;
+                  padding: 0.25rem;
+                  word-wrap: break-word;
+                  overflow-wrap: break-word;
+                "
+              >
+                GASTOS DE OPERACIÓN
+              </td>
+              <td class="text-end" style="width: auto; padding: 0.25rem">
+                -{{ formatearNumero(GastoOperacion3) }}
+              </td>
+            </tr>
+            <tr class="fw-bold text-danger">
+              <td
+                style="
+                  width: auto;
+                  padding: 0.25rem;
+                  word-wrap: break-word;
+                  overflow-wrap: break-word;
+                "
+              >
+                VALOR AGREGADO
+              </td>
+              <td class="text-end" style="width: auto; padding: 0.25rem">
+                {{ formatearNumero(ValorAgregado3) }}
+              </td>
+            </tr>
+            <tr>
+              <td
+                style="
+                  width: auto;
+                  padding: 0.25rem;
+                  word-wrap: break-word;
+                  overflow-wrap: break-word;
+                "
+              >
+                IMPUESTO IVA {{ formatearNumero(iva_tasa_nominal) }}%
+              </td>
+              <td class="text-end" style="width: auto; padding: 0.25rem">
+                {{ formatearNumero(impuestoIva5) }}
+              </td>
+            </tr>
+            <tr>
+              <td
+                style="
+                  width: auto;
+                  padding: 0.25rem;
+                  word-wrap: break-word;
+                  overflow-wrap: break-word;
+                "
+              >
+                IT {{ formatearNumero(it) }}% DE LA FACTURA
+              </td>
+              <td class="text-end" style="width: auto; padding: 0.25rem">
+                {{ formatearNumero(itefactura5) }}
+              </td>
+            </tr>
+            <tr>
+              <td
+                style="
+                  width: auto;
+                  padding: 0.25rem;
+                  word-wrap: break-word;
+                  overflow-wrap: break-word;
+                "
+              >
+                IUE {{ formatearNumero(iue) }}% UTILIDAD
+              </td>
+              <td class="text-end" style="width: auto; padding: 0.25rem">
+                {{ formatearNumero(iueUtilidad5) }}
+              </td>
+            </tr>
+            <tr class="fw-bold text-danger">
+              <td
+                style="
+                  width: auto;
+                  padding: 0.25rem;
+                  word-wrap: break-word;
+                  overflow-wrap: break-word;
+                "
+              >
+                TOTAL IMPUESTOS
+              </td>
+              <td class="text-end" style="width: auto; padding: 0.25rem">
+                {{ formatearNumero(totalImpuestos5) }}
+              </td>
+            </tr>
+            <tr class="fw-bold text-danger">
+              <td
+                style="
+                  width: auto;
+                  padding: 0.25rem;
+                  word-wrap: break-word;
+                  overflow-wrap: break-word;
+                "
+              >
+                TOTAL UTILIDAD NETA (100 %)
+              </td>
+              <td class="text-end" style="width: auto; padding: 0.25rem">
+                {{ formatearNumero(totalUtilidadNeta) }}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <!-- 6.- LA GANANCIA COMO MOTOR DEL NEGOCIO -->
+      <h5 class="section-title">6.- LA GANANCIA COMO MOTOR DEL NEGOCIO</h5>
+      <div class="table-responsive">
+        <table
+          class="table table-bordered table-hover align-middle mb-3"
+          role="table"
+          aria-label="Metodología La Ganancia es Primero"
+          style="width: 60%; max-width: 60%; table-layout: auto"
+        >
+          <thead class="text-center">
+            <tr>
+              <th scope="col" style="width: auto; padding: 0.25rem">
+                DESCRIPCION
+              </th>
+              <th scope="col" style="width: auto; padding: 0.25rem">
+                GANANCIAS NETAS (BS)
+              </th>
+              <th scope="col" style="width: auto; padding: 0.25rem">
+                % DE DISTRIBUCION META
+              </th>
+              <th scope="col" style="width: auto; padding: 0.25rem">IDEAL</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td
+                style="
+                  width: auto;
+                  padding: 0.25rem;
+                  word-wrap: break-word;
+                  overflow-wrap: break-word;
+                "
+              >
+                GANANCIA  ({{ ganancia }}%)
+              </td>
+              <td class="text-end" style="width: auto; padding: 0.25rem">
+                {{ formatearNumero3(ganaciaColumna1) }}
+              </td>
+              <td class="text-end" style="width: auto; padding: 0.25rem">
+                {{ gananciaColumna2.toFixed(3) }}%
+              </td>
+              <td class="text-center" style="width: auto; padding: 0.25rem">
+                10%
+              </td>
+            </tr>
+            <tr>
+              <td
+                style="
+                  width: auto;
+                  padding: 0.25rem;
+                  word-wrap: break-word;
+                  overflow-wrap: break-word;
+                "
+              >
+                COMPENSACION DEL DUEÑO ({{ CompensacionDuenoPorcentajeMetaTxt }})
+              </td>
+              <td class="text-end" style="width: auto; padding: 0.25rem">
+                {{ formatearNumero3(CompensacioDuenoColumna1) }}
+              </td>
+              <td class="text-end" style="width: auto; padding: 0.25rem">
+                {{ CompensacioDuenoColumna2.toFixed(3) }}%
+              </td>
+              <td class="text-center" style="width: auto; padding: 0.25rem">
+                10%
+              </td>
+            </tr>
+            <tr>
+              <td
+                style="
+                  width: auto;
+                  padding: 0.25rem;
+                  word-wrap: break-word;
+                  overflow-wrap: break-word;
+                "
+              >
+                IMPUESTOS
+              </td>
+              <td class="text-end" style="width: auto; padding: 0.25rem">
+                {{ formatearNumero(ImpuestosColumna1) }}
+              </td>
+              <td class="text-end" style="width: auto; padding: 0.25rem">
+                {{ formatearNumero(ImpuestosColumna2) }}%
+              </td>
+              <td class="text-center" style="width: auto; padding: 0.25rem">
+                15%
+              </td>
+            </tr>
+            <tr>
+              <td
+                style="
+                  width: auto;
+                  padding: 0.25rem;
+                  word-wrap: break-word;
+                  overflow-wrap: break-word;
+                "
+              >
+                GASTOS DE OPERACIÓN
+              </td>
+              <td class="text-end" style="width: auto; padding: 0.25rem">
+                {{ formatearNumero(GastosOperacionColumna1) }}
+              </td>
+              <td class="text-end" style="width: auto; padding: 0.25rem">
+                {{ formatearNumero(GastosOperacionColumna2) }}%
+              </td>
+              <td class="text-center" style="width: auto; padding: 0.25rem">
+                65%
+              </td>
+            </tr>
+            <tr class="fw-bold">
+              <td
+                style="
+                  width: auto;
+                  padding: 0.25rem;
+                  word-wrap: break-word;
+                  overflow-wrap: break-word;
+                "
+              >
+                PRECIO FACTURA
+              </td>
+              <td class="text-end" style="width: auto; padding: 0.25rem">
+                {{ formatearNumero(PrecioFacturaColumna1) }}
+              </td>
+              <td class="text-end" style="width: auto; padding: 0.25rem">
+                {{ formatearNumero(PrecioFacturaColumna2) }}%
+              </td>
+              <td class="text-center" style="width: auto; padding: 0.25rem">
+                100%
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- 7.- RENTABILIDAD -->
+      <h5 class="section-title">7.- RENTABILIDAD</h5>
+      <div class="table-responsive">
+        <table
+          class="table table-bordered table-hover align-middle mb-3"
+          role="table"
+          aria-label="Rentabilidad"
+          style="width: 50%; max-width: 50%; table-layout: auto"
+        >
+          <thead class="text-center">
+            <tr>
+              <th scope="col" style="width: auto; padding: 0.25rem">
+                DESCRIPCION
+              </th>
+              <th scope="col" style="width: auto; padding: 0.25rem">
+                MONTO (Bs)
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="fw-bold text-danger">
+              <td
+                style="
+                  width: auto;
+                  padding: 0.25rem;
+                  word-wrap: break-word;
+                  overflow-wrap: break-word;
+                "
+              >
+                RENTABILIDAD (PROYECTO)
+              </td>
+              <td class="text-end" style="width: auto; padding: 0.25rem">
+                {{ formatearNumero(RentabilidadProyecto7) }}%
+              </td>
+            </tr>
+            <tr>
+              <td
+                style="
+                  width: auto;
+                  padding: 0.25rem;
+                  word-wrap: break-word;
+                  overflow-wrap: break-word;
+                "
+              >
+                RENTABILIDAD (GANANCIA)
+              </td>
+              <td class="text-end" style="width: auto; padding: 0.25rem">
+                {{ formatearNumero3(RentabilidadGanacia7) }}%
+              </td>
+            </tr>
+            <tr>
+              <td
+                style="
+                  width: auto;
+                  padding: 0.25rem;
+                  word-wrap: break-word;
+                  overflow-wrap: break-word;
+                "
+              >
+                RENTABILIDAD (COMPENSACIÓN DEL DUEÑO)
+              </td>
+              <td class="text-end" style="width: auto; padding: 0.25rem">
+                {{ formatearNumero3(RentabilidadCompensacionDuenio) }}%
+              </td>
+            </tr>
+            <tr>
+              <td
+                style="
+                  width: auto;
+                  padding: 0.25rem;
+                  word-wrap: break-word;
+                  overflow-wrap: break-word;
+                "
+              >
+                RENTABILIDAD (IMPUESTOS)
+              </td>
+              <td class="text-end" style="width: auto; padding: 0.25rem">
+                {{ formatearNumero(RentabilidadImpuestos) }}%
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- 8.- RETORNO DE GASTOS DE OPERACIÓN -->
+      <h5 class="section-title">8.- RETORNO DE GASTOS DE OPERACIÓN</h5>
+      <div class="table-responsive">
+        <table
+          class="table table-bordered table-hover align-middle mb-3"
+          role="table"
+          aria-label="Retorno de Gastos de Operación"
+          style="width: 40%; max-width: 40%; table-layout: auto"
+        >
+          <thead class="text-white text-center">
+            <tr>
+              <th scope="col" style="width: auto; padding: 0.25rem">
+                DESCRIPCION
+              </th>
+              <th scope="col" style="width: auto; padding: 0.25rem">
+                № DE TRANSACCION
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="fw-bold text-danger">
+              <td
+                style="
+                  width: auto;
+                  padding: 0.25rem;
+                  word-wrap: break-word;
+                  overflow-wrap: break-word;
+                "
+              >
+                RETORNO
+              </td>
+              <td class="text-end" style="width: auto; padding: 0.25rem">
+                {{ formatearNumero(RetornoInversion8) }}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Botones laterales -->
+  <div
+    class="position-sticky top-50 translate-middle-y align-self-start z-3 d-flex flex-column align-items-center gap-3"
+    style="width: 80px"
+  >
+    <button
+      class="btn btn-primary btn-lg rounded-circle d-flex align-items-center justify-content-center"
+      (click)="navigateToHome()"
+      aria-label="Volver al Panel Principal"
+      title="Volver al Panel"
+    >
+      <i class="bi bi-house-door-fill"></i>
+    </button>
+  </div>
+</div>

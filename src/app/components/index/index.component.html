@@ -1,0 +1,284 @@
+<header class="fixed-top bg-white shadow-sm">
+  <div class="container-fluid px-2 px-sm-3 px-lg-5">
+    <div
+      class="d-flex align-items-center justify-content-between flex-nowrap"
+      style="min-height: 60px"
+    >
+      <!-- LOGO -->
+      <div class="flex-shrink-1">
+        <img
+          src="https://res.cloudinary.com/dsbgmboh1/image/upload/v1762419613/logomallafinita_uy4cw2.png"
+          alt="Logo Malla Finita"
+          class="img-fluid"
+          style="max-width: 220px"
+        />
+      </div>
+
+      <!-- BOTONES -->
+      <nav
+        class="d-flex align-items-center gap-1 gap-sm-2 gap-lg-3 flex-nowrap"
+      >
+        <button
+          type="button"
+          (click)="navigateToLogin()"
+          class="btn btn-outline-success btn-sm btn-md-md text-nowrap"
+        >
+          <i class="bi bi-door-open"></i>
+          <span class="d-none d-sm-inline">Iniciar Sesión</span>
+        </button>
+
+        <button
+          type="button"
+          (click)="mostrarFormularioRegistro()"
+          class="btn btn-outline-primary btn-sm btn-md-md text-nowrap"
+        >
+          <i class="bi bi-person-plus-fill"></i>
+          <span class="d-none d-sm-inline">Registrarse</span>
+        </button>
+      </nav>
+    </div>
+  </div>
+</header>
+
+<section class="mt-5 pt-5 py-4 py-md-5">
+  <div class="container-fluid px-3 px-md-5">
+    <div class="row align-items-center g-4">
+      <!-- TEXTO -->
+      <div class="col-12 col-lg-8 text-center text-lg-start">
+        <h1 class="fw-bold display-6 display-md-5 display-lg-4">
+          Construimos tu futuro,
+          <span class="text-success">impulsamos tus proyectos</span>
+          y analizamos tu rentabilidad
+          <span class="text-info">con la ecuación Malla Finita</span>
+        </h1>
+
+        <p class="mt-3 fs-6 fs-md-5 text-muted">
+          Más de 30 años de experiencia en el departamento de Potosí...
+        </p>
+      </div>
+
+      <!-- IMAGEN / REGISTRO -->
+      <div
+        class="col-12 col-lg-4 d-flex justify-content-center justify-content-lg-end"
+      >
+        <!-- IMAGEN -->
+        <div *ngIf="!mostrarRegistro" class="w-100 text-center mt-3 mt-lg-4">
+          <img
+            src="https://res.cloudinary.com/dsbgmboh1/image/upload/v1769897924/imgindex_1_ztem8w.png"
+            alt="Imagen de construcción"
+            class="img-fluid w-100"
+            style="max-width: 480px"
+          />
+        </div>
+
+        <!-- REGISTRO -->
+        <div
+          *ngIf="mostrarRegistro"
+          class="w-100 d-flex justify-content-center mt-3 mt-lg-4"
+        >
+          <div class="card shadow w-100">
+            <div class="card-body">
+              <app-registrocliente
+                (cerrarRegistro)="cerrarFormularioRegistro()"
+              ></app-registrocliente>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Cuerpo principal -->
+<main class="py-5">
+  <section class="container-fluid px-3 px-md-5">
+    <!-- TÍTULO -->
+    <h2 class="text-center fw-bold mb-5">Nuestros Servicios</h2>
+
+    <!-- GRID -->
+    <div class="row g-4 justify-content-center">
+      <!-- Servicio 1 -->
+      <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2">
+        <div class="card h-100 text-center shadow-sm">
+          <div class="card-body">
+            <i class="fas fa-building fs-1 text-primary mb-3"></i>
+            <h5 class="fw-semibold">Construcción de Edificaciones</h5>
+            <p class="text-muted small">
+              Levantamos tus proyectos de manera eficiente y profesional,
+              cumpliendo los más altos estándares de calidad.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Servicio 2 -->
+      <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2">
+        <div class="card h-100 text-center shadow-sm">
+          <div class="card-body">
+            <i class="fas fa-water fs-1 text-success mb-3"></i>
+            <h5 class="fw-semibold">Proyectos de Agua Potable</h5>
+            <p class="text-muted small">
+              Expertos en sistemas de agua potable, garantizando el acceso a
+              este recurso vital para comunidades y empresas.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Servicio 3 -->
+      <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2">
+        <div class="card h-100 text-center shadow-sm">
+          <div class="card-body">
+            <i class="fas fa-coins fs-1 text-warning mb-3"></i>
+            <h5 class="fw-semibold">Asesoramiento Financiero</h5>
+            <p class="text-muted small">
+              Evaluamos la viabilidad y rentabilidad de tus negocios,
+              optimizando tus recursos e inversiones.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Servicio 4 -->
+      <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2">
+        <div class="card h-100 text-center shadow-sm">
+          <div class="card-body">
+            <i class="fas fa-project-diagram fs-1 text-info mb-3"></i>
+            <h5 class="fw-semibold">Diseños de Arquitectura</h5>
+            <p class="text-muted small">
+              Creamos diseños arquitectónicos modernos y funcionales, adaptados
+              a tus necesidades.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Servicio 5 -->
+      <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2">
+        <div class="card h-100 text-center shadow-sm">
+          <div class="card-body">
+            <i class="fas fa-chart-line fs-1 text-danger mb-3"></i>
+            <h5 class="fw-semibold">La Ecuación Malla Finita</h5>
+            <p class="text-muted small">
+              Analizamos tu emprendimiento con nuestra ecuación exclusiva que
+              determina si tu negocio es rentable o no.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="pt-5">
+  <div class="container-fluid px-3 px-md-5">
+    <div class="row g-4 justify-content-center">
+      <!-- EMPRESA -->
+      <div class="col-12 col-md-6 col-lg-3">
+        <h5 class="fw-bold mb-3">Malla Finita - Potosí</h5>
+        <p class="small">
+          Más de 30 años ayudando a empresas, emprendedores y comunidades a
+          crecer con soluciones integrales en construcción, agua potable,
+          finanzas y arquitectura.
+        </p>
+      </div>
+
+      <!-- CONTACTO -->
+      <div class="col-12 col-md-6 col-lg-3">
+        <h5 class="fw-bold mb-3">Contáctanos</h5>
+
+        <p class="mb-2 small">
+          <i class="fas fa-envelope me-2 text-success"></i>
+          <a
+            href="mailto:mallafinitasrl@gmail.com"
+            class="text-decoration-none text-dark"
+          >
+            mallafinitasrl@gmail.com
+          </a>
+        </p>
+
+        <p class="mb-2 small">
+          <i class="fas fa-phone me-2 text-success"></i>
+          <a href="tel:+59171121290" class="text-decoration-none text-dark">
+            +591 71121290
+          </a>
+        </p>
+
+        <p class="mb-0 small">
+          <i class="fas fa-map-marker-alt me-2 text-success"></i>
+          Potosí, Bolivia
+        </p>
+      </div>
+
+      <!-- REDES -->
+      <div class="col-12 col-md-6 col-lg-3 text-center">
+        <h5 class="fw-bold mb-3">Síguenos</h5>
+
+        <div class="d-flex justify-content-center gap-3 flex-wrap">
+          <a href="#" target="_blank">
+            <img
+              src="https://cdn-icons-png.flaticon.com/128/5968/5968764.png"
+              class="img-fluid"
+              style="max-width: 32px"
+            />
+          </a>
+          <a href="#" target="_blank">
+            <img
+              src="https://cdn-icons-png.flaticon.com/128/4494/4494488.png"
+              class="img-fluid"
+              style="max-width: 32px"
+            />
+          </a>
+          <a href="#" target="_blank">
+            <img
+              src="https://cdn-icons-png.flaticon.com/128/3046/3046121.png"
+              class="img-fluid"
+              style="max-width: 32px"
+            />
+          </a>
+          <a href="#" target="_blank">
+            <img
+              src="https://cdn-icons-png.flaticon.com/128/733/733579.png"
+              class="img-fluid"
+              style="max-width: 32px"
+            />
+          </a>
+          <a href="#" target="_blank">
+            <img
+              src="https://cdn-icons-png.flaticon.com/128/3670/3670051.png"
+              class="img-fluid"
+              style="max-width: 32px"
+            />
+          </a>
+          <a href="#" target="_blank">
+            <img
+              src="https://cdn-icons-png.flaticon.com/128/4494/4494485.png"
+              class="img-fluid"
+              style="max-width: 32px"
+            />
+          </a>
+        </div>
+      </div>
+
+      <!-- MAPA -->
+      <div class="col-12 col-md-6 col-lg-3">
+        <h5 class="fw-bold mb-3 text-center text-lg-start">Ubicación</h5>
+
+        <div class="ratio ratio-16x9 rounded overflow-hidden">
+          <iframe
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3803.495596101058!2d-65.754!3d-19.588!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x93f93d5936b0c00d%3A0x0!2sPotos%C3%AD%2C%20Bolivia!5e0!3m2!1ses!2sbo!4v1234567890"
+            loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade"
+          ></iframe>
+        </div>
+      </div>
+    </div>
+
+    <hr class="border-secondary my-4" />
+
+    <!-- COPYRIGHT -->
+    <div class="text-center text-muted small pb-3">
+      © 2025 Malla Finita. Todos los derechos reservados.
+    </div>
+  </div>
+</footer>

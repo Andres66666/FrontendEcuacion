@@ -1,0 +1,87 @@
+<!-- cambios nuevos 123 -->
+<h2 class="mb-4 text-primary text-center text-uppercase">Lista de Roles</h2>
+<!-- Filtros -->
+<div
+  class="mb-4 d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-2"
+>
+  <div class="d-flex flex-row flex-nowrap justify-content-end gap-2 w-100">
+    <input
+      type="text"
+      [(ngModel)]="busqueda"
+      (input)="filtrar()"
+      class="form-control flex-grow-1"
+      placeholder="Buscar por nombre..."
+    />
+    <select
+      [(ngModel)]="filtroEstado"
+      (change)="filtrar()"
+      class="form-select flex-grow-0"
+    >
+      <option value="activos">Activos</option>
+      <option value="inactivos">Inactivos</option>
+      <option value="todos">Todos</option>
+    </select>
+  </div>
+
+  <button class="btn btn-success" (click)="irARegistrar()">
+    <i class="bi bi-plus-circle me-1"></i> Registrar
+  </button>
+</div>
+
+<!-- Tabla de roles -->
+<div
+  class="table-responsive rounded border"
+  style="max-height: 400px; overflow-y: auto"
+  (scroll)="onScroll($event)"
+>
+  <table class="table table-bordered table-hover align-middle text-center mb-0">
+    <thead class="table-primary">
+      <tr>
+        <th scope="col">Nombre</th>
+        <th scope="col">Estado</th>
+        <th scope="col">Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr
+        *ngFor="let rol of rolesMostrados"
+        class="border-bottom border-secondary-subtle"
+      >
+        <td class="text-start">{{ rol.nombre }}</td>
+        <td class="fw-bold">
+          <span
+            style="width: 60px"
+            class="badge"
+            [ngClass]="
+              rol.estado ? 'bg-success text-light' : 'bg-danger text-light'
+            "
+          >
+            {{ rol.estado ? "Activo" : "Inactivo" }}
+          </span>
+        </td>
+        <td>
+          <div class="d-flex justify-content-center gap-2">
+            <button class="btn btn-warning btn-sm" (click)="irAEditar(rol.id)">
+              <i class="bi bi-pencil"></i> Editar
+            </button>
+            <button
+              style="width: 100px"
+              class="btn btn-sm"
+              [ngClass]="
+                rol.estado ? 'btn-outline-danger' : 'btn-outline-success'
+              "
+              (click)="cambiarEstado(rol)"
+            >
+              {{ rol.estado ? "Desactivar" : "Activar" }}
+            </button>
+          </div>
+        </td>
+      </tr>
+      <tr *ngIf="rolesMostrados.length === 0">
+        <td colspan="3" class="text-center text-muted py-4">
+          No se encontraron roles.
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>

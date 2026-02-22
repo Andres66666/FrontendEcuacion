@@ -1,0 +1,230 @@
+<form [formGroup]="formulario">
+  <div class="card">
+    <!-- HEADER -->
+    <div class="card-header py-2">
+      <h6 class="mb-0">
+        <i class="bi bi-person-workspace me-1"></i>2. Mano de Obra
+      </h6>
+    </div>
+
+    <!-- FILTRO -->
+    <div class="card-body pt-2 pb-0">
+      <div class="row g-2 align-items-center">
+        <div class="col-12 col-md-6">
+          <input
+            type="text"
+            class="form-control form-control-sm"
+            placeholder="Buscar por descripción..."
+            [(ngModel)]="filtroDescripcion"
+            [ngModelOptions]="{ standalone: true }"
+          />
+        </div>
+        <div class="col-12 col-md-6 text-md-end text-muted small">
+          Mostrando {{ indicesVisibles.length }} fila(s)
+        </div>
+      </div>
+      <hr class="mt-2 mb-2" />
+    </div>
+
+    <!-- TABLA -->
+    <div class="card-body pt-1" formArrayName="manoObra">
+      <div class="table-responsive overflow-visible">
+        <table class="table table-bordered table-sm align-middle mb-0">
+          <colgroup>
+            <col />
+            <!-- DESCRIPCIÓN (flexible) -->
+            <col style="width: 10ch" />
+            <col style="width: 10ch" />
+            <col style="width: 10ch" />
+            <col style="width: 10ch" />
+            <col style="width: 10ch" />
+          </colgroup>
+
+          <thead class="small">
+            <tr>
+              <th class="py-1 text-center">DESCRIPCIÓN</th>
+              <th class="py-1 text-center">UNIDAD</th>
+              <th class="py-1 text-center">CANTIDAD</th>
+              <th class="py-1 text-center">PRECIO UNITARIO</th>
+              <th class="py-1 text-center">PRECIO TOTAL</th>
+              <th class="py-1 text-center">ACCIONES</th>
+            </tr>
+          </thead>
+
+          <tbody class="small">
+            <tr
+              *ngFor="let row of indicesVisibles; trackBy: trackByUid"
+              [formGroupName]="row.index"
+            >
+              <!-- DESCRIPCIÓN -->
+              <td class="py-1 position-relative">
+                <input
+                  type="text"
+                  class="form-control form-control-sm"
+                  formControlName="descripcion"
+                  (focus)="mostrarDescripcion(row.index)"
+                  (input)="
+                    filtrarDescripcion(row.index);
+                    convertirAMayusculas(row.index, 'descripcion')
+                  "
+                  (blur)="ocultarDescripcion(row.index)"
+                  placeholder="Ingrese la descripción..."
+                />
+
+                <ul
+                  *ngIf="opcionesDescripcion[row.index]?.length"
+                  class="list-group position-absolute w-100 small shadow"
+                  style="z-index: 9999; max-height: 220px; overflow-y: auto"
+                >
+                  <li
+                    class="list-group-item list-group-item-action py-1 text-wrap"
+                    *ngFor="let opt of opcionesDescripcion[row.index]"
+                    (click)="seleccionarDescripcion(row.index, opt)"
+                    title="{{ opt.descripcion }}"
+                  >
+                    {{ opt.descripcion }}
+                  </li>
+                </ul>
+              </td>
+
+              <!-- UNIDAD -->
+              <td class="py-1 position-relative">
+                <input
+                  type="text"
+                  class="form-control form-control-sm text-center"
+                  formControlName="unidad"
+                  (focus)="mostrarUnidad(row.index)"
+                  (input)="
+                    filtrarUnidad(row.index);
+                    convertirAMayusculas(row.index, 'unidad')
+                  "
+                  (blur)="ocultarUnidad(row.index)"
+                  (keydown)="onUnidadKeyDown($event, row.index)"
+                  placeholder="Unidad"
+                />
+
+                <ul
+                  *ngIf="opcionesUnidad[row.index]?.length"
+                  class="list-group position-absolute w-100 small shadow"
+                  style="z-index: 9999; max-height: 200px; overflow-y: auto"
+                >
+                  <li
+                    class="list-group-item list-group-item-action py-1"
+                    *ngFor="let u of opcionesUnidad[row.index]; let j = index"
+                    [ngClass]="{ active: selectedIndexUnidad[row.index] === j }"
+                    (click)="seleccionarUnidad(row.index, u)"
+                    title="{{ u }}"
+                  >
+                    {{ u }}
+                  </li>
+                </ul>
+              </td>
+
+              <!-- CANTIDAD -->
+              <td class="py-1">
+                <input
+                  type="number"
+                  class="form-control form-control-sm text-end"
+                  formControlName="cantidad"
+                  (input)="actualizarPrecioParcial(manoObra.at(row.index))"
+                  placeholder="Cant."
+                />
+              </td>
+
+              <!-- PRECIO UNITARIO -->
+              <td class="py-1">
+                <input
+                  type="number"
+                  class="form-control form-control-sm text-end"
+                  formControlName="precio_unitario"
+                  (input)="onPrecioUniChange(manoObra.at(row.index), row.index)"
+                  placeholder="P.Unit"
+                />
+              </td>
+
+              <!-- PRECIO TOTAL -->
+              <td class="py-1 text-end fw-semibold">
+                {{
+                  formatearNumero(calcularPrecioParcial(manoObra.at(row.index)))
+                }}
+              </td>
+
+              <!-- ACCIONES -->
+              <td class="py-1 text-center">
+                <div class="btn-group btn-group-sm" role="group">
+                  <button
+                    *ngIf="!manoObra.at(row.index).get('id')?.value"
+                    type="button"
+                    class="btn btn-outline-success"
+                    (click)="guardar(row.index)"
+                    title="Guardar"
+                  >
+                    <i class="bi bi-check-lg"></i>
+                  </button>
+
+                  <button
+                    *ngIf="
+                      manoObra.at(row.index).get('id')?.value &&
+                      manoObra.at(row.index).dirty
+                    "
+                    type="button"
+                    class="btn btn-outline-primary"
+                    (click)="guardar(row.index)"
+                    title="Actualizar"
+                  >
+                    <i class="bi bi-arrow-clockwise"></i>
+                  </button>
+
+                  <button
+                    type="button"
+                    class="btn btn-outline-danger"
+                    (click)="eliminar(row.index)"
+                    title="Eliminar"
+                  >
+                    <i class="bi bi-trash3"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TOTALES -->
+    <div class="card-footer py-2">
+      <table class="table table-bordered table-sm mb-0 small">
+        <tbody>
+          <tr>
+            <td class="py-1">SUBTOTAL DE MANO DE OBRA</td>
+            <td class="py-1 text-end fw-semibold">
+              {{ formatearNumero(subtotalManoObra) }}
+            </td>
+          </tr>
+          <tr>
+            <td class="py-1">
+              CARGAS SOCIALES ({{ formatearNumero(carga_social) }} %) DEL
+              SUBTOTAL DE MANO DE OBRA
+            </td>
+            <td class="py-1 text-end fw-semibold">
+              {{ formatearNumero(cargasManoObra) }}
+            </td>
+          </tr>
+          <tr>
+            <td class="py-1">
+              IMPUESTO IVA ({{ formatearNumero(iva_efectiva) }} %) DE (SUBTOTAL
+              + CARGAS SOCIALES)
+            </td>
+            <td class="py-1 text-end fw-semibold">
+              {{ formatearNumero(ivaManoObra) }}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card-footer py-2 text-end fw-bold small">
+      TOTAL MANO DE OBRA: {{ formatearNumero(totalManoObra) }}
+    </div>
+  </div>
+</form>

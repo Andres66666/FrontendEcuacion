@@ -1,0 +1,80 @@
+<div class="container-fluid py-4">
+  <div class="text-center mb-5 mt-3">
+    <h2 class="display-5 fw-bold text-dark header-title">Nuestros Servicios</h2>
+    <p class="text-secondary fs-5 mt-2">
+      Potencia tu negocio con planes diseñados a tu medida
+    </p>
+  </div>
+
+  <div class="pricing-wrapper">
+    <div class="plan-card" *ngFor="let plan of planes">
+      <div
+        class="card-header-gradient"
+        [style.background]="'linear-gradient(135deg, ' + plan.color + ', #ffffff)'"
+      >
+        <div class="ribbon-name text-center">{{ plan.nombre }}</div>
+
+        <div class="price-tag">
+          <span class="currency-symbol">Bs</span>
+          <span class="price-number">
+            {{ planSeleccionado?.nombre === plan.nombre ? precioFinal :
+            plan.mensual }}
+          </span>
+        </div>
+
+        <div class="text-center text-secondary fw-bold small opacity-75">
+          {{ planSeleccionado?.nombre === plan.nombre ? tipoPago : 'Mensual' }}
+        </div>
+
+        <div
+          class="price-bubble-tail"
+          [style.background-color]="plan.color"
+        ></div>
+      </div>
+
+      <div class="text-center my-4">
+        <div class="btn-group p-1 bg-light rounded-pill shadow-sm">
+          <button
+            class="btn btn-sm rounded-pill px-3"
+            [class.btn-primary]="tipoPago === 'Mensual' && planSeleccionado?.nombre === plan.nombre"
+            [class.btn-light]="!(tipoPago === 'Mensual' && planSeleccionado?.nombre === plan.nombre)"
+            (click)="seleccionarPlan(plan, 'Mensual')"
+          >
+            Mes
+          </button>
+          <button
+            class="btn btn-sm rounded-pill px-3"
+            [class.btn-primary]="tipoPago === 'Anual' && planSeleccionado?.nombre === plan.nombre"
+            [class.btn-light]="!(tipoPago === 'Anual' && planSeleccionado?.nombre === plan.nombre)"
+            (click)="seleccionarPlan(plan, 'Anual')"
+          >
+            Año
+          </button>
+        </div>
+      </div>
+
+      <ul class="benefits-list">
+        <li
+          class="benefit-item"
+          *ngFor="let ben of plan.beneficios"
+          [ngClass]="{'opacity-50': !ben.incluido}"
+        >
+          <i
+            class="bi"
+            [ngClass]="ben.incluido ? 'bi-check-circle-fill' : 'bi-x-circle-fill'"
+            [style.color]="ben.incluido ? plan.color : '#ff4444'"
+          ></i>
+          <span class="small">{{ ben.texto }}</span>
+        </li>
+      </ul>
+
+      <button
+        class="btn-action shadow"
+        [style.background-color]="plan.color"
+        (click)="seleccionarPlan(plan, tipoPago); abrirPago()"
+      >
+        ADQUIRIR PLAN
+      </button>
+    </div>
+  </div>
+</div>
