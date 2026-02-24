@@ -189,6 +189,31 @@ export class ReportesPdf {
     return this.fromCents(this.toCents(v));
   }
 
+  // ===================== INYECTAR cantidad_item DESDE GASTOS =====================
+  private withCantidadItem(data: ReporteProyectoData, rows: any[]): any[] {
+    const map = new Map<number, number>(
+      (data.gastos || []).map((g) => [Number(g.id), Number(g.cantidad) || 0]),
+    );
+
+    return (rows || []).map((r) => {
+      // acepta todas las variantes posibles de id del gasto
+      const idGo = Number(
+        r?.id_gasto_operacion ??
+          r?.gasto_operacion ??
+          r?.gasto_operacion_id ??
+          r?.gastoOperacion ??
+          0,
+      );
+
+      const cantItem = map.get(idGo);
+
+      return {
+        ...r,
+        id_gasto_operacion: idGo,     // normalizado para filtros
+        cantidad_item: cantItem ?? 1, //  fallback 1 (NO 0)
+      };
+    });
+  }
   // ===================== AGRUPACIONES =====================
   private agruparPorDescripcion(
     datos: any[],
@@ -197,51 +222,55 @@ export class ReportesPdf {
     precioKey: string,
     cantidadItemKey: string = 'cantidad_item',
   ): any[] {
+    const QTY_SCALE = 100000; // 5 decimales
     const mapa = new Map<
       string,
-      { cantidad: number; totalExacto: number; unidad?: string }
+      { qtyMicro: number; totalCents: number; unidad?: string }
     >();
 
     (datos || []).forEach((item) => {
-      const desc = (item?.[descripcionKey] || '')
-        .toString()
-        .toUpperCase()
-        .trim();
+      const desc = (item?.[descripcionKey] || '').toString().toUpperCase().trim();
       if (!desc) return;
 
-      const cantMaterial = this.parseNumero(item?.[cantidadKey]);
-      const precio = this.parseNumero(item?.[precioKey]);
-      const cantItem = this.parseNumero(item?.[cantidadItemKey] ?? 1);
+      const cantInsumo = this.parseNumero(item?.[cantidadKey]);        // cantidad del material/MO/equipo
+      const cantItem = this.parseNumero(item?.[cantidadItemKey] ?? 1); // ✅ fallback 1
+      const precio = this.parseNumero(item?.[precioKey]);              // precio unitario
 
-      const cantidadReal = cantMaterial * cantItem;
-      const subtotalExacto = cantidadReal * precio;
+      // cantidad real por fila = cantidad_insumo * cantidad_item
+      const qtyReal = cantInsumo * cantItem;
 
-      if (mapa.has(desc)) {
-        const e = mapa.get(desc)!;
-        e.cantidad += cantidadReal;
-        e.totalExacto += subtotalExacto;
+      // qty a micro-unidades (5 decimales) para suma exacta
+      const qtyMicro = Math.round((qtyReal + Number.EPSILON) * QTY_SCALE);
+
+      // subtotal por fila redondeado a centavos
+      const priceCents = this.toCents(precio);
+      const subtotalCents = Math.round((qtyMicro * priceCents) / QTY_SCALE);
+
+      const unidad = (item?.['unidad'] || '').toString();
+
+      const prev = mapa.get(desc);
+      if (prev) {
+        prev.qtyMicro += qtyMicro;
+        prev.totalCents += subtotalCents;
+        if (!prev.unidad) prev.unidad = unidad;
       } else {
-        mapa.set(desc, {
-          cantidad: cantidadReal,
-          totalExacto: subtotalExacto,
-          unidad: (item?.['unidad'] || '').toString(),
-        });
+        mapa.set(desc, { qtyMicro, totalCents: subtotalCents, unidad });
       }
     });
 
     return Array.from(mapa.entries()).map(([descripcion, d]) => {
-      const totalRedondeado = this.redondear2(d.totalExacto);
-      const cantidad = d.cantidad;
+      const cantidad = d.qtyMicro / QTY_SCALE;    // cantidad total (5 decimales)
+      const total = this.fromCents(d.totalCents); // total exacto en Bs (2 decimales)
+
+      // precio unitario ponderado coherente con total
+      const precio_unitario = cantidad ? this.redondear2(total / cantidad) : 0;
 
       return {
         descripcion,
-        cantidad, // se mostrará con 5 decimales
-        // precio_unitario “promedio” coherente con el total mostrado:
-        precio_unitario: cantidad
-          ? this.redondear2(totalRedondeado / cantidad)
-          : 0,
         unidad: d.unidad || '',
-        total: totalRedondeado,
+        cantidad,
+        precio_unitario,
+        total: this.redondear2(total),
       };
     });
   }
@@ -456,15 +485,12 @@ export class ReportesPdf {
       doc.setFontSize(baseFontSize);
     }
 
-    doc.text('Moneda: en Bolivianos', pageWidth / 2, currentY, {
-      align: 'center',
-    });
+    doc.text('Moneda: en Bolivianos', pageWidth / 2, currentY, { align: 'center' });
     currentY += lineHeight;
 
     const body: any[] = [];
     let contadorGlobal = 1;
 
- 
     const modulosConGastos = (data.modulos || []).filter((m) =>
       (data.gastos || []).some((g) => this.getModuloId(g) === Number(m.id)),
     );
@@ -479,9 +505,9 @@ export class ReportesPdf {
         gastosModulo.reduce((sum, g) => sum + this.getPrecioTotalItem(g), 0),
       );
 
-
       const subtotalLiteral = this.numeroLiteralBs(subtotalModulo);
 
+      //  7 columnas (Literal antes del Total)
       body.push([
         {
           content: `MÓDULO: ${(m.codigo || '').trim()} ${(m.nombre || '').trim()}`.trim(),
@@ -489,21 +515,22 @@ export class ReportesPdf {
           styles: { fontStyle: 'bold', halign: 'left' },
         },
         {
+          content: subtotalLiteral,
+          styles: {
+            halign: 'left',
+            fontStyle: 'bold',
+            overflow: 'linebreak', //  NO RECORTAR
+          },
+        },
+        {
           content: this.formatearNumero(subtotalModulo),
           styles: { halign: 'right', fontStyle: 'bold' },
         },
-        {
-          content: subtotalLiteral, 
-          styles: { halign: 'left', fontStyle: 'bold' },
-        },
       ]);
+
       gastosModulo.forEach((g) => {
         const precioUnit = this.getTotalFinal(g);
-        const precioTotal = this.roundToTwo(
-          (Number(g.cantidad) || 0) * precioUnit,
-        );
-
-        
+        const precioTotal = this.roundToTwo((Number(g.cantidad) || 0) * precioUnit);
         const literalItem = this.numeroLiteralBs(precioTotal);
 
         body.push([
@@ -512,38 +539,57 @@ export class ReportesPdf {
           g.unidad,
           this.formatearNumero(Number(g.cantidad) || 0),
           this.formatearNumero(precioUnit),
+          {
+            content: literalItem,
+            styles: {
+              halign: 'left',
+              overflow: 'linebreak', //  NO RECORTAR
+            },
+          },
           this.formatearNumero(precioTotal),
-          literalItem, 
         ]);
       });
     });
 
     const totalProyecto = this.roundToTwo(
-      (data.gastos || []).reduce(
-        (sum, g) => sum + this.getPrecioTotalItem(g),
-        0,
-      ),
+      (data.gastos || []).reduce((sum, g) => sum + this.getPrecioTotalItem(g), 0),
     );
 
     const totalProyectoLiteral = this.numeroLiteralBs(totalProyecto);
 
-   body.push([
-  {
-    content: 'PRECIO TOTAL DEL PROYECTO',
-    colSpan: 5, 
-    styles: { halign: 'right', fontStyle: 'bold' },
-  },
-  {
-    content: this.formatearNumero(totalProyecto), 
-    styles: { halign: 'right', fontStyle: 'bold' },
-  },
-  {
-    content: totalProyectoLiteral, // Precio Total Literal
-    styles: { halign: 'left', fontStyle: 'bold' },
-  },
-]);
+    //  7 columnas (Literal antes del Total)
+    body.push([
+      {
+        content: 'PRECIO TOTAL DEL PROYECTO',
+        colSpan: 5,
+        styles: { halign: 'right', fontStyle: 'bold' },
+      },
+      {
+        content: totalProyectoLiteral,
+        styles: {
+          halign: 'left',
+          fontStyle: 'bold',
+          overflow: 'linebreak', //  NO RECORTAR
+        },
+      },
+      {
+        content: this.formatearNumero(totalProyecto),
+        styles: { halign: 'right', fontStyle: 'bold' },
+      },
+    ]);
 
     const totalTableWidth = pageWidth - marginLeft - marginRight;
+
+    //  MÁS ANCHO PARA LITERAL
+    const wItem = 12;
+    const wUnidad = 16;
+    const wCantidad = 18;
+    const wUnitario = 30;
+    const wLiteral = 70; //  antes 55 (muy poco)
+    const wTotal = 22;
+
+    const wDescripcion =
+      totalTableWidth - (wItem + wUnidad + wCantidad + wUnitario + wLiteral + wTotal);
 
     autoTable(doc, {
       startY: currentY + 2,
@@ -554,8 +600,8 @@ export class ReportesPdf {
           { content: 'Unidad', styles: { halign: 'center' } },
           { content: 'Cantidad', styles: { halign: 'left' } },
           { content: 'Precio Unitario', styles: { halign: 'left' } },
+          { content: 'Precio Total Literal', styles: { halign: 'center' } },
           { content: 'Precio Total', styles: { halign: 'center' } },
-          { content: 'Precio Total Literal', styles: { halign: 'center' } }, // ✅ nueva columna
         ],
       ],
       body,
@@ -565,7 +611,7 @@ export class ReportesPdf {
         cellPadding: 2,
         valign: 'middle',
         font: 'helvetica',
-        overflow: 'hidden',
+        overflow: 'linebreak', //  en general mejor que hidden (no corta)
       },
       headStyles: {
         fontSize: 8,
@@ -575,17 +621,17 @@ export class ReportesPdf {
         lineWidth: 0.1,
       },
       columnStyles: {
-        0: { cellWidth: 12, halign: 'center' }, // Ítem
-        1: {
-          // Descripción ajustada porque ahora hay 7 columnas
-          cellWidth: totalTableWidth - (12 + 16 + 18 + 30 + 22 + 55),
+        0: { cellWidth: wItem, halign: 'center' }, // Ítem
+        1: { cellWidth: wDescripcion, halign: 'left', overflow: 'linebreak' }, // Descripción
+        2: { cellWidth: wUnidad, halign: 'center' }, // Unidad
+        3: { cellWidth: wCantidad, halign: 'right' }, // Cantidad
+        4: { cellWidth: wUnitario, halign: 'right' }, // Precio Unitario
+        5: {
+          cellWidth: wLiteral,
           halign: 'left',
+          overflow: 'linebreak', //  Literal completo
         },
-        2: { cellWidth: 16, halign: 'center' }, // Unidad
-        3: { cellWidth: 18, halign: 'right' }, // Cantidad
-        4: { cellWidth: 30, halign: 'right' }, // P.Unit
-        5: { cellWidth: 22, halign: 'right' }, // P.Total
-        6: { cellWidth: 55, halign: 'left' },  // ✅ Literal
+        6: { cellWidth: wTotal, halign: 'right' }, // Precio Total
       },
       margin: { left: marginLeft, right: marginRight },
     });
@@ -1090,32 +1136,20 @@ export class ReportesPdf {
   ): void {
     switch (tipo) {
       case 'materiales': {
-        const d = this.agruparPorDescripcion(
-          data.materiales,
-          'descripcion',
-          'cantidad',
-          'precio_unitario',
-        );
+        const rows = this.withCantidadItem(data, data.materiales);
+        const d = this.agruparPorDescripcion(rows, 'descripcion', 'cantidad', 'precio_unitario');
         this.generarPDFSimple(data, 'Materiales', d);
         return;
       }
       case 'manoDeObra': {
-        const d = this.agruparPorDescripcion(
-          data.manoDeObra,
-          'descripcion',
-          'cantidad',
-          'precio_unitario',
-        );
+        const rows = this.withCantidadItem(data, data.manoDeObra);
+        const d = this.agruparPorDescripcion(rows, 'descripcion', 'cantidad', 'precio_unitario');
         this.generarPDFSimple(data, 'Mano de Obra', d);
         return;
       }
       case 'equipos': {
-        const d = this.agruparPorDescripcion(
-          data.equipos,
-          'descripcion',
-          'cantidad',
-          'precio_unitario',
-        );
+        const rows = this.withCantidadItem(data, data.equipos);
+        const d = this.agruparPorDescripcion(rows, 'descripcion', 'cantidad', 'precio_unitario');
         this.generarPDFSimple(data, 'Equipo y Herramientas', d);
         return;
       }
@@ -1159,6 +1193,9 @@ export class ReportesPdf {
     if (!datos.length) {
       throw new Error(`No hay ${tipoNombre} para este módulo.`);
     }
+
+    //  clave: inyectar cantidad_item desde GastoOperacion
+    datos = this.withCantidadItem(data, datos);
 
     const datosAgrupados = this.agruparPorDescripcion(
       datos,
@@ -1208,6 +1245,9 @@ export class ReportesPdf {
       throw new Error(`No hay ${tipoNombre} para este ítem.`);
     }
 
+    //  clave: inyectar cantidad_item desde GastoOperacion
+    datos = this.withCantidadItem(data, datos);
+
     const datosAgrupados = this.agruparPorDescripcion(
       datos,
       'descripcion',
@@ -1229,124 +1269,155 @@ export class ReportesPdf {
   generarReporteFinanciero(input: ReporteFinancieroInput): void {
     const doc = new jsPDF();
 
-    // Márgenes (mm aprox)
+    // Márgenes
     const pageWidth = doc.internal.pageSize.getWidth();
-    const marginLeft = 30; // ~3cm
-    const marginRight = 20; // ~2cm
-    const marginTop = 20; // ~2cm
+    const marginLeft = 30;
+    const marginRight = 20;
+    const marginTop = 20;
 
-    // Datos base
-    const gastosOperacion = Number(input.gastosOperacion) || 0;
-    const valorAgregado = Number(input.valorAgregado) || 0;
+    // ========= Helpers dinero exacto (centavos) =========
+    const toCents = (v: any) => Math.round((Number(v || 0) + Number.EPSILON) * 100);
+    const fromCents = (c: number) => c / 100;
 
-    const iva_tasa_nominal = Number(input.iva_tasa_nominal) || 0;
-    const it = Number(input.it) || 0;
-    const iue = Number(input.iue) || 0;
-    const ganancia = Number(input.ganancia) || 0;
-    const margen_utilidad = Number(input.margen_utilidad) || 0; // (por ahora no lo usas en cálculos, pero lo dejo)
+    // % a basis points (2 decimales de %): 13 => 1300
+    const pctToBp = (pct: any) => Math.round((Number(pct || 0) + Number.EPSILON) * 100);
+    // baseCents * bp / 10000 => centavos (redondeo real)
+    const applyPctCents = (baseCents: number, pct: any) => {
+      const bp = pctToBp(pct);
+      return Math.round((baseCents * bp) / 10000);
+    };
 
-    // ========================
-    // CÁLCULOS (equivalentes a tu component)
-    // ========================
-    // Sección 1
-    const creditoFiscal = this.redondear2(
-      gastosOperacion * (iva_tasa_nominal / 100),
-    );
-    const costoVenta = this.redondear2(gastosOperacion - creditoFiscal);
+    // ========= Datos base =========
+    const gastosOperacionC = toCents(input.gastosOperacion);
+    const valorAgregadoC = toCents(input.valorAgregado);
 
-    // Sección 3
-    const precioFactura3 = this.redondear2(gastosOperacion + valorAgregado);
-    const gastoOperacion31 =
-      precioFactura3 > 0
-        ? this.redondear2((gastosOperacion * 100) / precioFactura3)
-        : 0;
-    const valorAgregado31 =
-      precioFactura3 > 0
-        ? this.redondear2((valorAgregado * 100) / precioFactura3)
-        : 0;
-    const precioFactura31 = this.redondear2(gastoOperacion31 + valorAgregado31);
+    const ivaNominal = Number(input.iva_tasa_nominal) || 0;
+    const itPct = Number(input.it) || 0;
+    const iuePct = Number(input.iue) || 0;
 
-    // Sección 4
-    const costoVenta4 = this.redondear2(gastosOperacion - creditoFiscal);
-    const iva13 = this.redondear2(precioFactura3 * (iva_tasa_nominal / 100));
-    const margenUtilidad = this.redondear2(
-      precioFactura3 - costoVenta4 - iva13,
-    );
-
-    // Sección 5
-    const impuestoIva5 = this.redondear2(
-      valorAgregado * (iva_tasa_nominal / 100),
-    );
-    const itefactura5 = this.redondear2(precioFactura3 * (it / 100));
-    const utilidadBruta5 = valorAgregado - impuestoIva5 - itefactura5;
-    const iueUtilidad5 = this.redondear2(utilidadBruta5 * (iue / 100));
-    const totalImpuestos5 = this.redondear2(
-      impuestoIva5 + itefactura5 + iueUtilidad5,
-    );
-    const totalUtilidadNeta = this.redondear2(utilidadBruta5 - iueUtilidad5);
-
-    const toMil = (v: number) =>
-      Math.round((Number(v || 0) + Number.EPSILON) * 1000);
-    const fromMil = (m: number) => m / 1000;
-
-    // ========================
-    // SECCIÓN 6 – GANANCIA COMO MOTOR 
-
-    // ========================
-
-
-    const gananciaPct = Math.max(0, Math.min(100, ganancia));
+    // ganancia “motor”
+    const gananciaPct = Math.max(0, Math.min(100, Number(input.ganancia) || 0));
     const compensacionPctUtilidad = this.redondear2(100 - gananciaPct);
 
-    const gananciaCol1 = this.redondear3(
-      totalUtilidadNeta * (gananciaPct / 100),
-    );
-
-    
-    const compensacionDuenoCol1 = this.redondear3(
-      totalUtilidadNeta - gananciaCol1,
-    );
-
-    const impuestosCol1 = this.redondear2(totalImpuestos5);
-    const gastosOperacionCol1 = this.redondear2(gastosOperacion);
-
-    const precioFacturaCol1 = this.redondear2(
-      gananciaCol1 + compensacionDuenoCol1 + impuestosCol1 + gastosOperacionCol1,
-    );
-
-    const gananciaCol2 =
-      precioFacturaCol1 > 0 ? (gananciaCol1 / precioFacturaCol1) * 100 : 0;
-
-    const compensacionDuenoCol2 =
-      precioFacturaCol1 > 0
-        ? (compensacionDuenoCol1 / precioFacturaCol1) * 100
-        : 0;
-
-    const impuestosCol2 =
-      precioFacturaCol1 > 0 ? (impuestosCol1 / precioFacturaCol1) * 100 : 0;
-
-    const gastosOperacionCol2 =
-      precioFacturaCol1 > 0 ? (gastosOperacionCol1 / precioFacturaCol1) * 100 : 0;
-
-    const precioFacturaCol2 = this.redondear2(
-      gananciaCol2 + compensacionDuenoCol2 + impuestosCol2 + gastosOperacionCol2,
-    );
     // ========================
-    // SECCIÓN 7 (3 decimales + suma exacta)
+    // SECCIÓN 1 (exacto)
+    // credito fiscal = gastosOperacion * IVA nominal
+    // ========================
+    const creditoFiscalC = applyPctCents(gastosOperacionC, ivaNominal);
+    const costoVentaC = gastosOperacionC - creditoFiscalC;
+
+    // ========================
+    // SECCIÓN 3 (exacto)
+    // precioFactura = gastos + valorAgregado
+    // porcentajes de composición
+    // ========================
+    const precioFactura3C = gastosOperacionC + valorAgregadoC;
+
+    const precioFactura3 = fromCents(precioFactura3C);
+    const gastosOperacion = fromCents(gastosOperacionC);
+    const valorAgregado = fromCents(valorAgregadoC);
+    const creditoFiscal = fromCents(creditoFiscalC);
+    const costoVenta = fromCents(costoVentaC);
+
+    const gastoOperacion31 =
+      precioFactura3C > 0 ? this.redondear2((gastosOperacionC * 100) / precioFactura3C) : 0;
+
+    const valorAgregado31 =
+      precioFactura3C > 0 ? this.redondear2((valorAgregadoC * 100) / precioFactura3C) : 0;
+
+    //  Ajuste para que % sume 100.00 exacto (por redondeos)
+    const precioFactura31 = this.redondear2(100 - (gastoOperacion31 + valorAgregado31)) + gastoOperacion31 + valorAgregado31;
+
+    // ========================
+    // SECCIÓN 4 (exacto)
+    // iva sobre precio factura
+    // margen utilidad = PF - costo venta - IVA
+    // ========================
+    const iva13C = applyPctCents(precioFactura3C, ivaNominal);
+    const margenUtilidadC = precioFactura3C - costoVentaC - iva13C;
+
+    const iva13 = fromCents(iva13C);
+    const margenUtilidad = fromCents(margenUtilidadC);
+    const costoVenta4 = fromCents(costoVentaC);
+
+    // ========================
+    // SECCIÓN 5 (exacto)
+    // impuestoIva = valorAgregado * IVA
+    // IT = PF * IT
+    // utilidadBruta = VA - IVA(VA) - IT(PF)
+    // IUE = utilidadBruta * IUE
+    // ========================
+    const impuestoIva5C = applyPctCents(valorAgregadoC, ivaNominal);
+    const itefactura5C = applyPctCents(precioFactura3C, itPct);
+
+    const utilidadBruta5C = valorAgregadoC - impuestoIva5C - itefactura5C;
+
+    //  Si por algún caso utilidad queda negativa, se mantiene (depende tu negocio)
+    const iueUtilidad5C = applyPctCents(utilidadBruta5C, iuePct);
+
+    const totalImpuestos5C = impuestoIva5C + itefactura5C + iueUtilidad5C;
+    const totalUtilidadNetaC = utilidadBruta5C - iueUtilidad5C;
+
+    const impuestoIva5 = fromCents(impuestoIva5C);
+    const itefactura5 = fromCents(itefactura5C);
+    const iueUtilidad5 = fromCents(iueUtilidad5C);
+    const totalImpuestos5 = fromCents(totalImpuestos5C);
+    const totalUtilidadNeta = fromCents(totalUtilidadNetaC);
+
+    // ========================
+    // SECCIÓN 6 – Ganancia como motor (exacto)
+    // Ganancia = utilidad neta * gananciaPct
+    // Compensación = utilidad neta - ganancia
+    // Precio factura = gastos + impuestos + utilidad neta
+    // ========================
+    const gananciaCol1C = applyPctCents(totalUtilidadNetaC, gananciaPct);
+    const compensacionDuenoCol1C = totalUtilidadNetaC - gananciaCol1C;
+
+    const impuestosCol1C = totalImpuestos5C;
+
+    //  PF = gastos + impuestos + utilidad neta (NO sumes ganancia+comp por separado, ya están dentro de utilidad neta)
+    const precioFacturaCol1C = gastosOperacionC + impuestosCol1C + totalUtilidadNetaC;
+
+    const gananciaCol1 = fromCents(gananciaCol1C);
+    const compensacionDuenoCol1 = fromCents(compensacionDuenoCol1C);
+    const impuestosCol1 = fromCents(impuestosCol1C);
+    const gastosOperacionCol1 = fromCents(gastosOperacionC);
+    const precioFacturaCol1 = fromCents(precioFacturaCol1C);
+
+    const gananciaCol2 = precioFacturaCol1C > 0 ? (gananciaCol1C * 100) / precioFacturaCol1C : 0;
+    const compensacionDuenoCol2 = precioFacturaCol1C > 0 ? (compensacionDuenoCol1C * 100) / precioFacturaCol1C : 0;
+    const impuestosCol2 = precioFacturaCol1C > 0 ? (impuestosCol1C * 100) / precioFacturaCol1C : 0;
+    const gastosOperacionCol2 = precioFacturaCol1C > 0 ? (gastosOperacionC * 100) / precioFacturaCol1C : 0;
+
+    //  Ajuste exacto para que % sume 100.000 (3 decimales)
+    const toMil = (v: number) => Math.round((Number(v || 0) + Number.EPSILON) * 1000);
+    const fromMil = (m: number) => m / 1000;
+
+    const ganMil6 = toMil(gananciaCol2);
+    const compMil6 = toMil(compensacionDuenoCol2);
+    const impMil6 = toMil(impuestosCol2);
+    const goMil6 = toMil(gastosOperacionCol2);
+
+    const pfMil6 = 100000; // 100.000%
+    const ajusteGoMil6 = pfMil6 - (ganMil6 + compMil6 + impMil6); // lo que falte se lo damos a GO
+    const gastosOperacionCol2Fix = fromMil(ajusteGoMil6);
+
+    const precioFacturaCol2 = 100; // 100%
+
+    // ========================
+    // SECCIÓN 7 (rentabilidad) 3 decimales, suma exacta
     // ========================
     let rentabilidadProyecto7 = 0;
     let rentabilidadGanancia7 = 0;
     let rentabilidadCompDueno7 = 0;
     let rentabilidadImpuestos7 = 0;
 
-    if (gastosOperacionCol1 > 0) {
-      const proyectoMil = toMil((valorAgregado / gastosOperacionCol1) * 100);
-      const ganMil = toMil((gananciaCol1 / gastosOperacionCol1) * 100);
-      const compMil = toMil(
-        (compensacionDuenoCol1 / gastosOperacionCol1) * 100,
-      );
+    if (gastosOperacionC > 0) {
+      const proyectoMil = toMil((valorAgregadoC * 100) / gastosOperacionC);
+      const ganMil = toMil((gananciaCol1C * 100) / gastosOperacionC);
+      const compMil = toMil((compensacionDuenoCol1C * 100) / gastosOperacionC);
 
-      // ✅ Ajuste exacto: impuestos = proyecto - gan - comp
+      //  impuestos = proyecto - gan - comp (exacto)
       const impMil = proyectoMil - ganMil - compMil;
 
       rentabilidadProyecto7 = fromMil(proyectoMil);
@@ -1354,13 +1425,14 @@ export class ReportesPdf {
       rentabilidadCompDueno7 = fromMil(compMil);
       rentabilidadImpuestos7 = fromMil(impMil);
     }
-    // Sección 8
+
+    // ========================
+    // SECCIÓN 8 (retorno) exacto
+    // retorno = gastosOperacion / ganancia
+    // ========================
     const retornoInversion8 =
-      gananciaCol1 > 0
-        ? this.redondear2(gastosOperacionCol1 / gananciaCol1)
-        : 0;
-    const GastosOperacionColumna1 = input.gastosOperacion;
-    const ValorAgregado3 = input.valorAgregado;
+      gananciaCol1C !== 0 ? this.redondear2(gastosOperacionC / gananciaCol1C) : 0;
+
     // ========================
     // PDF: TÍTULO + ENCABEZADO
     // ========================
@@ -1436,31 +1508,19 @@ export class ReportesPdf {
       body: [
         ['GASTOS DE OPERACIÓN', this.formatearNumero(gastosOperacion)],
         [
-          `CREDITO FISCAL IVA TASA NOMINAL: (${this.formatearNumero(iva_tasa_nominal)}%)`,
+          `CREDITO FISCAL IVA TASA NOMINAL: (${this.formatearNumero(ivaNominal)}%)`,
           `-${this.formatearNumero(creditoFiscal)}`,
         ],
         ['COSTO DE VENTA', this.formatearNumero(costoVenta)],
       ],
       theme: 'grid',
       pageBreak: 'auto',
-      styles: {
-        fontSize: 7,
-        cellPadding: 2,
-        overflow: 'hidden',
-        valign: 'middle',
-      },
+      styles: { fontSize: 7, cellPadding: 2, overflow: 'hidden', valign: 'middle' },
       headStyles: {
-        fontSize: 7,
-        fontStyle: 'bold',
-        fillColor: [255, 255, 255],
-        textColor: [0, 0, 0],
-        lineWidth: 0.1,
-        halign: 'center',
+        fontSize: 7, fontStyle: 'bold', fillColor: [255,255,255], textColor: [0,0,0],
+        lineWidth: 0.1, halign: 'center',
       },
-      columnStyles: {
-        0: { cellWidth: 80 },
-        1: { cellWidth: 20, halign: 'right' },
-      },
+      columnStyles: { 0: { cellWidth: 80 }, 1: { cellWidth: 20, halign: 'right' } },
       margin: { left: marginLeft, right: marginRight },
     });
 
@@ -1480,24 +1540,12 @@ export class ReportesPdf {
       body: [['VALOR AGREGADO', this.formatearNumero(valorAgregado)]],
       theme: 'grid',
       pageBreak: 'auto',
-      styles: {
-        fontSize: 7,
-        cellPadding: 2,
-        overflow: 'hidden',
-        valign: 'middle',
-      },
+      styles: { fontSize: 7, cellPadding: 2, overflow: 'hidden', valign: 'middle' },
       headStyles: {
-        fontSize: 7,
-        fontStyle: 'bold',
-        fillColor: [255, 255, 255],
-        textColor: [0, 0, 0],
-        lineWidth: 0.1,
-        halign: 'center',
+        fontSize: 7, fontStyle: 'bold', fillColor: [255,255,255], textColor: [0,0,0],
+        lineWidth: 0.1, halign: 'center',
       },
-      columnStyles: {
-        0: { cellWidth: 80 },
-        1: { cellWidth: 20, halign: 'right' },
-      },
+      columnStyles: { 0: { cellWidth: 80 }, 1: { cellWidth: 20, halign: 'right' } },
       margin: { left: marginLeft, right: marginRight },
     });
 
@@ -1515,37 +1563,16 @@ export class ReportesPdf {
       startY,
       head: [['DESCRIPCION', 'MONTO (Bs)', '%']],
       body: [
-        [
-          'GASTOS DE OPERACIÓN',
-          this.formatearNumero(gastosOperacion),
-          `${this.formatearNumero(gastoOperacion31)}%`,
-        ],
-        [
-          'VALOR AGREGADO',
-          this.formatearNumero(valorAgregado),
-          `${this.formatearNumero(valorAgregado31)}%`,
-        ],
-        [
-          'PRECIO FACTURA',
-          this.formatearNumero(precioFactura3),
-          `${this.formatearNumero(precioFactura31)}%`,
-        ],
+        ['GASTOS DE OPERACIÓN', this.formatearNumero(gastosOperacion), `${this.formatearNumero(gastoOperacion31)}%`],
+        ['VALOR AGREGADO', this.formatearNumero(valorAgregado), `${this.formatearNumero(valorAgregado31)}%`],
+        ['PRECIO FACTURA', this.formatearNumero(precioFactura3), `${this.formatearNumero(precioFactura31)}%`],
       ],
       theme: 'grid',
       pageBreak: 'auto',
-      styles: {
-        fontSize: 7,
-        cellPadding: 2,
-        overflow: 'hidden',
-        valign: 'middle',
-      },
+      styles: { fontSize: 7, cellPadding: 2, overflow: 'hidden', valign: 'middle' },
       headStyles: {
-        fontSize: 7,
-        fontStyle: 'bold',
-        fillColor: [255, 255, 255],
-        textColor: [0, 0, 0],
-        lineWidth: 0.1,
-        halign: 'center',
+        fontSize: 7, fontStyle: 'bold', fillColor: [255,255,255], textColor: [0,0,0],
+        lineWidth: 0.1, halign: 'center',
       },
       columnStyles: {
         0: { cellWidth: 80 },
@@ -1571,32 +1598,17 @@ export class ReportesPdf {
       body: [
         ['COSTO DE VENTA', this.formatearNumero(costoVenta4)],
         ['MARGEN DE UTILIDAD', this.formatearNumero(margenUtilidad)],
-        [
-          `IVA ${this.formatearNumero(iva_tasa_nominal)}% DE PRECIO FACTURA`,
-          this.formatearNumero(iva13),
-        ],
+        [`IVA ${this.formatearNumero(ivaNominal)}% DE PRECIO FACTURA`, this.formatearNumero(iva13)],
         ['PRECIO FACTURA', this.formatearNumero(precioFactura3)],
       ],
       theme: 'grid',
       pageBreak: 'auto',
-      styles: {
-        fontSize: 7,
-        cellPadding: 2,
-        overflow: 'hidden',
-        valign: 'middle',
-      },
+      styles: { fontSize: 7, cellPadding: 2, overflow: 'hidden', valign: 'middle' },
       headStyles: {
-        fontSize: 7,
-        fontStyle: 'bold',
-        fillColor: [255, 255, 255],
-        textColor: [0, 0, 0],
-        lineWidth: 0.1,
-        halign: 'center',
+        fontSize: 7, fontStyle: 'bold', fillColor: [255,255,255], textColor: [0,0,0],
+        lineWidth: 0.1, halign: 'center',
       },
-      columnStyles: {
-        0: { cellWidth: 80 },
-        1: { cellWidth: 20, halign: 'right' },
-      },
+      columnStyles: { 0: { cellWidth: 80 }, 1: { cellWidth: 20, halign: 'right' } },
       margin: { left: marginLeft, right: marginRight },
     });
 
@@ -1617,41 +1629,20 @@ export class ReportesPdf {
         ['PRECIO FACTURA', this.formatearNumero(precioFactura3)],
         ['GASTOS DE OPERACIÓN', `-${this.formatearNumero(gastosOperacion)}`],
         ['VALOR AGREGADO', this.formatearNumero(valorAgregado)],
-        [
-          `IMPUESTO IVA ${this.formatearNumero(iva_tasa_nominal)}%`,
-          this.formatearNumero(impuestoIva5),
-        ],
-        [
-          `IT ${this.formatearNumero(it)}% DE LA FACTURA`,
-          this.formatearNumero(itefactura5),
-        ],
-        [
-          `IUE ${this.formatearNumero(iue)}% UTILIDAD`,
-          this.formatearNumero(iueUtilidad5),
-        ],
-        ['TOTAL IMPUESTOS', this.formatearNumero(totalImpuestos5)],
-        ['TOTAL UTILIDAD NETA (100%)', this.formatearNumero(totalUtilidadNeta)],
+        [`IMPUESTO IVA ${this.formatearNumero(ivaNominal)}%`, this.formatearNumero(impuestoIva5)],
+        [`IT ${this.formatearNumero(itPct)}% DE LA FACTURA`, this.formatearNumero(itefactura5)],
+        [`IUE ${this.formatearNumero(iuePct)}% UTILIDAD`, this.formatearNumero(iueUtilidad5)],
+        ['TOTAL IMPUESTOS', this.formatearNumero(fromCents(totalImpuestos5C))],
+        ['TOTAL UTILIDAD NETA (100%)', this.formatearNumero(fromCents(totalUtilidadNetaC))],
       ],
       theme: 'grid',
       pageBreak: 'auto',
-      styles: {
-        fontSize: 7,
-        cellPadding: 2,
-        overflow: 'hidden',
-        valign: 'middle',
-      },
+      styles: { fontSize: 7, cellPadding: 2, overflow: 'hidden', valign: 'middle' },
       headStyles: {
-        fontSize: 7,
-        fontStyle: 'bold',
-        fillColor: [255, 255, 255],
-        textColor: [0, 0, 0],
-        lineWidth: 0.1,
-        halign: 'center',
+        fontSize: 7, fontStyle: 'bold', fillColor: [255,255,255], textColor: [0,0,0],
+        lineWidth: 0.1, halign: 'center',
       },
-      columnStyles: {
-        0: { cellWidth: 80 },
-        1: { cellWidth: 20, halign: 'right' },
-      },
+      columnStyles: { 0: { cellWidth: 80 }, 1: { cellWidth: 20, halign: 'right' } },
       margin: { left: marginLeft, right: marginRight },
     });
 
@@ -1674,25 +1665,25 @@ export class ReportesPdf {
         [
           `GANANCIA (${this.redondear2(gananciaPct)}%)`,
           this.formatearNumero3(this.redondear3(gananciaCol1)),
-          `${this.redondear3(gananciaCol2).toFixed(3)}%`,
+          `${fromMil(ganMil6).toFixed(3)}%`,
           '10%',
         ],
         [
           `COMPENSACION DEL DUEÑO (${this.redondear2(compensacionPctUtilidad)}%)`,
           this.formatearNumero3(this.redondear3(compensacionDuenoCol1)),
-          `${this.redondear3(compensacionDuenoCol2).toFixed(3)}%`,
+          `${fromMil(compMil6).toFixed(3)}%`,
           '10%',
         ],
         [
           'IMPUESTOS',
           this.formatearNumero(impuestosCol1),
-          `${this.formatearNumero(impuestosCol2)}%`,
+          `${fromMil(impMil6).toFixed(3)}%`,
           '15%',
         ],
         [
           'GASTOS DE OPERACIÓN',
           this.formatearNumero(gastosOperacionCol1),
-          `${this.formatearNumero(gastosOperacionCol2)}%`,
+          `${this.redondear3(gastosOperacionCol2Fix).toFixed(3)}%`,
           '65%',
         ],
         [
@@ -1704,19 +1695,10 @@ export class ReportesPdf {
       ],
       theme: 'grid',
       pageBreak: 'auto',
-      styles: {
-        fontSize: 7,
-        cellPadding: 2,
-        overflow: 'hidden',
-        valign: 'middle',
-      },
+      styles: { fontSize: 7, cellPadding: 2, overflow: 'hidden', valign: 'middle' },
       headStyles: {
-        fontSize: 7,
-        fontStyle: 'bold',
-        fillColor: [255, 255, 255],
-        textColor: [0, 0, 0],
-        lineWidth: 0.1,
-        halign: 'center',
+        fontSize: 7, fontStyle: 'bold', fillColor: [255,255,255], textColor: [0,0,0],
+        lineWidth: 0.1, halign: 'center',
       },
       columnStyles: {
         0: { cellWidth: 60 },
@@ -1741,43 +1723,19 @@ export class ReportesPdf {
       startY,
       head: [['DESCRIPCION', 'PORCENTAJE']],
       body: [
-        [
-          'RENTABILIDAD (PROYECTO)',
-          `${this.formatearNumero(rentabilidadProyecto7)}%`,
-        ],
-        [
-          'RENTABILIDAD (GANANCIA)',
-          `${this.formatearNumero3(rentabilidadGanancia7)}%`,
-        ],
-        [
-          'RENTABILIDAD (COMPENSACIÓN DEL DUEÑO)',
-          `${this.formatearNumero3(rentabilidadCompDueno7)}%`,
-        ],
-        [
-          'RENTABILIDAD (IMPUESTOS)',
-          `${this.formatearNumero(rentabilidadImpuestos7)}%`,
-        ],
+        ['RENTABILIDAD (PROYECTO)', `${this.formatearNumero(rentabilidadProyecto7)}%`],
+        ['RENTABILIDAD (GANANCIA)', `${this.formatearNumero3(rentabilidadGanancia7)}%`],
+        ['RENTABILIDAD (COMPENSACIÓN DEL DUEÑO)', `${this.formatearNumero3(rentabilidadCompDueno7)}%`],
+        ['RENTABILIDAD (IMPUESTOS)', `${this.formatearNumero(rentabilidadImpuestos7)}%`],
       ],
       theme: 'grid',
       pageBreak: 'auto',
-      styles: {
-        fontSize: 7,
-        cellPadding: 2,
-        overflow: 'hidden',
-        valign: 'middle',
-      },
+      styles: { fontSize: 7, cellPadding: 2, overflow: 'hidden', valign: 'middle' },
       headStyles: {
-        fontSize: 7,
-        fontStyle: 'bold',
-        fillColor: [255, 255, 255],
-        textColor: [0, 0, 0],
-        lineWidth: 0.1,
-        halign: 'center',
+        fontSize: 7, fontStyle: 'bold', fillColor: [255,255,255], textColor: [0,0,0],
+        lineWidth: 0.1, halign: 'center',
       },
-      columnStyles: {
-        0: { cellWidth: 80 },
-        1: { cellWidth: 25, halign: 'right' },
-      },
+      columnStyles: { 0: { cellWidth: 80 }, 1: { cellWidth: 25, halign: 'right' } },
       margin: { left: marginLeft, right: marginRight },
     });
 
@@ -1791,38 +1749,21 @@ export class ReportesPdf {
     doc.text('8.- RETORNO DE GASTOS DE OPERACIÓN', marginLeft, startY);
     startY += 5;
 
-    const retorno =
-      gananciaCol1 > 0
-        ? this.redondear2(gastosOperacionCol1 / gananciaCol1)
-        : 0;
-
     autoTable(doc, {
       startY,
       head: [['DESCRIPCION', 'VALOR']],
-      body: [['RETORNO', this.formatearNumero(retorno)]],
+      body: [['RETORNO', this.formatearNumero(retornoInversion8)]],
       theme: 'grid',
-      styles: {
-        fontSize: 7,
-        cellPadding: 2,
-        valign: 'middle',
-      },
+      styles: { fontSize: 7, cellPadding: 2, valign: 'middle' },
       headStyles: {
-        fontSize: 7,
-        fontStyle: 'bold',
-        fillColor: [255, 255, 255],
-        textColor: [0, 0, 0],
+        fontSize: 7, fontStyle: 'bold', fillColor: [255,255,255], textColor: [0,0,0],
         halign: 'center',
       },
-      columnStyles: {
-        0: { cellWidth: 80 },
-        1: { cellWidth: 20, halign: 'right' },
-      },
+      columnStyles: { 0: { cellWidth: 80 }, 1: { cellWidth: 20, halign: 'right' } },
       margin: { left: marginLeft, right: marginRight },
     });
 
-    // ========================
-    // GUARDAR PDF
-    // ========================
+    // GUARDAR
     doc.save(this.nombreArchivo(input));
   }
 }

@@ -178,6 +178,7 @@ export class ItemsGastoOperacion {
   // 11) LIFECYCLE / STREAMS
   // =========================================================
   private destroy$ = new Subject<void>();
+  private readonly QTY_SCALE = 100000; // 5 decimales
 
   constructor(
     private service: ServiciosProyectos,
@@ -323,6 +324,35 @@ export class ItemsGastoOperacion {
       .filter((u, i, arr) => arr.indexOf(u) === i)
       .sort();
   }
+  // ===== helpers exactos para dinero/cantidades =====
+
+  private toCents(v: any): number {
+    const n = Number(v || 0);
+    return Math.round((n + Number.EPSILON) * 100);
+  }
+
+  private fromCents(cents: number): number {
+    return cents / 100;
+  }
+  private getPrecioTotalCents(g: GastoOperacion): number {
+    const cantidad = Number(g.cantidad) || 0;
+    const unitFinal = this.getTotalFinal(g);
+    return this.mulQtyByUnitToCents(cantidad, unitFinal);
+  }
+
+  private getGastoOperacionParcialCents(g: GastoOperacion): number {
+    const ui = g as GastoOperacionUI;
+    const cantidad = Number(g.cantidad) || 0;
+    const unitParcial = Number(ui.gastosGenerales?.totalgastosgenerales) || 0;
+    return this.mulQtyByUnitToCents(cantidad, unitParcial);
+  }
+  // total (centavos) = cantidad * precioUnitario (centavos), con cantidad a 5 decimales reales
+  private mulQtyByUnitToCents(qty: any, unitPrice: any): number {
+    const q = Number(qty || 0);
+    const qtyMicro = Math.round((q + Number.EPSILON) * this.QTY_SCALE);
+    const unitCents = this.toCents(unitPrice);
+    return Math.round((qtyMicro * unitCents) / this.QTY_SCALE);
+  }
 
   private setGastos(
     gastosBD: GastoOperacion[],
@@ -341,16 +371,20 @@ export class ItemsGastoOperacion {
 
       if (gg) {
         ui.gastosGenerales = {
-          totalgastosgenerales: Number(gg.totalgastosgenerales) || 0,
-          total: Number(gg.total) || 0,
+          totalgastosgenerales: Number(gg.totalgastosgenerales) || 0, // unitario parcial
+          total: Number(gg.total) || 0,                               // unitario final
         } as any;
       }
 
+      // unitario final (si existe gg.total, manda)
       const precioFinalUnit =
         Number(gg?.total) || Number(g.precio_unitario) || 0;
 
       const cantidad = Number(g.cantidad) || 0;
-      const precioTotalCalc = this.redondear2(cantidad * precioFinalUnit);
+
+      // ✅ costo parcial exacto (centavos) = cantidad * unitario final
+      const precioTotalCalcC = this.mulQtyByUnitToCents(cantidad, precioFinalUnit);
+      const precioTotalCalc = this.fromCents(precioTotalCalcC);
 
       ui.precio_calculado = precioFinalUnit;
       ui.original_precio_unitario = ui.db_precio_unitario || precioFinalUnit;
@@ -360,17 +394,20 @@ export class ItemsGastoOperacion {
 
       ui.modulo = moduloId as any;
 
-      const diffUnit = Math.abs((ui.db_precio_unitario || 0) - precioFinalUnit);
-      const diffTot = Math.abs((ui.db_costo_parcial || 0) - precioTotalCalc);
+      // ✅ comparación exacta por centavos (evita falsos positivos por flotantes)
+      const dbUnitC = this.toCents(ui.db_precio_unitario || 0);
+      const finalUnitC = this.toCents(precioFinalUnit);
 
-      if (diffUnit > 0.01 || diffTot > 0.01) {
+      const dbTotalC = this.toCents(ui.db_costo_parcial || 0);
+      const calcTotalC = precioTotalCalcC;
+
+      if (Math.abs(dbUnitC - finalUnitC) > 1 || Math.abs(dbTotalC - calcTotalC) > 1) {
         this.changedItemIds.add(Number(ui.id));
       }
 
       return ui;
     });
   }
-
   private normalizarInsumos(rows: any[]): any[] {
     return (rows || []).map((r) => ({
       ...r,
@@ -557,60 +594,69 @@ export class ItemsGastoOperacion {
 
   getPrecioTotal(g: GastoOperacion): number {
     const cantidad = Number(g.cantidad) || 0;
-    return this.redondear2(cantidad * this.getTotalFinal(g));
+    const unit = this.getTotalFinal(g);
+    return this.fromCents(this.mulQtyByUnitToCents(cantidad, unit));
   }
 
   getTotalItemGastosOperacionesParcial(g: GastoOperacion): number {
-    const ui = g as GastoOperacionUI;
-    const cantidad = Number(g.cantidad) || 0;
-    const base = Number(ui.gastosGenerales?.totalgastosgenerales) || 0;
-    return this.redondear2(cantidad * base);
+    return this.fromCents(this.getGastoOperacionParcialCents(g));
   }
 
   getValorAgregado(g: GastoOperacion): number {
-    const ui = g as GastoOperacionUI;
-    const cantidad = Number(g.cantidad) || 0;
-    const base = Number(ui.gastosGenerales?.totalgastosgenerales) || 0;
-    const final = Number(ui.gastosGenerales?.total) || 0;
-    return this.redondear2(cantidad * (final - base));
-  }
+    const totalC = this.getPrecioTotalCents(g);
+    const parcialC = this.getGastoOperacionParcialCents(g);
 
-  getTotalCostoParcial(): number {
-    return this.redondear2(
-      this.gastosFiltrados.reduce((s, g) => s + this.getPrecioTotal(g), 0),
-    );
+    const vaC = totalC - parcialC;
+
+    return this.fromCents(vaC);
   }
+getTotalCostoParcial(): number {
+  const totalCents = this.gastosFiltrados.reduce((s, g) => {
+    return s + this.getPrecioTotalCents(g);
+  }, 0);
+
+  return this.fromCents(totalCents);
+}
+
 
   getTotalProyectoGastosOperacionParcial(): number {
-    return this.redondear2(
-      this.gastosFiltrados.reduce(
-        (s, g) => s + this.getTotalItemGastosOperacionesParcial(g),
-        0,
-      ),
-    );
+    const totalCents = this.gastosFiltrados.reduce((s, g) => {
+      return s + this.getGastoOperacionParcialCents(g);
+    }, 0);
+
+    return this.fromCents(totalCents);
   }
 
   getTotalProyectoValorAgregado(): number {
-    return this.redondear2(
-      this.gastosFiltrados.reduce((s, g) => s + this.getValorAgregado(g), 0),
-    );
+    const totalCents = this.gastosFiltrados.reduce((s, g) => {
+      const totalC = this.getPrecioTotalCents(g);
+      const parcialC = this.getGastoOperacionParcialCents(g);
+      return s + (totalC - parcialC);
+    }, 0);
+
+    return this.fromCents(totalCents);
   }
 
   getTotalModuloGastosOperacionParcial(moduloId: number): number {
     const items = this.getGastosPorModulo(moduloId);
-    return this.redondear2(
-      items.reduce(
-        (s, g) => s + this.getTotalItemGastosOperacionesParcial(g),
-        0,
-      ),
-    );
+
+    const totalCents = items.reduce((s, g) => {
+      return s + this.getGastoOperacionParcialCents(g);
+    }, 0);
+
+    return this.fromCents(totalCents);
   }
 
   getTotalModuloValorAgregado(moduloId: number): number {
     const items = this.getGastosPorModulo(moduloId);
-    return this.redondear2(
-      items.reduce((s, g) => s + this.getValorAgregado(g), 0),
-    );
+
+    const totalCents = items.reduce((s, g) => {
+      const totalC = this.getPrecioTotalCents(g);
+      const parcialC = this.getGastoOperacionParcialCents(g);
+      return s + (totalC - parcialC);
+    }, 0);
+
+    return this.fromCents(totalCents);
   }
 
   // =========================================================
@@ -874,7 +920,10 @@ export class ItemsGastoOperacion {
           Number(ui.gastosGenerales?.total) || Number(ui.precio_unitario) || 0;
 
         const cantidad = Number(ui.cantidad) || 0;
-        const precioTotalCalc = this.redondear2(cantidad * precioFinalUnit);
+
+        // ✅ costo parcial exacto centavos
+        const costoParcialC = this.mulQtyByUnitToCents(cantidad, precioFinalUnit);
+        const costoParcial = this.fromCents(costoParcialC);
 
         const payload: any = {
           id: ui.id,
@@ -883,7 +932,7 @@ export class ItemsGastoOperacion {
           cantidad,
           modulo_id: moduloId,
           precio_unitario: precioFinalUnit,
-          costo_parcial: precioTotalCalc,
+          costo_parcial: costoParcial,
         };
 
         return this.service.updateGastoOperacion(payload);
