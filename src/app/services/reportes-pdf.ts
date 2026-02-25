@@ -598,10 +598,10 @@ export class ReportesPdf {
           { content: 'Ítem', styles: { halign: 'center' } },
           { content: 'Descripción', styles: { halign: 'center' } },
           { content: 'Unidad', styles: { halign: 'center' } },
-          { content: 'Cantidad', styles: { halign: 'left' } },
-          { content: 'Precio Unitario', styles: { halign: 'left' } },
-          { content: 'Precio Total Literal', styles: { halign: 'center' } },
-          { content: 'Precio Total', styles: { halign: 'center' } },
+          { content: 'Cantidad', styles: { halign: 'center' } },
+          { content: 'Precio Unitario (Numeral)', styles: { halign: 'center' } },
+          { content: 'Precio Unitario (Literal)', styles: { halign: 'center' } },
+          { content: 'Precio Total (Numeral)', styles: { halign: 'center' } },
         ],
       ],
       body,
@@ -749,7 +749,7 @@ export class ReportesPdf {
         });
       } else {
         body.push([
-          'Sin materiales',
+          '',
           '',
           this.formatearNumero5(0),
           this.formatearNumero(0),
@@ -867,7 +867,7 @@ export class ReportesPdf {
         totalManoObra = this.fromCents(totalCents);
       } else {
         body.push([
-          'Sin mano de obra',
+          '',
           '',
           this.formatearNumero5(0),
           this.formatearNumero(0),
@@ -944,7 +944,7 @@ export class ReportesPdf {
         });
       } else {
         body.push([
-          'Sin equipos',
+          '',
           '',
           this.formatearNumero5(0),
           this.formatearNumero(0),
