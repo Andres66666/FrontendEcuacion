@@ -169,7 +169,7 @@ export class AuditoriaComponent implements AfterViewInit {
     const series: any[] = Object.keys(data[0] || {})
       .filter((k) => k !== 'fecha')
       .map((t) => ({
-        type: 'line',
+        type: 'line',   //  Esto sí es correcto
         xKey: 'fecha',
         yKey: t,
         yName: t,
@@ -177,7 +177,6 @@ export class AuditoriaComponent implements AfterViewInit {
 
     this.lineChart = AgCharts.create({
       container,
-      type: 'cartesian',
       data,
       series,
       axes: [
