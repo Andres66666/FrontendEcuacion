@@ -153,19 +153,19 @@ export class CrearEquipoHerramientaComponent implements OnInit {
     for (let i = 0; i < this.equipos.length; i++) {
       const fg = this.getFg(i);
 
-      // ✅ siempre mostrar última fila draft
+      //  siempre mostrar última fila draft
       if (i === lastIndex && !this.isRowWithId(fg)) {
         out.push({ index: i, uid: this.uidOfIndex(i) });
         continue;
       }
 
-      // ✅ sin filtro
+      //  sin filtro
       if (!term) {
         out.push({ index: i, uid: this.uidOfIndex(i) });
         continue;
       }
 
-      // ✅ con filtro por descripción
+      //  con filtro por descripción
       const desc = this.upperTrim(fg.get('descripcion')?.value);
       if (desc.includes(term)) out.push({ index: i, uid: this.uidOfIndex(i) });
     }
@@ -447,11 +447,65 @@ export class CrearEquipoHerramientaComponent implements OnInit {
     fg.get('_orig_precio')?.setValue(precioNuevo, { emitEvent: false });
   }
 
+  private readonly ALFANUM_ESPACIOS = /^[A-Z0-9ÁÉÍÓÚÜÑ ]+$/i; // descripción
+  private readonly ALFANUM = /^[A-Z0-9ÁÉÍÓÚÜÑ]+$/i;            // unidad
+
+  private sanitizeDescripcion(v: any): string {
+    return (v ?? '')
+      .toString()
+      .toUpperCase()
+      .replace(/[^A-Z0-9ÁÉÍÓÚÜÑ ]+/g, '') // solo letras/números/espacios
+      .replace(/\s+/g, ' ')
+      .trimStart();
+  }
+
+  private sanitizeUnidad(v: any): string {
+    return (v ?? '')
+      .toString()
+      .toUpperCase()
+      .replace(/[^A-Z0-9ÁÉÍÓÚÜÑ]+/g, '') // solo letras/números
+      .trimStart();
+  }
+
+
+  // Reemplaza convertirAMayusculas por este
+
+  convertirAMayusculas(i: number, campo: string): void {
+    const ctrl = this.getFg(i).get(campo);
+    if (!ctrl) return;
+
+    if (campo === 'descripcion') {
+      ctrl.setValue(this.sanitizeDescripcion(ctrl.value), { emitEvent: false });
+      return;
+    }
+
+    if (campo === 'unidad') {
+      ctrl.setValue(this.sanitizeUnidad(ctrl.value), { emitEvent: false });
+      return;
+    }
+
+    ctrl.setValue((ctrl.value ?? '').toString().toUpperCase(), {
+      emitEvent: false,
+    });
+  }
+
+
+  // Modifica SOLO descripcion y unidad en crearFormEquipoHerramienta
+
   private crearFormEquipoHerramienta(equipo?: EquipoHerramienta): FormGroup {
     const fg = this.fb.group({
       id: [equipo?.id ?? null],
-      descripcion: [equipo?.descripcion ?? '', Validators.required],
-      unidad: [equipo?.unidad ?? '', Validators.required],
+
+      descripcion: [
+        equipo?.descripcion ?? '',
+        [Validators.required, Validators.pattern(this.ALFANUM_ESPACIOS)],
+      ],
+
+      unidad: [
+        equipo?.unidad ?? '',
+        [Validators.required, Validators.pattern(this.ALFANUM)],
+      ],
+
       cantidad: [
         equipo?.cantidad ?? null,
         [Validators.required, Validators.min(0)],
@@ -468,7 +522,17 @@ export class CrearEquipoHerramientaComponent implements OnInit {
 
     this.attachUid(fg);
 
+    // Sanitiza mientras escribe
     fg.valueChanges.subscribe(() => {
+      const d = fg.get('descripcion')!;
+      const u = fg.get('unidad')!;
+
+      const dSan = this.sanitizeDescripcion(d.value);
+      if (d.value !== dSan) d.setValue(dSan, { emitEvent: false });
+
+      const uSan = this.sanitizeUnidad(u.value);
+      if (u.value !== uSan) u.setValue(uSan, { emitEvent: false });
+
       if (this.isRowWithId(fg)) fg.markAsDirty();
     });
 
@@ -541,14 +605,6 @@ export class CrearEquipoHerramientaComponent implements OnInit {
         sourceIndex: index,
       });
     }
-  }
-
-  convertirAMayusculas(i: number, campo: string): void {
-    const ctrl = this.getFg(i).get(campo);
-    if (ctrl)
-      ctrl.setValue((ctrl.value ?? '').toString().toUpperCase(), {
-        emitEvent: false,
-      });
   }
 
   // ================== TOTALES / CÁLCULOS ==================

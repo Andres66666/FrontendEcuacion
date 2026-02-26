@@ -452,13 +452,7 @@ export class CrearMaterialesComponent implements OnInit {
     }
   }
 
-  convertirAMayusculas(i: number, campo: string): void {
-    const ctrl = this.getFg(i).get(campo);
-    if (ctrl)
-      ctrl.setValue((ctrl.value ?? '').toString().toUpperCase(), {
-        emitEvent: false,
-      });
-  }
+
 
   parseNumero(valor: any): number {
     if (valor === null || valor === undefined || valor === '') return 0;
@@ -538,12 +532,57 @@ export class CrearMaterialesComponent implements OnInit {
   private upperTrim(v: any): string {
     return (v ?? '').toString().trim().toUpperCase();
   }
+  private readonly ALFANUM_ESPACIOS = /^[A-Z0-9ÁÉÍÓÚÜÑ ]+$/i; // descripcion (permite espacios)
+  private readonly ALFANUM = /^[A-Z0-9ÁÉÍÓÚÜÑ]+$/i;          // unidad (sin espacios)
 
+  private sanitizeDescripcion(v: any): string {
+    return (v ?? '')
+      .toString()
+      .toUpperCase()
+      .replace(/[^A-Z0-9ÁÉÍÓÚÜÑ ]+/g, '') // solo letras/números/espacios
+      .replace(/\s+/g, ' ')
+      .trimStart();
+  }
+
+  private sanitizeUnidad(v: any): string {
+    return (v ?? '')
+      .toString()
+      .toUpperCase()
+      .replace(/[^A-Z0-9ÁÉÍÓÚÜÑ]+/g, '') // solo letras/números
+      .trimStart();
+  }
+
+  // 2) aplica sanitizado en tiempo real (opcional pero recomendado)
+  convertirAMayusculas(i: number, campo: string): void {
+    const ctrl = this.getFg(i).get(campo);
+    if (!ctrl) return;
+
+    if (campo === 'descripcion') {
+      ctrl.setValue(this.sanitizeDescripcion(ctrl.value), { emitEvent: false });
+      return;
+    }
+
+    if (campo === 'unidad') {
+      ctrl.setValue(this.sanitizeUnidad(ctrl.value), { emitEvent: false });
+      return;
+    }
+
+    ctrl.setValue((ctrl.value ?? '').toString().toUpperCase(), { emitEvent: false });
+  }
   private crearFormMaterial(material?: Materiales): FormGroup {
     const fg = this.fb.group({
       id: [material?.id ?? null],
-      descripcion: [material?.descripcion ?? '', Validators.required],
-      unidad: [material?.unidad ?? '', Validators.required],
+
+      descripcion: [
+        material?.descripcion ?? '',
+        [Validators.required, Validators.pattern(this.ALFANUM_ESPACIOS)],
+      ],
+
+      unidad: [
+        material?.unidad ?? '',
+        [Validators.required, Validators.pattern(this.ALFANUM)],
+      ],
+
       cantidad: [
         material?.cantidad ?? null,
         [Validators.required, Validators.min(0)],
@@ -557,6 +596,16 @@ export class CrearMaterialesComponent implements OnInit {
     this.attachUid(fg);
 
     fg.valueChanges.subscribe(() => {
+      // sanitiza mientras escribe (solo para estos dos)
+      const d = fg.get('descripcion')!;
+      const u = fg.get('unidad')!;
+
+      const dSan = this.sanitizeDescripcion(d.value);
+      if (d.value !== dSan) d.setValue(dSan, { emitEvent: false });
+
+      const uSan = this.sanitizeUnidad(u.value);
+      if (u.value !== uSan) u.setValue(uSan, { emitEvent: false });
+
       if (this.isRowWithId(fg)) fg.markAsDirty();
     });
 

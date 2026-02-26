@@ -180,10 +180,22 @@ export class Proyectos implements OnInit {
     this.mostrarModal = false;
   }
 
-  upperNombre(): void {
+/*   upperNombre(): void {
     this.proyectoForm.NombreProyecto = (this.proyectoForm.NombreProyecto || '')
       .toUpperCase()
       .trimStart();
+  } */
+  upperNombre(): void {
+
+    const raw = (this.proyectoForm.NombreProyecto || '').toString();
+
+    const limpio = raw
+      .replace(/[^A-Za-zÁÉÍÓÚÜÑáéíóúüñ() ]+/g, '') 
+      .replace(/\s+/g, ' ')                       
+      .trimStart()                               
+      .toUpperCase();
+
+    this.proyectoForm.NombreProyecto = limpio;
   }
 
   // =============================
@@ -192,15 +204,28 @@ export class Proyectos implements OnInit {
   guardar(): void {
     this.clearMensajes();
 
-    const nombre = (this.proyectoForm.NombreProyecto || '').trim();
+    const nombre = (this.proyectoForm.NombreProyecto || '')
+      .toString()
+      .replace(/[^A-Za-zÁÉÍÓÚÜÑáéíóúüñ() ]+/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+
     if (!nombre) {
       this.mensajeAdvertencia = 'El nombre del proyecto es obligatorio.';
       return;
     }
 
+    const original = (this.proyectoForm.NombreProyecto || '').toString().trim();
+    if (original !== nombre) {
+      this.mensajeAdvertencia =
+        'El nombre del proyecto solo puede contener texto, espacios y paréntesis ().';
+      this.proyectoForm.NombreProyecto = nombre.toUpperCase();
+      return;
+    }
+
     const payload: Proyecto = {
       ...this.proyectoForm,
-      NombreProyecto: nombre,
+      NombreProyecto: nombre.toUpperCase(),
       creado_por: this.usuario_id,
     };
 
@@ -232,7 +257,6 @@ export class Proyectos implements OnInit {
       },
     });
   }
-
   confirmarEliminar(id: number): void {
     this.clearMensajes();
     this.idPendienteEliminar = id;

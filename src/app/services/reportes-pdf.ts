@@ -233,7 +233,7 @@ export class ReportesPdf {
       if (!desc) return;
 
       const cantInsumo = this.parseNumero(item?.[cantidadKey]);        // cantidad del material/MO/equipo
-      const cantItem = this.parseNumero(item?.[cantidadItemKey] ?? 1); // ✅ fallback 1
+      const cantItem = this.parseNumero(item?.[cantidadItemKey] ?? 1); // fallback 1
       const precio = this.parseNumero(item?.[precioKey]);              // precio unitario
 
       // cantidad real por fila = cantidad_insumo * cantidad_item
@@ -876,18 +876,18 @@ export class ReportesPdf {
           const precioUnit = this.redondear2(
             this.parseNumero(eq.precio_unitario),
           ); // 2 decimales
-          const total = this.redondear2(cantidad * precioUnit); // ✅ total por fila redondeado
+          const total = this.redondear2(cantidad * precioUnit); // total por fila redondeado
 
           return {
             descripcion: (eq.descripcion || '').toString(),
             unidad: (eq.unidad || '').toString(),
             cantidad,
             precioUnit,
-            total, // ✅ este es el que se muestra y el que se suma
+            total, //  este es el que se muestra y el que se suma
           };
         });
 
-      // ✅ Subtotal sumando los totales visibles (ya redondeados)
+      //  Subtotal sumando los totales visibles (ya redondeados)
       const subtotalEquipos = this.redondear2(
         equiposPorItem.reduce((sum, e) => sum + (Number(e.total) || 0), 0),
       );

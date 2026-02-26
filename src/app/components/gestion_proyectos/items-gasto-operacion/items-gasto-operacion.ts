@@ -431,11 +431,40 @@ export class ItemsGastoOperacion {
     const n = Number(v);
     return Number.isFinite(n) ? n : 0;
   }
+  private sanitizeDescripcion(v: string): string {
+    return (v || '')
+      .toUpperCase()
+      .replace(/[^A-ZÁÉÍÓÚÜÑ0-9º"\/()\-\s.,+=X]/g, '') // permitido
+      .replace(/\s+/g, ' ')
+      .trimStart();
+  }
 
+  private sanitizeUnidad(v: string): string {
+    return (v || '')
+      .toUpperCase()
+      .replace(/[^A-Z0-9]/g, '')
+      .slice(0, 5);
+  }
+
+  private sanitizeCantidadInput(v: string): string {
+    let s = (v || '').replace(/[^0-9.,]/g, '');
+
+    const lastSep = Math.max(s.lastIndexOf('.'), s.lastIndexOf(','));
+    if (lastSep !== -1) {
+      const intPart = s.slice(0, lastSep).replace(/[.,]/g, '');
+      const decPart = s.slice(lastSep + 1).replace(/[.,]/g, '');
+      s = intPart + '.' + decPart; 
+    } else {
+      s = s.replace(/[.,]/g, '');
+    }
+    return s;
+  }
   toUpper(field: 'descripcion' | 'unidad'): void {
-    const v = (this.itemForm[field] || '').toUpperCase();
-    // @ts-ignore
-    this.itemForm[field] = v;
+    if (field === 'descripcion') {
+      this.itemForm.descripcion = this.sanitizeDescripcion(this.itemForm.descripcion);
+      return;
+    }
+    this.itemForm.unidad = this.sanitizeUnidad(this.itemForm.unidad);
   }
 
   calcularCosto(): void {}
@@ -696,18 +725,33 @@ getTotalCostoParcial(): number {
   guardarDesdeModal(): void {
     this.clearMensajes();
 
-    const descripcion = (this.itemForm.descripcion || '').trim();
-    const unidad = (this.itemForm.unidad || '').trim().toUpperCase();
-    const cantidad = Number(this.itemForm.cantidad) || 0;
+    // aplicar sanitizado antes de validar/guardar
+    const descripcion = this.sanitizeDescripcion(this.itemForm.descripcion || '').trim();
+    const unidad = this.sanitizeUnidad(this.itemForm.unidad || '').trim();
+    const cantidadStr = this.sanitizeCantidadInput(String(this.itemForm.cantidad ?? ''));
+    const cantidad = Number(cantidadStr);
+
     const moduloId = Number(this.itemForm.modulo) || 0;
 
-    if (!descripcion)
-      return this.mostrarAdvertencia('Ingrese una descripción.');
+    // reflejar en el form lo saneado
+    this.itemForm.descripcion = descripcion;
+    this.itemForm.unidad = unidad;
+    // @ts-ignore (si tu input de cantidad es number, esto igual funciona al asignar number)
+    this.itemForm.cantidad = Number.isFinite(cantidad) ? cantidad : 0;
+
+    if (!descripcion) return this.mostrarAdvertencia('Ingrese una descripción.');
+
+    // unidad: alfanumérica y max 5
     if (!unidad) return this.mostrarAdvertencia('Seleccione una unidad.');
+    if (!/^[A-Z0-9]{1,5}$/.test(unidad))
+      return this.mostrarAdvertencia('La unidad solo acepta letras y números (máx. 5 caracteres).');
+
+    // cantidad: solo número (con . o , permitido al escribir)
+    if (!Number.isFinite(cantidad) || cantidad <= 0)
+      return this.mostrarAdvertencia('Ingrese una cantidad válida.');
+
     if (moduloId <= 0)
-      return this.mostrarAdvertencia(
-        'Seleccione un módulo para asociar el ítem.',
-      );
+      return this.mostrarAdvertencia('Seleccione un módulo para asociar el ítem.');
 
     const payload: any = {
       descripcion,

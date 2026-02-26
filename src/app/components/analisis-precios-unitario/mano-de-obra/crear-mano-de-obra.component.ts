@@ -475,25 +475,64 @@ export class CrearManoDeObraComponent implements OnInit {
     }
   }
 
-  convertirAMayusculas(i: number, campo: string): void {
-    const ctrl = this.getFg(i).get(campo);
-    if (ctrl) {
-      ctrl.setValue((ctrl.value ?? '').toString().toUpperCase(), {
-        emitEvent: false,
-      });
-    }
-  }
 
   // ================== FORM BUILD / MAP ==================
+
+  // 1) agrega esto dentro de la clase
+  private readonly ALFANUM_ESPACIOS = /^[A-Z0-9ÁÉÍÓÚÜÑ ]+$/i; // DESCRIPCIÓN
+  private readonly ALFANUM = /^[A-Z0-9ÁÉÍÓÚÜÑ]+$/i;          // UNIDAD
+
+  private sanitizeDescripcion(v: any): string {
+    return (v ?? '')
+      .toString()
+      .toUpperCase()
+      .replace(/[^A-Z0-9ÁÉÍÓÚÜÑ ]+/g, '') // solo letras/números/espacios
+      .replace(/\s+/g, ' ')
+      .trimStart();
+  }
+
+  private sanitizeUnidad(v: any): string {
+    return (v ?? '')
+      .toString()
+      .toUpperCase()
+      .replace(/[^A-Z0-9ÁÉÍÓÚÜÑ]+/g, '') // solo letras/números
+      .trimStart();
+  }
+
+  // 2) reemplaza convertirAMayusculas por este
+  convertirAMayusculas(i: number, campo: string): void {
+    const ctrl = this.getFg(i).get(campo);
+    if (!ctrl) return;
+
+    if (campo === 'descripcion') {
+      ctrl.setValue(this.sanitizeDescripcion(ctrl.value), { emitEvent: false });
+      return;
+    }
+
+    if (campo === 'unidad') {
+      ctrl.setValue(this.sanitizeUnidad(ctrl.value), { emitEvent: false });
+      return;
+    }
+
+    ctrl.setValue((ctrl.value ?? '').toString().toUpperCase(), { emitEvent: false });
+  }
+
+  // 3) en crearFormManoDeObra(), cambia SOLO validators de descripcion/unidad
   private crearFormManoDeObra(mano?: ManoDeObra): FormGroup {
     const fg = this.fb.group({
       id: [mano?.id ?? null],
-      descripcion: [mano?.descripcion ?? '', Validators.required],
-      unidad: [mano?.unidad ?? '', Validators.required],
-      cantidad: [
-        mano?.cantidad ?? null,
-        [Validators.required, Validators.min(0)],
+
+      descripcion: [
+        mano?.descripcion ?? '',
+        [Validators.required, Validators.pattern(this.ALFANUM_ESPACIOS)],
       ],
+
+      unidad: [
+        mano?.unidad ?? '',
+        [Validators.required, Validators.pattern(this.ALFANUM)],
+      ],
+
+      cantidad: [mano?.cantidad ?? null, [Validators.required, Validators.min(0)]],
       precio_unitario: [
         mano?.precio_unitario ?? null,
         [Validators.required, Validators.min(0)],
@@ -504,15 +543,21 @@ export class CrearManoDeObraComponent implements OnInit {
     this.attachUid(fg);
 
     fg.valueChanges.subscribe(() => {
+      // sanitiza mientras escribe
+      const d = fg.get('descripcion')!;
+      const u = fg.get('unidad')!;
+
+      const dSan = this.sanitizeDescripcion(d.value);
+      if (d.value !== dSan) d.setValue(dSan, { emitEvent: false });
+
+      const uSan = this.sanitizeUnidad(u.value);
+      if (u.value !== uSan) u.setValue(uSan, { emitEvent: false });
+
       if (this.isRowWithId(fg)) fg.markAsDirty();
     });
 
-    fg.get('cantidad')?.valueChanges.subscribe(() =>
-      this.actualizarPrecioParcial(fg),
-    );
-    fg.get('precio_unitario')?.valueChanges.subscribe(() =>
-      this.actualizarPrecioParcial(fg),
-    );
+    fg.get('cantidad')?.valueChanges.subscribe(() => this.actualizarPrecioParcial(fg));
+    fg.get('precio_unitario')?.valueChanges.subscribe(() => this.actualizarPrecioParcial(fg));
 
     return fg;
   }

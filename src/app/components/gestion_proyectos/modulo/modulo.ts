@@ -159,6 +159,33 @@ export class ModuloComponent implements OnInit, OnChanges {
     if (this.modoEdicion) this.actualizarModulo();
     else this.crearModulo();
   }
+  private sanitizeNombre(v: string): string {
+    return (v || '')
+      .replace(/[^A-Za-zÁÉÍÓÚÜÑáéíóúüñ ]+/g, '') // solo letras y espacios
+      .replace(/\s+/g, ' ')
+      .trimStart()
+      .toUpperCase();
+  }
+
+  private sanitizeCodigo(v: string): string {
+    // permitimos solo letras, numeros y guion, pero luego normalizamos a: LETRAS-NUMEROS con un solo "-"
+    let s = (v || '').toUpperCase().replace(/[^A-Z0-9-]+/g, '');
+
+    // deja solo el primer "-" (si hay varios)
+    const firstDash = s.indexOf('-');
+    if (firstDash !== -1) {
+      s = s.slice(0, firstDash + 1) + s.slice(firstDash + 1).replace(/-/g, '');
+    }
+
+    // fuerza formato LETRAS(-)NUMEROS (sin letras después del guion)
+    const m = s.match(/^([A-Z]+)(-?)([0-9]*)$/);
+    if (!m) {
+      // si queda algo raro, elimina todo lo que no sea letras al inicio
+      s = s.replace(/[^A-Z]/g, '');
+    }
+    return s.trimStart();
+  }
+
 
   // =============================
   // ========= CREATE ============
@@ -171,13 +198,37 @@ export class ModuloComponent implements OnInit, OnChanges {
       return;
     }
 
-    const nombre = (this.moduloForm.nombre || '').trim();
+    // ===== VALIDACIÓN NOMBRE (solo texto) =====
+    const nombreRaw = (this.moduloForm.nombre || '').trim();
+    const nombre = this.sanitizeNombre(nombreRaw).trim();
+
     if (!nombre) {
       this.mensajeAdvertencia = 'El nombre del módulo es obligatorio.';
       return;
     }
+    if (this.sanitizeNombre(nombreRaw).trim() !== nombre) {
+      this.mensajeAdvertencia =
+        'El nombre solo puede contener texto (letras) y espacios.';
+      this.moduloForm.nombre = nombre;
+      return;
+    }
 
-    const codigo = (this.moduloForm.codigo || '').trim();
+    // ===== VALIDACIÓN CÓDIGO (LETRAS-NÚMEROS, un solo "-") =====
+    const codigoRaw = (this.moduloForm.codigo || '').trim();
+    const codigo = this.sanitizeCodigo(codigoRaw).trim();
+
+    if (!codigo) {
+      this.mensajeAdvertencia = 'El código del módulo es obligatorio.';
+      return;
+    }
+
+    const regexCodigo = /^[A-Z]+-[0-9]+$/; // EJ: ABC-123
+    if (!regexCodigo.test(codigo)) {
+      this.mensajeAdvertencia =
+        'El código debe tener el formato LETRAS-NÚMEROS (ej: MOD-123) y solo un "-".';
+      this.moduloForm.codigo = codigo;
+      return;
+    }
 
     // Validación local (opcional) - evita duplicados por nombre
     const existeNombre = this.modulos.some(
@@ -191,7 +242,7 @@ export class ModuloComponent implements OnInit, OnChanges {
     const payload: any = {
       codigo,
       nombre,
-      proyecto: this.idProyecto, // FK por ID
+      proyecto: this.idProyecto,
     };
 
     this.service.createModulo(payload).subscribe({
@@ -202,7 +253,6 @@ export class ModuloComponent implements OnInit, OnChanges {
         this.mostrarModal = false;
         this.moduloForm = { codigo: '', nombre: '' };
 
-        // notificar
         this.service.modulosChanged.next();
         this.service.notifyDataChanged();
 
@@ -210,7 +260,6 @@ export class ModuloComponent implements OnInit, OnChanges {
       },
       error: (err) => {
         console.error(err);
-        // si tu backend devuelve error por unique(codigo por proyecto)
         this.mensajeError =
           err?.error?.error ||
           err?.error?.detail ||
@@ -218,6 +267,7 @@ export class ModuloComponent implements OnInit, OnChanges {
       },
     });
   }
+
 
   // =============================
   // ========= UPDATE ============
@@ -227,13 +277,37 @@ export class ModuloComponent implements OnInit, OnChanges {
 
     if (!this.moduloEditando) return;
 
-    const nombre = (this.moduloForm.nombre || '').trim();
+    // ===== VALIDACIÓN NOMBRE (solo texto) =====
+    const nombreRaw = (this.moduloForm.nombre || '').trim();
+    const nombre = this.sanitizeNombre(nombreRaw).trim();
+
     if (!nombre) {
       this.mensajeAdvertencia = 'El nombre del módulo es obligatorio.';
       return;
     }
+    if (this.sanitizeNombre(nombreRaw).trim() !== nombre) {
+      this.mensajeAdvertencia =
+        'El nombre solo puede contener texto (letras) y espacios.';
+      this.moduloForm.nombre = nombre;
+      return;
+    }
 
-    const codigo = (this.moduloForm.codigo || '').trim();
+    // ===== VALIDACIÓN CÓDIGO (LETRAS-NÚMEROS, un solo "-") =====
+    const codigoRaw = (this.moduloForm.codigo || '').trim();
+    const codigo = this.sanitizeCodigo(codigoRaw).trim();
+
+    if (!codigo) {
+      this.mensajeAdvertencia = 'El código del módulo es obligatorio.';
+      return;
+    }
+
+    const regexCodigo = /^[A-Z]+-[0-9]+$/;
+    if (!regexCodigo.test(codigo)) {
+      this.mensajeAdvertencia =
+        'El código debe tener el formato LETRAS-NÚMEROS (ej: MOD-123) y solo un "-".';
+      this.moduloForm.codigo = codigo;
+      return;
+    }
 
     // Validación local (evita duplicados por nombre)
     const existeNombre = this.modulos.some(
@@ -246,21 +320,18 @@ export class ModuloComponent implements OnInit, OnChanges {
       return;
     }
 
-    // IMPORTANTE: en update también mandamos proyecto como ID (para que DRF no se confunda)
     const payload: any = {
       codigo,
       nombre,
       proyecto:
         typeof (this.moduloEditando as any).proyecto === 'object'
-          ? (this.moduloEditando as any).proyecto?.id_proyecto // si viene como objeto Proyecto
-          : (this.moduloEditando as any).proyecto, // si viene como id
+          ? (this.moduloEditando as any).proyecto?.id_proyecto
+          : (this.moduloEditando as any).proyecto,
     };
 
     this.service.updateModulo(this.moduloEditando.id, payload).subscribe({
       next: (actualizado) => {
-        const idx = this.modulos.findIndex(
-          (m) => m.id === this.moduloEditando!.id,
-        );
+        const idx = this.modulos.findIndex((m) => m.id === this.moduloEditando!.id);
         if (idx !== -1) {
           const copia = [...this.modulos];
           copia[idx] = actualizado;
@@ -284,7 +355,6 @@ export class ModuloComponent implements OnInit, OnChanges {
       },
     });
   }
-
   // =============================
   // ========= DELETE ============
   // =============================
@@ -326,9 +396,20 @@ export class ModuloComponent implements OnInit, OnChanges {
   // =============================
   // ========= UTIL ==============
   // =============================
+
   toUpper(field: 'codigo' | 'nombre'): void {
-    const v = (this.moduloForm[field] || '').toUpperCase();
-    this.moduloForm = { ...this.moduloForm, [field]: v };
+    if (field === 'nombre') {
+      this.moduloForm = {
+        ...this.moduloForm,
+        nombre: this.sanitizeNombre(this.moduloForm.nombre),
+      };
+      return;
+    }
+
+    this.moduloForm = {
+      ...this.moduloForm,
+      codigo: this.sanitizeCodigo(this.moduloForm.codigo),
+    };
   }
 
   private clearMensajes(): void {
