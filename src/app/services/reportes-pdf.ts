@@ -472,10 +472,7 @@ export class ReportesPdf {
       } else {
         const ellipsis = '...';
         let truncated = proyectoTexto;
-        while (
-          truncated.length > 0 &&
-          doc.getTextWidth(truncated + ellipsis) > availableWidth
-        ) {
+        while (truncated.length > 0 && doc.getTextWidth(truncated + ellipsis) > availableWidth) {
           truncated = truncated.slice(0, -1);
         }
         const finalText = truncated.length ? truncated + ellipsis : '';
@@ -501,37 +498,21 @@ export class ReportesPdf {
       );
       if (!gastosModulo.length) return;
 
-      const subtotalModulo = this.roundToTwo(
-        gastosModulo.reduce((sum, g) => sum + this.getPrecioTotalItem(g), 0),
-      );
-
-      const subtotalLiteral = this.numeroLiteralBs(subtotalModulo);
-
-      //  7 columnas (Literal antes del Total)
+      // ✅ SOLO CABECERA DE MÓDULO (sin subtotal ni literal por módulo)
       body.push([
         {
           content: `MÓDULO: ${(m.codigo || '').trim()} ${(m.nombre || '').trim()}`.trim(),
-          colSpan: 5,
+          colSpan: 7,
           styles: { fontStyle: 'bold', halign: 'left' },
-        },
-        {
-          content: subtotalLiteral,
-          styles: {
-            halign: 'left',
-            fontStyle: 'bold',
-            overflow: 'linebreak', //  NO RECORTAR
-          },
-        },
-        {
-          content: this.formatearNumero(subtotalModulo),
-          styles: { halign: 'right', fontStyle: 'bold' },
         },
       ]);
 
       gastosModulo.forEach((g) => {
         const precioUnit = this.getTotalFinal(g);
         const precioTotal = this.roundToTwo((Number(g.cantidad) || 0) * precioUnit);
-        const literalItem = this.numeroLiteralBs(precioTotal);
+
+        // ✅ CORRECCIÓN: literal del UNITARIO, no del TOTAL
+        const literalUnitario = this.numeroLiteralBs(precioUnit);
 
         body.push([
           contadorGlobal++,
@@ -540,10 +521,10 @@ export class ReportesPdf {
           this.formatearNumero(Number(g.cantidad) || 0),
           this.formatearNumero(precioUnit),
           {
-            content: literalItem,
+            content: literalUnitario,
             styles: {
               halign: 'left',
-              overflow: 'linebreak', //  NO RECORTAR
+              overflow: 'linebreak',
             },
           },
           this.formatearNumero(precioTotal),
@@ -554,10 +535,9 @@ export class ReportesPdf {
     const totalProyecto = this.roundToTwo(
       (data.gastos || []).reduce((sum, g) => sum + this.getPrecioTotalItem(g), 0),
     );
-
     const totalProyectoLiteral = this.numeroLiteralBs(totalProyecto);
 
-    //  7 columnas (Literal antes del Total)
+    // ✅ Mantenemos el literal SOLO para el total del proyecto (fila final)
     body.push([
       {
         content: 'PRECIO TOTAL DEL PROYECTO',
@@ -569,7 +549,7 @@ export class ReportesPdf {
         styles: {
           halign: 'left',
           fontStyle: 'bold',
-          overflow: 'linebreak', //  NO RECORTAR
+          overflow: 'linebreak',
         },
       },
       {
@@ -580,12 +560,12 @@ export class ReportesPdf {
 
     const totalTableWidth = pageWidth - marginLeft - marginRight;
 
-    //  MÁS ANCHO PARA LITERAL
+    // anchos
     const wItem = 12;
     const wUnidad = 16;
     const wCantidad = 18;
     const wUnitario = 30;
-    const wLiteral = 70; //  antes 55 (muy poco)
+    const wLiteral = 70;
     const wTotal = 22;
 
     const wDescripcion =
@@ -611,7 +591,7 @@ export class ReportesPdf {
         cellPadding: 2,
         valign: 'middle',
         font: 'helvetica',
-        overflow: 'linebreak', //  en general mejor que hidden (no corta)
+        overflow: 'linebreak',
       },
       headStyles: {
         fontSize: 8,
@@ -621,17 +601,13 @@ export class ReportesPdf {
         lineWidth: 0.1,
       },
       columnStyles: {
-        0: { cellWidth: wItem, halign: 'center' }, // Ítem
-        1: { cellWidth: wDescripcion, halign: 'left', overflow: 'linebreak' }, // Descripción
-        2: { cellWidth: wUnidad, halign: 'center' }, // Unidad
-        3: { cellWidth: wCantidad, halign: 'right' }, // Cantidad
-        4: { cellWidth: wUnitario, halign: 'right' }, // Precio Unitario
-        5: {
-          cellWidth: wLiteral,
-          halign: 'left',
-          overflow: 'linebreak', //  Literal completo
-        },
-        6: { cellWidth: wTotal, halign: 'right' }, // Precio Total
+        0: { cellWidth: wItem, halign: 'center' },
+        1: { cellWidth: wDescripcion, halign: 'left', overflow: 'linebreak' },
+        2: { cellWidth: wUnidad, halign: 'center' },
+        3: { cellWidth: wCantidad, halign: 'right' },
+        4: { cellWidth: wUnitario, halign: 'right' },
+        5: { cellWidth: wLiteral, halign: 'left', overflow: 'linebreak' },
+        6: { cellWidth: wTotal, halign: 'right' },
       },
       margin: { left: marginLeft, right: marginRight },
     });
