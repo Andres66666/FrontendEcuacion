@@ -1728,21 +1728,14 @@ export class ReportesPdf {
     doc.text('8.- RETORNO DE GASTOS DE OPERACIÓN', marginLeft, startY);
     startY += 5;
 
-    const tableWidthDisponible = pageWidth - marginLeft - marginRight;
-
-    // mismo estilo que las otras tablas (2 columnas)
     autoTable(doc, {
       startY,
+      tableWidth: 'wrap', // ✅ evita que se estire y cree ese “cuadro” extra
       head: [['DESCRIPCION', 'N° DE TRANSACCION']],
       body: [['RETORNO', this.formatearNumero(retornoInversion8)]],
       theme: 'grid',
       pageBreak: 'auto',
-      styles: {
-        fontSize: 7,
-        cellPadding: 2,
-        overflow: 'hidden',
-        valign: 'middle',
-      },
+      styles: { fontSize: 7, cellPadding: 2, overflow: 'hidden', valign: 'middle' },
       headStyles: {
         fontSize: 7,
         fontStyle: 'bold',
@@ -1752,8 +1745,8 @@ export class ReportesPdf {
         halign: 'center',
       },
       columnStyles: {
-        0: { cellWidth: tableWidthDisponible - 30 }, // descripción ocupa casi todo
-        1: { cellWidth: 30, halign: 'right' },        // valor a la derecha
+        0: { cellWidth: 80 },                 // ✅ igual que sección 7
+        1: { cellWidth: 25, halign: 'right' } // ✅ igual que sección 7 (segundo col)
       },
       margin: { left: marginLeft, right: marginRight },
     });
