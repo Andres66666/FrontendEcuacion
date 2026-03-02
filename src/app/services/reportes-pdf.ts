@@ -1728,37 +1728,35 @@ export class ReportesPdf {
     doc.text('8.- RETORNO DE GASTOS DE OPERACIÓN', marginLeft, startY);
     startY += 5;
 
+    const tableWidthDisponible = pageWidth - marginLeft - marginRight;
+
+    // mismo estilo que las otras tablas (2 columnas)
     autoTable(doc, {
       startY,
       head: [['DESCRIPCION', 'N° DE TRANSACCION']],
       body: [['RETORNO', this.formatearNumero(retornoInversion8)]],
       theme: 'grid',
-
-      // ✅ agrega estas 2 líneas (para que el borde se vea completo)
-      tableLineWidth: 0.1,
-      tableLineColor: [0, 0, 0],
-
-      // ✅ y aquí añade lineWidth/lineColor SIN cambiar lo demás
+      pageBreak: 'auto',
       styles: {
         fontSize: 7,
         cellPadding: 2,
+        overflow: 'hidden',
         valign: 'middle',
-        lineWidth: 0.1,
-        lineColor: [0, 0, 0],
       },
       headStyles: {
         fontSize: 7,
         fontStyle: 'bold',
         fillColor: [255, 255, 255],
         textColor: [0, 0, 0],
-        halign: 'center',
-        // (si quieres, también puedes dejarlo así; pero no es obligatorio)
         lineWidth: 0.1,
+        halign: 'center',
       },
-      columnStyles: { 0: { cellWidth: 80 }, 1: { cellWidth: 20, halign: 'right' } },
+      columnStyles: {
+        0: { cellWidth: tableWidthDisponible - 30 }, // descripción ocupa casi todo
+        1: { cellWidth: 30, halign: 'right' },        // valor a la derecha
+      },
       margin: { left: marginLeft, right: marginRight },
     });
-
     // GUARDAR
     doc.save(this.nombreArchivo(input));
   }
