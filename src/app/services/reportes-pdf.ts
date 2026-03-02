@@ -666,8 +666,8 @@ export class ReportesPdf {
       doc.text('Actividad:', labelX, startY);
       doc.setFont('helvetica', 'bold');
       const nro = indexGasto + 1;
-const actividad = `${nro}-${(gasto.descripcion || '').toString().trim()}`.toUpperCase();
-doc.text(actividad, valueX, startY);
+      const actividad = `${nro} - ${(gasto.descripcion || '').toString().trim()}`.toUpperCase();
+      doc.text(actividad, valueX, startY);
 
 
       startY += lineSpacing;
@@ -1730,13 +1730,30 @@ doc.text(actividad, valueX, startY);
 
     autoTable(doc, {
       startY,
-      head: [['DESCRIPCION', 'VALOR']],
+      head: [['DESCRIPCION', 'N° DE TRANSACCION']],
       body: [['RETORNO', this.formatearNumero(retornoInversion8)]],
       theme: 'grid',
-      styles: { fontSize: 7, cellPadding: 2, valign: 'middle' },
+
+      // ✅ agrega estas 2 líneas (para que el borde se vea completo)
+      tableLineWidth: 0.1,
+      tableLineColor: [0, 0, 0],
+
+      // ✅ y aquí añade lineWidth/lineColor SIN cambiar lo demás
+      styles: {
+        fontSize: 7,
+        cellPadding: 2,
+        valign: 'middle',
+        lineWidth: 0.1,
+        lineColor: [0, 0, 0],
+      },
       headStyles: {
-        fontSize: 7, fontStyle: 'bold', fillColor: [255,255,255], textColor: [0,0,0],
+        fontSize: 7,
+        fontStyle: 'bold',
+        fillColor: [255, 255, 255],
+        textColor: [0, 0, 0],
         halign: 'center',
+        // (si quieres, también puedes dejarlo así; pero no es obligatorio)
+        lineWidth: 0.1,
       },
       columnStyles: { 0: { cellWidth: 80 }, 1: { cellWidth: 20, halign: 'right' } },
       margin: { left: marginLeft, right: marginRight },
