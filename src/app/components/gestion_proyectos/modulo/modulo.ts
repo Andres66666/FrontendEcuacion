@@ -40,19 +40,14 @@ export class ModuloComponent implements OnInit, OnChanges {
   modulosFiltrados: Modulo[] = [];
   busqueda = '';
 
-  // modal/form
   mostrarModal = false;
   modoEdicion = false;
   moduloEditando: Modulo | null = null;
 
-  // dropdown
   modulosAbierto = false;
 
-  // form (IMPORTANTE: tu backend devuelve "proyecto" como objeto en GET,
-  // pero para crear/editar hay que enviar "proyecto" como ID)
   moduloForm: { codigo: string; nombre: string } = { codigo: '', nombre: '' };
 
-  // mensajes / confirmación
   mensajeExito = '';
   mensajeError = '';
   mensajeAdvertencia = '';
@@ -66,9 +61,6 @@ export class ModuloComponent implements OnInit, OnChanges {
     private elRef: ElementRef,
   ) {}
 
-  // =============================
-  // ========= LIFECYCLE =========
-  // =============================
   ngOnInit(): void {
     if (this.idProyecto > 0) this.cargarModulos();
   }
@@ -77,16 +69,12 @@ export class ModuloComponent implements OnInit, OnChanges {
     if (changes['idProyecto']?.currentValue > 0) {
       this.cargarModulos();
     } else {
-      // si se deselecciona proyecto
       this.modulos = [];
       this.modulosFiltrados = [];
       this.busqueda = '';
     }
   }
 
-  // =============================
-  // ========= LISTAR ============
-  // =============================
   cargarModulos(): void {
     if (!this.idProyecto || this.idProyecto <= 0) return;
 
@@ -103,7 +91,6 @@ export class ModuloComponent implements OnInit, OnChanges {
   }
 
   private ordenarModulos(lista: Modulo[]): Modulo[] {
-    // orden estable: código, luego id
     return [...lista].sort((a, b) => {
       const c = (a.codigo || '').localeCompare(b.codigo || '');
       if (c !== 0) return c;
@@ -126,9 +113,6 @@ export class ModuloComponent implements OnInit, OnChanges {
     this.modulosAbierto = !this.modulosAbierto;
   }
 
-  // =============================
-  // ========= MODAL =============
-  // =============================
   abrirNuevo(): void {
     this.clearMensajes();
     this.modoEdicion = false;
@@ -142,7 +126,6 @@ export class ModuloComponent implements OnInit, OnChanges {
     this.modoEdicion = true;
     this.moduloEditando = m;
 
-    // normaliza el form (solo strings)
     this.moduloForm = {
       codigo: m.codigo ?? '',
       nombre: m.nombre ?? '',
@@ -159,37 +142,31 @@ export class ModuloComponent implements OnInit, OnChanges {
     if (this.modoEdicion) this.actualizarModulo();
     else this.crearModulo();
   }
+
+  // ✅ CAMBIO: ahora NOMBRE acepta caracteres especiales
+  // (solo normalizamos espacios + mayúsculas)
   private sanitizeNombre(v: string): string {
     return (v || '')
-      .replace(/[^A-Za-zÁÉÍÓÚÜÑáéíóúüñ ]+/g, '') // solo letras y espacios
       .replace(/\s+/g, ' ')
       .trimStart()
       .toUpperCase();
   }
 
   private sanitizeCodigo(v: string): string {
-    // permitimos solo letras, numeros y guion, pero luego normalizamos a: LETRAS-NUMEROS con un solo "-"
     let s = (v || '').toUpperCase().replace(/[^A-Z0-9-]+/g, '');
 
-    // deja solo el primer "-" (si hay varios)
     const firstDash = s.indexOf('-');
     if (firstDash !== -1) {
       s = s.slice(0, firstDash + 1) + s.slice(firstDash + 1).replace(/-/g, '');
     }
 
-    // fuerza formato LETRAS(-)NUMEROS (sin letras después del guion)
     const m = s.match(/^([A-Z]+)(-?)([0-9]*)$/);
     if (!m) {
-      // si queda algo raro, elimina todo lo que no sea letras al inicio
       s = s.replace(/[^A-Z]/g, '');
     }
     return s.trimStart();
   }
 
-
-  // =============================
-  // ========= CREATE ============
-  // =============================
   private crearModulo(): void {
     this.clearMensajes();
 
@@ -198,22 +175,14 @@ export class ModuloComponent implements OnInit, OnChanges {
       return;
     }
 
-    // ===== VALIDACIÓN NOMBRE (solo texto) =====
-    const nombreRaw = (this.moduloForm.nombre || '').trim();
-    const nombre = this.sanitizeNombre(nombreRaw).trim();
-
+    // ✅ NOMBRE: solo requerido (ya NO bloquea por caracteres especiales)
+    const nombre = this.sanitizeNombre((this.moduloForm.nombre || '').trim());
     if (!nombre) {
       this.mensajeAdvertencia = 'El nombre del módulo es obligatorio.';
       return;
     }
-    if (this.sanitizeNombre(nombreRaw).trim() !== nombre) {
-      this.mensajeAdvertencia =
-        'El nombre solo puede contener texto (letras) y espacios.';
-      this.moduloForm.nombre = nombre;
-      return;
-    }
 
-    // ===== VALIDACIÓN CÓDIGO (LETRAS-NÚMEROS, un solo "-") =====
+    // CÓDIGO: se mantiene igual
     const codigoRaw = (this.moduloForm.codigo || '').trim();
     const codigo = this.sanitizeCodigo(codigoRaw).trim();
 
@@ -230,7 +199,7 @@ export class ModuloComponent implements OnInit, OnChanges {
       return;
     }
 
-    // Validación local (opcional) - evita duplicados por nombre
+    // (opcional) duplicado por nombre
     const existeNombre = this.modulos.some(
       (m) => (m.nombre || '').toLowerCase() === nombre.toLowerCase(),
     );
@@ -238,6 +207,10 @@ export class ModuloComponent implements OnInit, OnChanges {
       this.mensajeAdvertencia = 'Este módulo ya existe en el proyecto.';
       return;
     }
+
+    // reflejar normalizado
+    this.moduloForm.nombre = nombre;
+    this.moduloForm.codigo = codigo;
 
     const payload: any = {
       codigo,
@@ -268,31 +241,18 @@ export class ModuloComponent implements OnInit, OnChanges {
     });
   }
 
-
-  // =============================
-  // ========= UPDATE ============
-  // =============================
   private actualizarModulo(): void {
     this.clearMensajes();
-
     if (!this.moduloEditando) return;
 
-    // ===== VALIDACIÓN NOMBRE (solo texto) =====
-    const nombreRaw = (this.moduloForm.nombre || '').trim();
-    const nombre = this.sanitizeNombre(nombreRaw).trim();
-
+    // ✅ NOMBRE: solo requerido (acepta especiales)
+    const nombre = this.sanitizeNombre((this.moduloForm.nombre || '').trim());
     if (!nombre) {
       this.mensajeAdvertencia = 'El nombre del módulo es obligatorio.';
       return;
     }
-    if (this.sanitizeNombre(nombreRaw).trim() !== nombre) {
-      this.mensajeAdvertencia =
-        'El nombre solo puede contener texto (letras) y espacios.';
-      this.moduloForm.nombre = nombre;
-      return;
-    }
 
-    // ===== VALIDACIÓN CÓDIGO (LETRAS-NÚMEROS, un solo "-") =====
+    // CÓDIGO: se mantiene igual
     const codigoRaw = (this.moduloForm.codigo || '').trim();
     const codigo = this.sanitizeCodigo(codigoRaw).trim();
 
@@ -309,7 +269,6 @@ export class ModuloComponent implements OnInit, OnChanges {
       return;
     }
 
-    // Validación local (evita duplicados por nombre)
     const existeNombre = this.modulos.some(
       (m) =>
         m.id !== this.moduloEditando!.id &&
@@ -319,6 +278,10 @@ export class ModuloComponent implements OnInit, OnChanges {
       this.mensajeAdvertencia = 'Ya existe un módulo con ese nombre.';
       return;
     }
+
+    // reflejar normalizado
+    this.moduloForm.nombre = nombre;
+    this.moduloForm.codigo = codigo;
 
     const payload: any = {
       codigo,
@@ -355,9 +318,7 @@ export class ModuloComponent implements OnInit, OnChanges {
       },
     });
   }
-  // =============================
-  // ========= DELETE ============
-  // =============================
+
   confirmarEliminarModulo(id: number): void {
     this.clearMensajes();
     this.idPendienteEliminar = id;
@@ -393,10 +354,6 @@ export class ModuloComponent implements OnInit, OnChanges {
     });
   }
 
-  // =============================
-  // ========= UTIL ==============
-  // =============================
-
   toUpper(field: 'codigo' | 'nombre'): void {
     if (field === 'nombre') {
       this.moduloForm = {
@@ -428,9 +385,6 @@ export class ModuloComponent implements OnInit, OnChanges {
     this.mensajeAdvertencia = '';
   }
 
-  // =============================
-  // ======= CLICK OUTSIDE =======
-  // =============================
   @HostListener('document:click', ['$event'])
   onClickOutside(event: MouseEvent): void {
     if (!this.modulosAbierto) return;

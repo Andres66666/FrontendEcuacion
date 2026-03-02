@@ -532,18 +532,16 @@ export class CrearMaterialesComponent implements OnInit {
   private upperTrim(v: any): string {
     return (v ?? '').toString().trim().toUpperCase();
   }
-  private readonly ALFANUM_ESPACIOS = /^[A-Z0-9ÁÉÍÓÚÜÑ ]+$/i; // descripcion (permite espacios)
-  private readonly ALFANUM = /^[A-Z0-9ÁÉÍÓÚÜÑ]+$/i;          // unidad (sin espacios)
+  private readonly ALFANUM = /^[A-Z0-9ÁÉÍÓÚÜÑ]+$/i;         
+  private readonly ALFANUM_ESPACIOS = /.*/; 
 
   private sanitizeDescripcion(v: any): string {
     return (v ?? '')
       .toString()
       .toUpperCase()
-      .replace(/[^A-Z0-9ÁÉÍÓÚÜÑ ]+/g, '') // solo letras/números/espacios
       .replace(/\s+/g, ' ')
       .trimStart();
   }
-
   private sanitizeUnidad(v: any): string {
     return (v ?? '')
       .toString()
@@ -552,7 +550,6 @@ export class CrearMaterialesComponent implements OnInit {
       .trimStart();
   }
 
-  // 2) aplica sanitizado en tiempo real (opcional pero recomendado)
   convertirAMayusculas(i: number, campo: string): void {
     const ctrl = this.getFg(i).get(campo);
     if (!ctrl) return;
@@ -575,7 +572,7 @@ export class CrearMaterialesComponent implements OnInit {
 
       descripcion: [
         material?.descripcion ?? '',
-        [Validators.required, Validators.pattern(this.ALFANUM_ESPACIOS)],
+        [Validators.required], // quitado pattern
       ],
 
       unidad: [
@@ -596,7 +593,7 @@ export class CrearMaterialesComponent implements OnInit {
     this.attachUid(fg);
 
     fg.valueChanges.subscribe(() => {
-      // sanitiza mientras escribe (solo para estos dos)
+      // descripcion: solo normaliza (no filtra)
       const d = fg.get('descripcion')!;
       const u = fg.get('unidad')!;
 

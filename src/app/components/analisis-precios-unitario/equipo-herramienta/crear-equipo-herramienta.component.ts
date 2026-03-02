@@ -450,14 +450,13 @@ export class CrearEquipoHerramientaComponent implements OnInit {
   private readonly ALFANUM_ESPACIOS = /^[A-Z0-9ÁÉÍÓÚÜÑ ]+$/i; // descripción
   private readonly ALFANUM = /^[A-Z0-9ÁÉÍÓÚÜÑ]+$/i;            // unidad
 
-  private sanitizeDescripcion(v: any): string {
-    return (v ?? '')
-      .toString()
-      .toUpperCase()
-      .replace(/[^A-Z0-9ÁÉÍÓÚÜÑ ]+/g, '') // solo letras/números/espacios
-      .replace(/\s+/g, ' ')
-      .trimStart();
-  }
+private sanitizeDescripcion(v: any): string {
+  return (v ?? '')
+    .toString()
+    .toUpperCase()
+    .replace(/\s+/g, ' ')   // normaliza espacios
+    .trimStart();          // mantiene caracteres especiales
+}
 
   private sanitizeUnidad(v: any): string {
     return (v ?? '')
@@ -470,25 +469,24 @@ export class CrearEquipoHerramientaComponent implements OnInit {
 
   // Reemplaza convertirAMayusculas por este
 
-  convertirAMayusculas(i: number, campo: string): void {
-    const ctrl = this.getFg(i).get(campo);
-    if (!ctrl) return;
+ convertirAMayusculas(i: number, campo: string): void {
+  const ctrl = this.getFg(i).get(campo);
+  if (!ctrl) return;
 
-    if (campo === 'descripcion') {
-      ctrl.setValue(this.sanitizeDescripcion(ctrl.value), { emitEvent: false });
-      return;
-    }
-
-    if (campo === 'unidad') {
-      ctrl.setValue(this.sanitizeUnidad(ctrl.value), { emitEvent: false });
-      return;
-    }
-
-    ctrl.setValue((ctrl.value ?? '').toString().toUpperCase(), {
-      emitEvent: false,
-    });
+  if (campo === 'descripcion') {
+    // ✅ acepta caracteres especiales, solo normaliza texto
+    ctrl.setValue(this.sanitizeDescripcion(ctrl.value), { emitEvent: false });
+    return;
   }
 
+  if (campo === 'unidad') {
+    // ✅ unidad sigue protegida
+    ctrl.setValue(this.sanitizeUnidad(ctrl.value), { emitEvent: false });
+    return;
+  }
+
+  ctrl.setValue((ctrl.value ?? '').toString().toUpperCase(), { emitEvent: false });
+}
 
   // Modifica SOLO descripcion y unidad en crearFormEquipoHerramienta
 
@@ -496,11 +494,13 @@ export class CrearEquipoHerramientaComponent implements OnInit {
     const fg = this.fb.group({
       id: [equipo?.id ?? null],
 
+      // ✅ CAMBIO: descripcion solo required (acepta especiales)
       descripcion: [
         equipo?.descripcion ?? '',
-        [Validators.required, Validators.pattern(this.ALFANUM_ESPACIOS)],
+        [Validators.required],
       ],
 
+      // ✅ unidad se queda igual (con patrón)
       unidad: [
         equipo?.unidad ?? '',
         [Validators.required, Validators.pattern(this.ALFANUM)],
@@ -522,7 +522,7 @@ export class CrearEquipoHerramientaComponent implements OnInit {
 
     this.attachUid(fg);
 
-    // Sanitiza mientras escribe
+    // solo normalizamos espacios + mayúsculas
     fg.valueChanges.subscribe(() => {
       const d = fg.get('descripcion')!;
       const u = fg.get('unidad')!;
@@ -530,18 +530,15 @@ export class CrearEquipoHerramientaComponent implements OnInit {
       const dSan = this.sanitizeDescripcion(d.value);
       if (d.value !== dSan) d.setValue(dSan, { emitEvent: false });
 
+      // ✅ unidad sí se sigue limpiando
       const uSan = this.sanitizeUnidad(u.value);
       if (u.value !== uSan) u.setValue(uSan, { emitEvent: false });
 
       if (this.isRowWithId(fg)) fg.markAsDirty();
     });
 
-    fg.get('cantidad')?.valueChanges.subscribe(() =>
-      this.actualizarPrecioParcial(fg),
-    );
-    fg.get('precio_unitario')?.valueChanges.subscribe(() =>
-      this.actualizarPrecioParcial(fg),
-    );
+    fg.get('cantidad')?.valueChanges.subscribe(() => this.actualizarPrecioParcial(fg));
+    fg.get('precio_unitario')?.valueChanges.subscribe(() => this.actualizarPrecioParcial(fg));
 
     return fg;
   }

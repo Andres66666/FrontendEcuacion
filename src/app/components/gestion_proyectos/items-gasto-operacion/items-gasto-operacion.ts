@@ -432,13 +432,10 @@ export class ItemsGastoOperacion {
     return Number.isFinite(n) ? n : 0;
   }
   private sanitizeDescripcion(v: string): string {
-    return (v || '')
-      .toUpperCase()
-      .replace(/[^A-ZÁÉÍÓÚÜÑ0-9º"\/()\-\s.,+=X]/g, '') // permitido
+    return (v ?? '')
       .replace(/\s+/g, ' ')
-      .trimStart();
+      .trim();
   }
-
   private sanitizeUnidad(v: string): string {
     return (v || '')
       .toUpperCase()
@@ -726,7 +723,7 @@ getTotalCostoParcial(): number {
     this.clearMensajes();
 
     // aplicar sanitizado antes de validar/guardar
-    const descripcion = this.sanitizeDescripcion(this.itemForm.descripcion || '').trim();
+    const descripcion = this.sanitizeDescripcion(this.itemForm.descripcion || '');
     const unidad = this.sanitizeUnidad(this.itemForm.unidad || '').trim();
     const cantidadStr = this.sanitizeCantidadInput(String(this.itemForm.cantidad ?? ''));
     const cantidad = Number(cantidadStr);
@@ -739,7 +736,7 @@ getTotalCostoParcial(): number {
     // @ts-ignore (si tu input de cantidad es number, esto igual funciona al asignar number)
     this.itemForm.cantidad = Number.isFinite(cantidad) ? cantidad : 0;
 
-    if (!descripcion) return this.mostrarAdvertencia('Ingrese una descripción.');
+    if (descripcion.length > 500) return this.mostrarAdvertencia('Descripción muy larga (máx 500).');    if (!descripcion) return this.mostrarAdvertencia('Ingrese una descripción.');
 
     // unidad: alfanumérica y max 5
     if (!unidad) return this.mostrarAdvertencia('Seleccione una unidad.');

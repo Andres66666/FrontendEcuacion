@@ -360,7 +360,7 @@ export class ReportesPdf {
 
     const tableWidthDisponible = pageWidth - marginLeft - marginRight;
     const colUnidad = 16;
-    const colCantidad = 18;
+    const colCantidad = 24;
     const colPrecio = 22;
     const colTotal = 22;
     const colDescripcion =
