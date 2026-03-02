@@ -1746,7 +1746,7 @@ export class ReportesPdf {
       },
       columnStyles: {
         0: { cellWidth: 80 },                 // ✅ igual que sección 7
-        1: { cellWidth: 25, halign: 'right' } // ✅ igual que sección 7 (segundo col)
+        1: { cellWidth: 35, halign: 'right' } // ✅ igual que sección 7 (segundo col)
       },
       margin: { left: marginLeft, right: marginRight },
     });
