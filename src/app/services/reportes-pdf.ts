@@ -665,7 +665,10 @@ export class ReportesPdf {
       doc.setFont('helvetica', 'normal');
       doc.text('Actividad:', labelX, startY);
       doc.setFont('helvetica', 'bold');
-      doc.text((gasto.descripcion || '').toUpperCase(), valueX, startY);
+      const nro = indexGasto + 1;
+const actividad = `${nro}-${(gasto.descripcion || '').toString().trim()}`.toUpperCase();
+doc.text(actividad, valueX, startY);
+
 
       startY += lineSpacing;
       doc.setFont('helvetica', 'normal');
