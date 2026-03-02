@@ -521,10 +521,10 @@ export class CrearManoDeObraComponent implements OnInit {
     const fg = this.fb.group({
       id: [mano?.id ?? null],
 
-      // ✅ descripcion ahora acepta caracteres especiales
+      //  descripcion ahora acepta caracteres especiales
       descripcion: [
         mano?.descripcion ?? '',
-        [Validators.required], // 👈 antes: Validators.pattern(this.ALFANUM_ESPACIOS)
+        [Validators.required], // antes: Validators.pattern(this.ALFANUM_ESPACIOS)
       ],
 
       unidad: [
@@ -546,7 +546,7 @@ export class CrearManoDeObraComponent implements OnInit {
       const d = fg.get('descripcion')!;
       const u = fg.get('unidad')!;
 
-      // ✅ no elimina símbolos
+      //  no elimina símbolos
       const dSan = this.sanitizeDescripcion(d.value);
       if (d.value !== dSan) d.setValue(dSan, { emitEvent: false });
 
