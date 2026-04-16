@@ -1,5 +1,5 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 @Component({
   selector: 'app-advertencia',
   standalone: true,
@@ -9,7 +9,7 @@ import { CommonModule } from '@angular/common';
 })
 export class Advertencia {
   @Input() mensaje: string = 'Advertencia: revise la información.';
-  @Output() close = new EventEmitter<void>(); // Evento para cerrar (similar a OkComponent)
+  @Output() close = new EventEmitter<void>();
   manejarCerrar() {
     this.close.emit();
   }

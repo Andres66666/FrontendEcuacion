@@ -8,8 +8,8 @@ import {
 } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 
-import { OkComponent } from '../../mensajes/ok/ok.component';
 import { ErrorComponent } from '../../mensajes/error/error.component';
+import { OkComponent } from '../../mensajes/ok/ok.component';
 
 import {
   GastosGenerales,
@@ -28,14 +28,10 @@ export class CrearGastosGeneralesComponent implements OnInit, OnChanges {
   @Input() proyectoData!: Proyecto;
   @Input() id_gasto_operaciones!: number;
 
-  // % configurables desde proyecto
-  gastos_generales = 0; // %
-  margen_utilidad = 0; // %
-  iva_tasa_nominal = 0; // %
-
+  gastos_generales = 0;
+  margen_utilidad = 0;
+  iva_tasa_nominal = 0;
   gastoExistente: GastosGenerales | null = null;
-
-  // Totales de secciones 1-2-3
   totalMateriales = 0;
   totalManoObra = 0;
   totalEquipos = 0;
@@ -48,12 +44,10 @@ export class CrearGastosGeneralesComponent implements OnInit, OnChanges {
     private route: ActivatedRoute,
   ) {}
 
-  // ================= LIFECYCLE =================
   ngOnInit(): void {
     this.route.queryParams.subscribe((params) => {
       this.id_gasto_operaciones = Number(params['id_gasto_operaciones']) || 0;
 
-      // si llegan por query (por compatibilidad), los tomamos; si no, quedan los del proyectoData
       this.gastos_generales = this.parseNumero(
         params['gastos_generales'] ?? this.gastos_generales,
       );
@@ -67,7 +61,6 @@ export class CrearGastosGeneralesComponent implements OnInit, OnChanges {
       if (this.id_gasto_operaciones) this.cargarGastosGeneralesExistente();
     });
 
-    // Suscripciones de totales (1-2-3)
     this.servicio.totalMateriales$.subscribe(
       (t) => (this.totalMateriales = Number(t || 0)),
     );
@@ -135,7 +128,6 @@ export class CrearGastosGeneralesComponent implements OnInit, OnChanges {
   }
 
   // ================= OPERACIONES (SEGURAS) =================
-  // 1) totales base
   get sumaTotales(): number {
     const cents =
       this.toCents(this.totalMateriales) +
@@ -145,33 +137,21 @@ export class CrearGastosGeneralesComponent implements OnInit, OnChanges {
     return this.fromCents(cents);
   }
 
-  // 4) gastos generales = % * (1+2+3)
   get totalGastosGenerales(): number {
     const baseCents = this.toCents(this.sumaTotales);
     const ggCents = this.applyPercentCents(baseCents, this.gastos_generales);
     return this.fromCents(ggCents);
   }
 
-  // alias para tu tabla (manteniendo nombres)
   get totalOperacion(): number {
     return this.totalGastosGenerales;
   }
 
-  // 1+2+3+4
   get suma1234(): number {
     const cents =
       this.toCents(this.sumaTotales) + this.toCents(this.totalGastosGenerales);
     return this.fromCents(cents);
   }
-
-  /**
-   * 5) Valor agregado:
-   * base = 100 - IVA
-   * VA = (1+2+3+4) * ( MU / (base - MU) )
-   *
-   * ✅ Se hace en centavos + basis points para reducir error.
-   * ⚠️ Si (base - MU) <= 0, devolvemos 0 para evitar infinito.
-   */
   get TotalesS5(): number {
     const base = 100 - this.parseNumero(this.iva_tasa_nominal);
     const mu = this.parseNumero(this.margen_utilidad);
@@ -180,19 +160,13 @@ export class CrearGastosGeneralesComponent implements OnInit, OnChanges {
     if (denom <= 0) return 0;
 
     const baseCents = this.toCents(this.suma1234);
-
-    // ratio = mu / denom  (ambos en % pero como números)
-    // lo convertimos a "basis points de ratio" para operar entero
-    // ratioBP = ratio * 10000
     const ratioBP = Math.round((mu / denom + Number.EPSILON) * 10000);
 
-    // resultCents = baseCents * ratioBP / 10000
     const resultCents = Math.round((baseCents * ratioBP) / 10000);
 
     return this.fromCents(resultCents);
   }
 
-  // 1+2+3+4+5
   get sumaTotalGeneral12345(): number {
     const cents = this.toCents(this.suma1234) + this.toCents(this.TotalesS5);
 
@@ -229,11 +203,11 @@ export class CrearGastosGeneralesComponent implements OnInit, OnChanges {
 
   private pctToBasisPoints(pct: any): number {
     const p = this.parseNumero(pct);
-    return Math.round((p + Number.EPSILON) * 100); // 2 decimales de %
+    return Math.round((p + Number.EPSILON) * 100);
   }
 
   private applyPercentCents(baseCents: number, pct: any): number {
-    const bp = this.pctToBasisPoints(pct); // pct * 100
+    const bp = this.pctToBasisPoints(pct);
     return Math.round((baseCents * bp) / 10000);
   }
 

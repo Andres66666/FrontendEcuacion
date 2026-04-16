@@ -1,12 +1,12 @@
-import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { CrearManoDeObraComponent } from '../mano-de-obra/crear-mano-de-obra.component';
+import { Component } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { CrearMaterialesComponent } from '../materiales/crear-materiales.component';
-import { CrearEquipoHerramientaComponent } from '../equipo-herramienta/crear-equipo-herramienta.component';
-import { CrearGastosGeneralesComponent } from '../gastos-generales/crear-gastos-generales.component';
 import { Proyecto } from '../../gestion_proyectos/models/modelosProyectos';
 import { ServiciosProyectos } from '../../gestion_proyectos/service/servicios-proyectos';
+import { CrearEquipoHerramientaComponent } from '../equipo-herramienta/crear-equipo-herramienta.component';
+import { CrearGastosGeneralesComponent } from '../gastos-generales/crear-gastos-generales.component';
+import { CrearManoDeObraComponent } from '../mano-de-obra/crear-mano-de-obra.component';
+import { CrearMaterialesComponent } from '../materiales/crear-materiales.component';
 
 @Component({
   selector: 'app-crear-ecuacion',

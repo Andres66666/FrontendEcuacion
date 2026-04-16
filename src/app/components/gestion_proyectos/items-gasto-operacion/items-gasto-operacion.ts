@@ -1,3 +1,4 @@
+import { CommonModule } from '@angular/common';
 import {
   Component,
   ElementRef,
@@ -5,7 +6,6 @@ import {
   SimpleChanges,
   ViewChild,
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 
@@ -19,11 +19,11 @@ import { ServiciosProyectos } from '../service/servicios-proyectos';
 
 import { catchError, EMPTY, forkJoin, Subject, takeUntil, tap } from 'rxjs';
 
-import { ConfirmacionComponent } from '../../mensajes/confirmacion/confirmacion/confirmacion.component';
-import { OkComponent } from '../../mensajes/ok/ok.component';
-import { ErrorComponent } from '../../mensajes/error/error.component';
-import { Advertencia } from '../../mensajes/advertencia/advertencia';
 import { ReportesPdf } from '../../../services/reportes-pdf';
+import { Advertencia } from '../../mensajes/advertencia/advertencia';
+import { ConfirmacionComponent } from '../../mensajes/confirmacion/confirmacion.component';
+import { ErrorComponent } from '../../mensajes/error/error.component';
+import { OkComponent } from '../../mensajes/ok/ok.component';
 
 type GastoOperacionUI = GastoOperacion & {
   gastosGenerales?: GastosGenerales;
@@ -60,15 +60,12 @@ type PdfTipo =
   styleUrl: './items-gasto-operacion.css',
 })
 export class ItemsGastoOperacion {
-  // =========================================================
   // 1) INPUTS / VIEWCHILD
-  // =========================================================
   @Input() idProyecto!: number;
   @ViewChild('tableContainer', { static: false }) tableContainer!: ElementRef;
 
-  // =========================================================
   // 2) ESTADO BASE (PROYECTO / MODULOS / ITEMS)
-  // =========================================================
+
   proyecto?: Proyecto;
   nombreProyecto = '';
   herramientas = 0;
@@ -80,20 +77,16 @@ export class ItemsGastoOperacion {
   manoDeObra: any[] = [];
   equipos: any[] = [];
 
-  // =========================================================
   // 3) FILTROS / BUSCADORES
-  // =========================================================
+
   searchTerm = '';
 
-  // Dropdown filtro - Form (Registrar/Editar)
   filtroModulosForm = '';
   modulosFormFiltrados: Modulo[] = [];
 
-  // Dropdown filtro - Destino (Mover/Duplicar)
   filtroModulosDestino = '';
   modulosDestinoFiltrados: Modulo[] = [];
 
-  // Insumos
   filtroInsumos = '';
   insumosFiltrados: Array<{
     descripcion: string;
@@ -101,9 +94,8 @@ export class ItemsGastoOperacion {
     precioOriginal: number;
   }> = [];
 
-  // =========================================================
   // 4) FORMULARIO (REGISTRAR / EDITAR)
-  // =========================================================
+
   mostrarModal = false;
   modoEdicion = false;
   gastoEditando?: GastoOperacionUI;
@@ -115,13 +107,11 @@ export class ItemsGastoOperacion {
     modulo: number | null;
   } = this.nuevoForm();
 
-  // Unidades (autocomplete)
   catalogoUnidades: string[] = [];
   opcionesUnidad: string[] = [];
 
-  // =========================================================
   // 5) MODAL ACCIONES (MOVER / DUPLICAR)
-  // =========================================================
+
   mostrarModalAccion = false;
 
   accionAccionModal: 'MOVER' | 'DUPLICAR' = 'MOVER';
@@ -131,20 +121,17 @@ export class ItemsGastoOperacion {
   moduloDestino: any = null;
   posicionDestino = 1;
 
-  // (ya no usas mover/duplicar modal separado, pero dejo flags por si aún están en template)
   mostrarModalMover = false;
   mostrarModalDuplicar = false;
 
-  // =========================================================
   // 6) ELIMINACIÓN (CONFIRMACIÓN)
-  // =========================================================
+
   mostrarConfirmacion = false;
   mensajeConfirmacion = '';
   idPendienteEliminar: number | null = null;
 
-  // =========================================================
   // 7) INSUMOS (MODAL + DATA)
-  // =========================================================
+
   mostrarModalInsumos = false;
   tipoInsumoSeleccionado: '' | 'material' | 'manoDeObra' | 'equipo' = '';
 
@@ -154,29 +141,25 @@ export class ItemsGastoOperacion {
     precioOriginal: number;
   }> = [];
 
-  // =========================================================
   // 8) PDFs
-  // =========================================================
+
   selectedPdfProyecto: PdfTipo = '';
   selectedPdfModulo: Record<number, PdfTipo> = {};
   selectedPdfItem: Record<number, PdfTipo> = {};
 
-  // =========================================================
   // 9) MENSAJES / UI HELPERS
-  // =========================================================
+
   mensajeExito = '';
   mensajeError = '';
   mensajeAdvertencia = '';
   private msgTimer: any = null;
 
-  // =========================================================
   // 10) CAMBIOS (TRACKING)
-  // =========================================================
+
   private changedItemIds = new Set<number>();
 
-  // =========================================================
   // 11) LIFECYCLE / STREAMS
-  // =========================================================
+
   private destroy$ = new Subject<void>();
   private readonly QTY_SCALE = 100000; // 5 decimales
 
@@ -204,9 +187,8 @@ export class ItemsGastoOperacion {
     this.destroy$.complete();
   }
 
-  // =========================================================
   // 12) RECUPERACIÓN / SETTERS / RESET
-  // =========================================================
+
   private refresh(cambioProyecto: boolean): void {
     if (!this.idProyecto || this.idProyecto <= 0) {
       this.resetAll();
@@ -324,7 +306,6 @@ export class ItemsGastoOperacion {
       .filter((u, i, arr) => arr.indexOf(u) === i)
       .sort();
   }
-  // ===== helpers exactos para dinero/cantidades =====
 
   private toCents(v: any): number {
     const n = Number(v || 0);
@@ -346,7 +327,6 @@ export class ItemsGastoOperacion {
     const unitParcial = Number(ui.gastosGenerales?.totalgastosgenerales) || 0;
     return this.mulQtyByUnitToCents(cantidad, unitParcial);
   }
-  // total (centavos) = cantidad * precioUnitario (centavos), con cantidad a 5 decimales reales
   private mulQtyByUnitToCents(qty: any, unitPrice: any): number {
     const q = Number(qty || 0);
     const qtyMicro = Math.round((q + Number.EPSILON) * this.QTY_SCALE);
@@ -371,19 +351,19 @@ export class ItemsGastoOperacion {
 
       if (gg) {
         ui.gastosGenerales = {
-          totalgastosgenerales: Number(gg.totalgastosgenerales) || 0, // unitario parcial
-          total: Number(gg.total) || 0,                               // unitario final
+          totalgastosgenerales: Number(gg.totalgastosgenerales) || 0,
+          total: Number(gg.total) || 0,
         } as any;
       }
-
-      // unitario final (si existe gg.total, manda)
       const precioFinalUnit =
         Number(gg?.total) || Number(g.precio_unitario) || 0;
 
       const cantidad = Number(g.cantidad) || 0;
 
-      // ✅ costo parcial exacto (centavos) = cantidad * unitario final
-      const precioTotalCalcC = this.mulQtyByUnitToCents(cantidad, precioFinalUnit);
+      const precioTotalCalcC = this.mulQtyByUnitToCents(
+        cantidad,
+        precioFinalUnit,
+      );
       const precioTotalCalc = this.fromCents(precioTotalCalcC);
 
       ui.precio_calculado = precioFinalUnit;
@@ -394,14 +374,16 @@ export class ItemsGastoOperacion {
 
       ui.modulo = moduloId as any;
 
-      // ✅ comparación exacta por centavos (evita falsos positivos por flotantes)
       const dbUnitC = this.toCents(ui.db_precio_unitario || 0);
       const finalUnitC = this.toCents(precioFinalUnit);
 
       const dbTotalC = this.toCents(ui.db_costo_parcial || 0);
       const calcTotalC = precioTotalCalcC;
 
-      if (Math.abs(dbUnitC - finalUnitC) > 1 || Math.abs(dbTotalC - calcTotalC) > 1) {
+      if (
+        Math.abs(dbUnitC - finalUnitC) > 1 ||
+        Math.abs(dbTotalC - calcTotalC) > 1
+      ) {
         this.changedItemIds.add(Number(ui.id));
       }
 
@@ -420,9 +402,8 @@ export class ItemsGastoOperacion {
     }));
   }
 
-  // =========================================================
   // 13) HELPERS / FORMAT / VALIDACIONES
-  // =========================================================
+
   private nuevoForm() {
     return { descripcion: '', unidad: '', cantidad: 0, modulo: null };
   }
@@ -432,9 +413,7 @@ export class ItemsGastoOperacion {
     return Number.isFinite(n) ? n : 0;
   }
   private sanitizeDescripcion(v: string): string {
-    return (v ?? '')
-      .replace(/\s+/g, ' ')
-      .trim();
+    return (v ?? '').replace(/\s+/g, ' ').trim();
   }
   private sanitizeUnidad(v: string): string {
     return (v || '')
@@ -450,7 +429,7 @@ export class ItemsGastoOperacion {
     if (lastSep !== -1) {
       const intPart = s.slice(0, lastSep).replace(/[.,]/g, '');
       const decPart = s.slice(lastSep + 1).replace(/[.,]/g, '');
-      s = intPart + '.' + decPart; 
+      s = intPart + '.' + decPart;
     } else {
       s = s.replace(/[.,]/g, '');
     }
@@ -458,7 +437,9 @@ export class ItemsGastoOperacion {
   }
   toUpper(field: 'descripcion' | 'unidad'): void {
     if (field === 'descripcion') {
-      this.itemForm.descripcion = this.sanitizeDescripcion(this.itemForm.descripcion);
+      this.itemForm.descripcion = this.sanitizeDescripcion(
+        this.itemForm.descripcion,
+      );
       return;
     }
     this.itemForm.unidad = this.sanitizeUnidad(this.itemForm.unidad);
@@ -483,9 +464,8 @@ export class ItemsGastoOperacion {
     return -1;
   }
 
-  // =========================================================
   // 14) FILTROS (TABLA + DROPDOWNS)
-  // =========================================================
+
   onSearchChange(): void {
     const term = (this.searchTerm || '').trim().toLowerCase();
     if (!term) return;
@@ -525,7 +505,6 @@ export class ItemsGastoOperacion {
     });
   }
 
-  // --- Dropdown Form (Registrar/Editar)
   getModuloFormLabel(): string {
     const id = this.toNumber(this.itemForm?.modulo);
     if (!id) return 'Seleccione módulo';
@@ -550,7 +529,6 @@ export class ItemsGastoOperacion {
     this.itemForm.modulo = m.id;
   }
 
-  // --- Dropdown Destino (Mover/Duplicar)
   getModuloDestinoLabel(): string {
     const id = this.toNumber(this.moduloDestino);
     if (!id) return 'Seleccione módulo';
@@ -585,9 +563,8 @@ export class ItemsGastoOperacion {
     this.modulosDestinoFiltrados = [...this.modulosDestino];
   }
 
-  // =========================================================
   // 15) LISTADOS / AGRUPACIÓN POR MÓDULO
-  // =========================================================
+
   modulosConGastos(): Modulo[] {
     const ids = new Set<number>(
       this.gastosFiltrados.map((g) => this.getModuloIdDeGasto(g)),
@@ -610,9 +587,8 @@ export class ItemsGastoOperacion {
     return count + 1;
   }
 
-  // =========================================================
   // 16) CÁLCULOS / TOTALES
-  // =========================================================
+
   getTotalFinal(g: GastoOperacion): number {
     const ui = g as GastoOperacionUI;
     return Number(ui.gastosGenerales?.total) || Number(g.precio_unitario) || 0;
@@ -636,14 +612,13 @@ export class ItemsGastoOperacion {
 
     return this.fromCents(vaC);
   }
-getTotalCostoParcial(): number {
-  const totalCents = this.gastosFiltrados.reduce((s, g) => {
-    return s + this.getPrecioTotalCents(g);
-  }, 0);
+  getTotalCostoParcial(): number {
+    const totalCents = this.gastosFiltrados.reduce((s, g) => {
+      return s + this.getPrecioTotalCents(g);
+    }, 0);
 
-  return this.fromCents(totalCents);
-}
-
+    return this.fromCents(totalCents);
+  }
 
   getTotalProyectoGastosOperacionParcial(): number {
     const totalCents = this.gastosFiltrados.reduce((s, g) => {
@@ -685,9 +660,8 @@ getTotalCostoParcial(): number {
     return this.fromCents(totalCents);
   }
 
-  // =========================================================
   // 17) CRUD (REGISTRAR / EDITAR / ELIMINAR)
-  // =========================================================
+
   abrirModalRegistrar(): void {
     this.clearMensajes();
     this.modoEdicion = false;
@@ -722,33 +696,40 @@ getTotalCostoParcial(): number {
   guardarDesdeModal(): void {
     this.clearMensajes();
 
-    // aplicar sanitizado antes de validar/guardar
-    const descripcion = this.sanitizeDescripcion(this.itemForm.descripcion || '');
+    const descripcion = this.sanitizeDescripcion(
+      this.itemForm.descripcion || '',
+    );
     const unidad = this.sanitizeUnidad(this.itemForm.unidad || '').trim();
-    const cantidadStr = this.sanitizeCantidadInput(String(this.itemForm.cantidad ?? ''));
+    const cantidadStr = this.sanitizeCantidadInput(
+      String(this.itemForm.cantidad ?? ''),
+    );
     const cantidad = Number(cantidadStr);
 
     const moduloId = Number(this.itemForm.modulo) || 0;
 
-    // reflejar en el form lo saneado
     this.itemForm.descripcion = descripcion;
     this.itemForm.unidad = unidad;
-    // @ts-ignore (si tu input de cantidad es number, esto igual funciona al asignar number)
     this.itemForm.cantidad = Number.isFinite(cantidad) ? cantidad : 0;
 
-    if (descripcion.length > 500) return this.mostrarAdvertencia('Descripción muy larga (máx 500).');    if (!descripcion) return this.mostrarAdvertencia('Ingrese una descripción.');
+    if (descripcion.length > 500)
+      return this.mostrarAdvertencia('Descripción muy larga (máx 500).');
+    if (!descripcion)
+      return this.mostrarAdvertencia('Ingrese una descripción.');
 
     // unidad: alfanumérica y max 5
     if (!unidad) return this.mostrarAdvertencia('Seleccione una unidad.');
     if (!/^[A-Z0-9]{1,5}$/.test(unidad))
-      return this.mostrarAdvertencia('La unidad solo acepta letras y números (máx. 5 caracteres).');
+      return this.mostrarAdvertencia(
+        'La unidad solo acepta letras y números (máx. 5 caracteres).',
+      );
 
-    // cantidad: solo número (con . o , permitido al escribir)
     if (!Number.isFinite(cantidad) || cantidad <= 0)
       return this.mostrarAdvertencia('Ingrese una cantidad válida.');
 
     if (moduloId <= 0)
-      return this.mostrarAdvertencia('Seleccione un módulo para asociar el ítem.');
+      return this.mostrarAdvertencia(
+        'Seleccione un módulo para asociar el ítem.',
+      );
 
     const payload: any = {
       descripcion,
@@ -813,9 +794,8 @@ getTotalCostoParcial(): number {
     });
   }
 
-  // =========================================================
   // 18) UNIDADES (AUTOCOMPLETE)
-  // =========================================================
+
   mostrarUnidad(): void {
     this.opcionesUnidad = [...this.catalogoUnidades];
   }
@@ -836,18 +816,15 @@ getTotalCostoParcial(): number {
     this.opcionesUnidad = [];
   }
 
-  // =========================================================
   // 19) OPERACIONES (MOVER / DUPLICAR)
-  // =========================================================
+
   abrirModalAccion(item: GastoOperacionUI): void {
     this.itemSeleccionado = item;
 
-    // por defecto mover
     this.accionAccionModal = 'MOVER';
 
     const actualId = this.getModuloIdDeGasto(item);
 
-    // MOVER => no permite el mismo módulo
     this.modulosDestino = this.modulos.filter((m) => m.id !== actualId);
 
     this.moduloDestino = null;
@@ -895,7 +872,7 @@ getTotalCostoParcial(): number {
 
     if (this.accionAccionModal === 'MOVER') {
       this.service
-        .moverItem(this.itemSeleccionado.id, destino /*, this.posicionDestino*/)
+        .moverItem(this.itemSeleccionado.id, destino)
         .pipe(
           tap(() => this.service.notifyDataChanged()),
           catchError((err) => {
@@ -913,10 +890,7 @@ getTotalCostoParcial(): number {
     }
 
     this.service
-      .duplicarItem(
-        this.itemSeleccionado.id,
-        destino /*, this.posicionDestino*/,
-      )
+      .duplicarItem(this.itemSeleccionado.id, destino)
       .pipe(
         tap(() => this.service.notifyDataChanged()),
         catchError((err) => {
@@ -933,9 +907,8 @@ getTotalCostoParcial(): number {
       });
   }
 
-  // =========================================================
   // 20) CAMBIOS (BULK UPDATE)
-  // =========================================================
+
   hasChanges(g: any): boolean {
     return this.changedItemIds.has(Number(g?.id));
   }
@@ -962,8 +935,10 @@ getTotalCostoParcial(): number {
 
         const cantidad = Number(ui.cantidad) || 0;
 
-        // ✅ costo parcial exacto centavos
-        const costoParcialC = this.mulQtyByUnitToCents(cantidad, precioFinalUnit);
+        const costoParcialC = this.mulQtyByUnitToCents(
+          cantidad,
+          precioFinalUnit,
+        );
         const costoParcial = this.fromCents(costoParcialC);
 
         const payload: any = {
@@ -996,9 +971,8 @@ getTotalCostoParcial(): number {
       });
   }
 
-  // =========================================================
   // 21) INSUMOS (MODAL / CARGA / FILTRO / UPDATE)
-  // =========================================================
+
   abrirModalInsumos(): void {
     this.mostrarModalInsumos = true;
     this.tipoInsumoSeleccionado = '';
@@ -1144,9 +1118,8 @@ getTotalCostoParcial(): number {
       });
   }
 
-  // =========================================================
   // 22) NAVEGACIÓN
-  // =========================================================
+
   enviarAEcuacion(item: GastoOperacion): void {
     this.router.navigate(['panel-control/CrearEcuacion'], {
       queryParams: {
@@ -1202,9 +1175,8 @@ getTotalCostoParcial(): number {
     });
   }
 
-  // =========================================================
   // 23) PDF
-  // =========================================================
+
   generarPDF(
     ctx: Contexto,
     payload: {
@@ -1363,9 +1335,8 @@ getTotalCostoParcial(): number {
     });
   }
 
-  // =========================================================
   // 24) MENSAJES / CIERRE MODALES
-  // =========================================================
+
   manejarOk(): void {
     this.mensajeExito = '';
   }

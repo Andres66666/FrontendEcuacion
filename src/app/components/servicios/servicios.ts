@@ -137,8 +137,6 @@ export class Servicios {
     alert(
       `Procesando pago de Bs. ${this.precioFinal} para el plan ${this.planSeleccionado.nombre}`,
     );
-    // Llamar al servicio para generar query / método de pago
-    // this.serviciosService.generarPago(this.planSeleccionado, this.tipoPago);
   }
   abrirPago() {
     if (!this.usuarioLogeado) {
@@ -149,8 +147,5 @@ export class Servicios {
     alert(
       `Procesando pago de Bs. ${this.precioFinal} para el plan ${this.planSeleccionado.nombre} (${this.tipoPago})`,
     );
-
-    // Llamar al servicio para generar query / método de pago
-    // this.serviciosService.generarPago(this.planSeleccionado, this.tipoPago);
   }
 }

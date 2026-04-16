@@ -1,5 +1,7 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { BehaviorSubject, Observable, Subject, throwError } from 'rxjs';
+import { tap } from 'rxjs/operators';
 import {
   EquipoHerramienta,
   GastoOperacion,
@@ -9,8 +11,6 @@ import {
   Modulo,
   Proyecto,
 } from '../models/modelosProyectos';
-import { BehaviorSubject, Observable, Subject, throwError } from 'rxjs';
-import { tap } from 'rxjs/operators';
 export type MaterialPayload = Omit<Materiales, 'id' | 'total'> & {
   id?: number;
 };
@@ -19,7 +19,7 @@ export type MaterialPayload = Omit<Materiales, 'id' | 'total'> & {
   providedIn: 'root',
 })
 export class ServiciosProyectos {
- /*  private apiUrl = 'http://localhost:8000/api/'; */
+  /*  private apiUrl = 'http://localhost:8000/api/'; */
   private apiUrl = 'https://backendecuacion.onrender.com/api/';
 
   private dataChanged = new BehaviorSubject<void>(undefined);

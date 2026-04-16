@@ -7,11 +7,11 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
-import { OkComponent } from '../../../mensajes/ok/ok.component';
-import { ErrorComponent } from '../../../mensajes/error/error.component';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Rol, Usuario } from '../../../../models/models';
 import { ServiciosService } from '../../../../services/servicios.service';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ErrorComponent } from '../../../mensajes/error/error.component';
+import { OkComponent } from '../../../mensajes/ok/ok.component';
 
 @Component({
   selector: 'app-editar-usuario-rol',
@@ -31,7 +31,7 @@ export class EditarUsuarioRolComponent implements OnInit {
   usuarios: Usuario[] = [];
   roles: Rol[] = [];
 
-  id!: number; // ID del registro a editar
+  id!: number;
   mensajeExito: string = '';
   mensajeError: string = '';
   originalData: any = {};
@@ -40,7 +40,7 @@ export class EditarUsuarioRolComponent implements OnInit {
     private fb: FormBuilder,
     private service: ServiciosService,
     private router: Router,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
   ) {
     this.form = this.fb.group({
       id: [null],
@@ -51,7 +51,7 @@ export class EditarUsuarioRolComponent implements OnInit {
 
   ngOnInit(): void {
     this.id = +this.route.snapshot.paramMap.get('id')!;
-    this.loadRelacion(); // Cargar datos actuales primero
+    this.loadRelacion();
   }
 
   loadRelacion() {
@@ -67,7 +67,6 @@ export class EditarUsuarioRolComponent implements OnInit {
         rol: data.rol.id,
       });
 
-      // Cargar usuarios y roles disponibles después de cargar el registro
       this.loadUsuarios(data.usuario.id);
       this.loadRoles();
     });
@@ -75,13 +74,12 @@ export class EditarUsuarioRolComponent implements OnInit {
 
   loadUsuarios(usuarioActualId: number) {
     this.service.getUsuarios().subscribe((data) => {
-      // Solo usuarios activos que NO tengan rol asignado o el usuario que estamos editando
       this.service.getUsuarioRoles().subscribe((asignaciones) => {
         const usuariosConRol = asignaciones.map((a) => a.usuario.id);
         this.usuarios = data.filter(
           (u) =>
             u.estado &&
-            (!usuariosConRol.includes(u.id) || u.id === usuarioActualId)
+            (!usuariosConRol.includes(u.id) || u.id === usuarioActualId),
         );
       });
     });
@@ -89,7 +87,7 @@ export class EditarUsuarioRolComponent implements OnInit {
 
   loadRoles() {
     this.service.getRoles().subscribe((data) => {
-      this.roles = data.filter((r) => r.estado); // solo roles activos
+      this.roles = data.filter((r) => r.estado);
     });
   }
 
@@ -101,10 +99,9 @@ export class EditarUsuarioRolComponent implements OnInit {
 
     const formData = this.form.value;
 
-    // Validación: usuario no puede tener otro rol diferente al original
     this.service.getUsuarioRoles().subscribe((registros) => {
       const existe = registros.some(
-        (r: any) => r.id !== formData.id && r.usuario.id === formData.usuario
+        (r: any) => r.id !== formData.id && r.usuario.id === formData.usuario,
       );
 
       if (existe) {

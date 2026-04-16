@@ -71,7 +71,7 @@ export class ReportesPdf {
   // ========================
   // FORMATOS / HELPERS
   // ========================
-  
+
   // ===================== LITERAL (Bs) =====================
   private numeroLiteralBs(valor: number): string {
     const n = Number(valor) || 0;
@@ -81,11 +81,9 @@ export class ReportesPdf {
     const entero = Math.floor(red);
     const cent = Math.round((red - entero) * 100);
 
-    // Literal solo entero (sin "bolivianos")
     let literal = NumeroALetras.convertir(entero);
     if (!literal) literal = 'cero';
 
-    // Capitaliza primera letra
     literal = literal.charAt(0).toUpperCase() + literal.slice(1);
 
     const centStr = cent.toString().padStart(2, '0');
@@ -209,8 +207,8 @@ export class ReportesPdf {
 
       return {
         ...r,
-        id_gasto_operacion: idGo,     // normalizado para filtros
-        cantidad_item: cantItem ?? 1, //  fallback 1 (NO 0)
+        id_gasto_operacion: idGo,
+        cantidad_item: cantItem ?? 1,
       };
     });
   }
@@ -229,20 +227,20 @@ export class ReportesPdf {
     >();
 
     (datos || []).forEach((item) => {
-      const desc = (item?.[descripcionKey] || '').toString().toUpperCase().trim();
+      const desc = (item?.[descripcionKey] || '')
+        .toString()
+        .toUpperCase()
+        .trim();
       if (!desc) return;
 
-      const cantInsumo = this.parseNumero(item?.[cantidadKey]);        // cantidad del material/MO/equipo
+      const cantInsumo = this.parseNumero(item?.[cantidadKey]); // cantidad del material/MO/equipo
       const cantItem = this.parseNumero(item?.[cantidadItemKey] ?? 1); // fallback 1
-      const precio = this.parseNumero(item?.[precioKey]);              // precio unitario
+      const precio = this.parseNumero(item?.[precioKey]); // precio unitario
 
-      // cantidad real por fila = cantidad_insumo * cantidad_item
       const qtyReal = cantInsumo * cantItem;
 
-      // qty a micro-unidades (5 decimales) para suma exacta
       const qtyMicro = Math.round((qtyReal + Number.EPSILON) * QTY_SCALE);
 
-      // subtotal por fila redondeado a centavos
       const priceCents = this.toCents(precio);
       const subtotalCents = Math.round((qtyMicro * priceCents) / QTY_SCALE);
 
@@ -259,10 +257,9 @@ export class ReportesPdf {
     });
 
     return Array.from(mapa.entries()).map(([descripcion, d]) => {
-      const cantidad = d.qtyMicro / QTY_SCALE;    // cantidad total (5 decimales)
+      const cantidad = d.qtyMicro / QTY_SCALE; // cantidad total (5 decimales)
       const total = this.fromCents(d.totalCents); // total exacto en Bs (2 decimales)
 
-      // precio unitario ponderado coherente con total
       const precio_unitario = cantidad ? this.redondear2(total / cantidad) : 0;
 
       return {
@@ -472,7 +469,10 @@ export class ReportesPdf {
       } else {
         const ellipsis = '...';
         let truncated = proyectoTexto;
-        while (truncated.length > 0 && doc.getTextWidth(truncated + ellipsis) > availableWidth) {
+        while (
+          truncated.length > 0 &&
+          doc.getTextWidth(truncated + ellipsis) > availableWidth
+        ) {
           truncated = truncated.slice(0, -1);
         }
         const finalText = truncated.length ? truncated + ellipsis : '';
@@ -482,7 +482,9 @@ export class ReportesPdf {
       doc.setFontSize(baseFontSize);
     }
 
-    doc.text('Moneda: en Bolivianos', pageWidth / 2, currentY, { align: 'center' });
+    doc.text('Moneda: en Bolivianos', pageWidth / 2, currentY, {
+      align: 'center',
+    });
     currentY += lineHeight;
 
     const body: any[] = [];
@@ -498,10 +500,11 @@ export class ReportesPdf {
       );
       if (!gastosModulo.length) return;
 
-      // ✅ SOLO CABECERA DE MÓDULO (sin subtotal ni literal por módulo)
+      //  SOLO CABECERA DE MÓDULO (sin subtotal ni literal por módulo)
       body.push([
         {
-          content: `MÓDULO: ${(m.codigo || '').trim()} ${(m.nombre || '').trim()}`.trim(),
+          content:
+            `MÓDULO: ${(m.codigo || '').trim()} ${(m.nombre || '').trim()}`.trim(),
           colSpan: 7,
           styles: { fontStyle: 'bold', halign: 'left' },
         },
@@ -509,9 +512,11 @@ export class ReportesPdf {
 
       gastosModulo.forEach((g) => {
         const precioUnit = this.getTotalFinal(g);
-        const precioTotal = this.roundToTwo((Number(g.cantidad) || 0) * precioUnit);
+        const precioTotal = this.roundToTwo(
+          (Number(g.cantidad) || 0) * precioUnit,
+        );
 
-        // ✅ CORRECCIÓN: literal del UNITARIO, no del TOTAL
+        //  CORRECCIÓN: literal del UNITARIO, no del TOTAL
         const literalUnitario = this.numeroLiteralBs(precioUnit);
 
         body.push([
@@ -533,11 +538,14 @@ export class ReportesPdf {
     });
 
     const totalProyecto = this.roundToTwo(
-      (data.gastos || []).reduce((sum, g) => sum + this.getPrecioTotalItem(g), 0),
+      (data.gastos || []).reduce(
+        (sum, g) => sum + this.getPrecioTotalItem(g),
+        0,
+      ),
     );
     const totalProyectoLiteral = this.numeroLiteralBs(totalProyecto);
 
-    // ✅ Mantenemos el literal SOLO para el total del proyecto (fila final)
+    //  Mantenemos el literal SOLO para el total del proyecto (fila final)
     body.push([
       {
         content: 'PRECIO TOTAL DEL PROYECTO',
@@ -569,7 +577,8 @@ export class ReportesPdf {
     const wTotal = 22;
 
     const wDescripcion =
-      totalTableWidth - (wItem + wUnidad + wCantidad + wUnitario + wLiteral + wTotal);
+      totalTableWidth -
+      (wItem + wUnidad + wCantidad + wUnitario + wLiteral + wTotal);
 
     autoTable(doc, {
       startY: currentY + 2,
@@ -579,8 +588,14 @@ export class ReportesPdf {
           { content: 'Descripción', styles: { halign: 'center' } },
           { content: 'Unidad', styles: { halign: 'center' } },
           { content: 'Cantidad', styles: { halign: 'center' } },
-          { content: 'Precio Unitario (Numeral)', styles: { halign: 'center' } },
-          { content: 'Precio Unitario (Literal)', styles: { halign: 'center' } },
+          {
+            content: 'Precio Unitario (Numeral)',
+            styles: { halign: 'center' },
+          },
+          {
+            content: 'Precio Unitario (Literal)',
+            styles: { halign: 'center' },
+          },
           { content: 'Precio Total (Numeral)', styles: { halign: 'center' } },
         ],
       ],
@@ -666,9 +681,9 @@ export class ReportesPdf {
       doc.text('Actividad:', labelX, startY);
       doc.setFont('helvetica', 'bold');
       const nro = indexGasto + 1;
-      const actividad = `${nro} - ${(gasto.descripcion || '').toString().trim()}`.toUpperCase();
+      const actividad =
+        `${nro} - ${(gasto.descripcion || '').toString().trim()}`.toUpperCase();
       doc.text(actividad, valueX, startY);
-
 
       startY += lineSpacing;
       doc.setFont('helvetica', 'normal');
@@ -1116,19 +1131,34 @@ export class ReportesPdf {
     switch (tipo) {
       case 'materiales': {
         const rows = this.withCantidadItem(data, data.materiales);
-        const d = this.agruparPorDescripcion(rows, 'descripcion', 'cantidad', 'precio_unitario');
+        const d = this.agruparPorDescripcion(
+          rows,
+          'descripcion',
+          'cantidad',
+          'precio_unitario',
+        );
         this.generarPDFSimple(data, 'Materiales', d);
         return;
       }
       case 'manoDeObra': {
         const rows = this.withCantidadItem(data, data.manoDeObra);
-        const d = this.agruparPorDescripcion(rows, 'descripcion', 'cantidad', 'precio_unitario');
+        const d = this.agruparPorDescripcion(
+          rows,
+          'descripcion',
+          'cantidad',
+          'precio_unitario',
+        );
         this.generarPDFSimple(data, 'Mano de Obra', d);
         return;
       }
       case 'equipos': {
         const rows = this.withCantidadItem(data, data.equipos);
-        const d = this.agruparPorDescripcion(rows, 'descripcion', 'cantidad', 'precio_unitario');
+        const d = this.agruparPorDescripcion(
+          rows,
+          'descripcion',
+          'cantidad',
+          'precio_unitario',
+        );
         this.generarPDFSimple(data, 'Equipo y Herramientas', d);
         return;
       }
@@ -1255,11 +1285,13 @@ export class ReportesPdf {
     const marginTop = 20;
 
     // ========= Helpers dinero exacto (centavos) =========
-    const toCents = (v: any) => Math.round((Number(v || 0) + Number.EPSILON) * 100);
+    const toCents = (v: any) =>
+      Math.round((Number(v || 0) + Number.EPSILON) * 100);
     const fromCents = (c: number) => c / 100;
 
     // % a basis points (2 decimales de %): 13 => 1300
-    const pctToBp = (pct: any) => Math.round((Number(pct || 0) + Number.EPSILON) * 100);
+    const pctToBp = (pct: any) =>
+      Math.round((Number(pct || 0) + Number.EPSILON) * 100);
     // baseCents * bp / 10000 => centavos (redondeo real)
     const applyPctCents = (baseCents: number, pct: any) => {
       const bp = pctToBp(pct);
@@ -1299,13 +1331,20 @@ export class ReportesPdf {
     const costoVenta = fromCents(costoVentaC);
 
     const gastoOperacion31 =
-      precioFactura3C > 0 ? this.redondear2((gastosOperacionC * 100) / precioFactura3C) : 0;
+      precioFactura3C > 0
+        ? this.redondear2((gastosOperacionC * 100) / precioFactura3C)
+        : 0;
 
     const valorAgregado31 =
-      precioFactura3C > 0 ? this.redondear2((valorAgregadoC * 100) / precioFactura3C) : 0;
+      precioFactura3C > 0
+        ? this.redondear2((valorAgregadoC * 100) / precioFactura3C)
+        : 0;
 
     //  Ajuste para que % sume 100.00 exacto (por redondeos)
-    const precioFactura31 = this.redondear2(100 - (gastoOperacion31 + valorAgregado31)) + gastoOperacion31 + valorAgregado31;
+    const precioFactura31 =
+      this.redondear2(100 - (gastoOperacion31 + valorAgregado31)) +
+      gastoOperacion31 +
+      valorAgregado31;
 
     // ========================
     // SECCIÓN 4 (exacto)
@@ -1355,7 +1394,8 @@ export class ReportesPdf {
     const impuestosCol1C = totalImpuestos5C;
 
     //  PF = gastos + impuestos + utilidad neta (NO sumes ganancia+comp por separado, ya están dentro de utilidad neta)
-    const precioFacturaCol1C = gastosOperacionC + impuestosCol1C + totalUtilidadNetaC;
+    const precioFacturaCol1C =
+      gastosOperacionC + impuestosCol1C + totalUtilidadNetaC;
 
     const gananciaCol1 = fromCents(gananciaCol1C);
     const compensacionDuenoCol1 = fromCents(compensacionDuenoCol1C);
@@ -1363,13 +1403,22 @@ export class ReportesPdf {
     const gastosOperacionCol1 = fromCents(gastosOperacionC);
     const precioFacturaCol1 = fromCents(precioFacturaCol1C);
 
-    const gananciaCol2 = precioFacturaCol1C > 0 ? (gananciaCol1C * 100) / precioFacturaCol1C : 0;
-    const compensacionDuenoCol2 = precioFacturaCol1C > 0 ? (compensacionDuenoCol1C * 100) / precioFacturaCol1C : 0;
-    const impuestosCol2 = precioFacturaCol1C > 0 ? (impuestosCol1C * 100) / precioFacturaCol1C : 0;
-    const gastosOperacionCol2 = precioFacturaCol1C > 0 ? (gastosOperacionC * 100) / precioFacturaCol1C : 0;
+    const gananciaCol2 =
+      precioFacturaCol1C > 0 ? (gananciaCol1C * 100) / precioFacturaCol1C : 0;
+    const compensacionDuenoCol2 =
+      precioFacturaCol1C > 0
+        ? (compensacionDuenoCol1C * 100) / precioFacturaCol1C
+        : 0;
+    const impuestosCol2 =
+      precioFacturaCol1C > 0 ? (impuestosCol1C * 100) / precioFacturaCol1C : 0;
+    const gastosOperacionCol2 =
+      precioFacturaCol1C > 0
+        ? (gastosOperacionC * 100) / precioFacturaCol1C
+        : 0;
 
     //  Ajuste exacto para que % sume 100.000 (3 decimales)
-    const toMil = (v: number) => Math.round((Number(v || 0) + Number.EPSILON) * 1000);
+    const toMil = (v: number) =>
+      Math.round((Number(v || 0) + Number.EPSILON) * 1000);
     const fromMil = (m: number) => m / 1000;
 
     const ganMil6 = toMil(gananciaCol2);
@@ -1410,7 +1459,9 @@ export class ReportesPdf {
     // retorno = gastosOperacion / ganancia
     // ========================
     const retornoInversion8 =
-      gananciaCol1C !== 0 ? this.redondear2(gastosOperacionC / gananciaCol1C) : 0;
+      gananciaCol1C !== 0
+        ? this.redondear2(gastosOperacionC / gananciaCol1C)
+        : 0;
 
     // ========================
     // PDF: TÍTULO + ENCABEZADO
@@ -1494,12 +1545,24 @@ export class ReportesPdf {
       ],
       theme: 'grid',
       pageBreak: 'auto',
-      styles: { fontSize: 7, cellPadding: 2, overflow: 'hidden', valign: 'middle' },
-      headStyles: {
-        fontSize: 7, fontStyle: 'bold', fillColor: [255,255,255], textColor: [0,0,0],
-        lineWidth: 0.1, halign: 'center',
+      styles: {
+        fontSize: 7,
+        cellPadding: 2,
+        overflow: 'hidden',
+        valign: 'middle',
       },
-      columnStyles: { 0: { cellWidth: 80 }, 1: { cellWidth: 20, halign: 'right' } },
+      headStyles: {
+        fontSize: 7,
+        fontStyle: 'bold',
+        fillColor: [255, 255, 255],
+        textColor: [0, 0, 0],
+        lineWidth: 0.1,
+        halign: 'center',
+      },
+      columnStyles: {
+        0: { cellWidth: 80 },
+        1: { cellWidth: 20, halign: 'right' },
+      },
       margin: { left: marginLeft, right: marginRight },
     });
 
@@ -1519,12 +1582,24 @@ export class ReportesPdf {
       body: [['VALOR AGREGADO', this.formatearNumero(valorAgregado)]],
       theme: 'grid',
       pageBreak: 'auto',
-      styles: { fontSize: 7, cellPadding: 2, overflow: 'hidden', valign: 'middle' },
-      headStyles: {
-        fontSize: 7, fontStyle: 'bold', fillColor: [255,255,255], textColor: [0,0,0],
-        lineWidth: 0.1, halign: 'center',
+      styles: {
+        fontSize: 7,
+        cellPadding: 2,
+        overflow: 'hidden',
+        valign: 'middle',
       },
-      columnStyles: { 0: { cellWidth: 80 }, 1: { cellWidth: 20, halign: 'right' } },
+      headStyles: {
+        fontSize: 7,
+        fontStyle: 'bold',
+        fillColor: [255, 255, 255],
+        textColor: [0, 0, 0],
+        lineWidth: 0.1,
+        halign: 'center',
+      },
+      columnStyles: {
+        0: { cellWidth: 80 },
+        1: { cellWidth: 20, halign: 'right' },
+      },
       margin: { left: marginLeft, right: marginRight },
     });
 
@@ -1542,16 +1617,37 @@ export class ReportesPdf {
       startY,
       head: [['DESCRIPCION', 'MONTO (Bs)', '%']],
       body: [
-        ['GASTOS DE OPERACIÓN', this.formatearNumero(gastosOperacion), `${this.formatearNumero(gastoOperacion31)}%`],
-        ['VALOR AGREGADO', this.formatearNumero(valorAgregado), `${this.formatearNumero(valorAgregado31)}%`],
-        ['PRECIO FACTURA', this.formatearNumero(precioFactura3), `${this.formatearNumero(precioFactura31)}%`],
+        [
+          'GASTOS DE OPERACIÓN',
+          this.formatearNumero(gastosOperacion),
+          `${this.formatearNumero(gastoOperacion31)}%`,
+        ],
+        [
+          'VALOR AGREGADO',
+          this.formatearNumero(valorAgregado),
+          `${this.formatearNumero(valorAgregado31)}%`,
+        ],
+        [
+          'PRECIO FACTURA',
+          this.formatearNumero(precioFactura3),
+          `${this.formatearNumero(precioFactura31)}%`,
+        ],
       ],
       theme: 'grid',
       pageBreak: 'auto',
-      styles: { fontSize: 7, cellPadding: 2, overflow: 'hidden', valign: 'middle' },
+      styles: {
+        fontSize: 7,
+        cellPadding: 2,
+        overflow: 'hidden',
+        valign: 'middle',
+      },
       headStyles: {
-        fontSize: 7, fontStyle: 'bold', fillColor: [255,255,255], textColor: [0,0,0],
-        lineWidth: 0.1, halign: 'center',
+        fontSize: 7,
+        fontStyle: 'bold',
+        fillColor: [255, 255, 255],
+        textColor: [0, 0, 0],
+        lineWidth: 0.1,
+        halign: 'center',
       },
       columnStyles: {
         0: { cellWidth: 80 },
@@ -1577,17 +1673,32 @@ export class ReportesPdf {
       body: [
         ['COSTO DE VENTA', this.formatearNumero(costoVenta4)],
         ['MARGEN DE UTILIDAD', this.formatearNumero(margenUtilidad)],
-        [`IVA ${this.formatearNumero(ivaNominal)}% DE PRECIO FACTURA`, this.formatearNumero(iva13)],
+        [
+          `IVA ${this.formatearNumero(ivaNominal)}% DE PRECIO FACTURA`,
+          this.formatearNumero(iva13),
+        ],
         ['PRECIO FACTURA', this.formatearNumero(precioFactura3)],
       ],
       theme: 'grid',
       pageBreak: 'auto',
-      styles: { fontSize: 7, cellPadding: 2, overflow: 'hidden', valign: 'middle' },
-      headStyles: {
-        fontSize: 7, fontStyle: 'bold', fillColor: [255,255,255], textColor: [0,0,0],
-        lineWidth: 0.1, halign: 'center',
+      styles: {
+        fontSize: 7,
+        cellPadding: 2,
+        overflow: 'hidden',
+        valign: 'middle',
       },
-      columnStyles: { 0: { cellWidth: 80 }, 1: { cellWidth: 20, halign: 'right' } },
+      headStyles: {
+        fontSize: 7,
+        fontStyle: 'bold',
+        fillColor: [255, 255, 255],
+        textColor: [0, 0, 0],
+        lineWidth: 0.1,
+        halign: 'center',
+      },
+      columnStyles: {
+        0: { cellWidth: 80 },
+        1: { cellWidth: 20, halign: 'right' },
+      },
       margin: { left: marginLeft, right: marginRight },
     });
 
@@ -1608,20 +1719,44 @@ export class ReportesPdf {
         ['PRECIO FACTURA', this.formatearNumero(precioFactura3)],
         ['GASTOS DE OPERACIÓN', `-${this.formatearNumero(gastosOperacion)}`],
         ['VALOR AGREGADO', this.formatearNumero(valorAgregado)],
-        [`IMPUESTO IVA ${this.formatearNumero(ivaNominal)}%`, this.formatearNumero(impuestoIva5)],
-        [`IT ${this.formatearNumero(itPct)}% DE LA FACTURA`, this.formatearNumero(itefactura5)],
-        [`IUE ${this.formatearNumero(iuePct)}% UTILIDAD`, this.formatearNumero(iueUtilidad5)],
+        [
+          `IMPUESTO IVA ${this.formatearNumero(ivaNominal)}%`,
+          this.formatearNumero(impuestoIva5),
+        ],
+        [
+          `IT ${this.formatearNumero(itPct)}% DE LA FACTURA`,
+          this.formatearNumero(itefactura5),
+        ],
+        [
+          `IUE ${this.formatearNumero(iuePct)}% UTILIDAD`,
+          this.formatearNumero(iueUtilidad5),
+        ],
         ['TOTAL IMPUESTOS', this.formatearNumero(fromCents(totalImpuestos5C))],
-        ['TOTAL UTILIDAD NETA (100%)', this.formatearNumero(fromCents(totalUtilidadNetaC))],
+        [
+          'TOTAL UTILIDAD NETA (100%)',
+          this.formatearNumero(fromCents(totalUtilidadNetaC)),
+        ],
       ],
       theme: 'grid',
       pageBreak: 'auto',
-      styles: { fontSize: 7, cellPadding: 2, overflow: 'hidden', valign: 'middle' },
-      headStyles: {
-        fontSize: 7, fontStyle: 'bold', fillColor: [255,255,255], textColor: [0,0,0],
-        lineWidth: 0.1, halign: 'center',
+      styles: {
+        fontSize: 7,
+        cellPadding: 2,
+        overflow: 'hidden',
+        valign: 'middle',
       },
-      columnStyles: { 0: { cellWidth: 80 }, 1: { cellWidth: 20, halign: 'right' } },
+      headStyles: {
+        fontSize: 7,
+        fontStyle: 'bold',
+        fillColor: [255, 255, 255],
+        textColor: [0, 0, 0],
+        lineWidth: 0.1,
+        halign: 'center',
+      },
+      columnStyles: {
+        0: { cellWidth: 80 },
+        1: { cellWidth: 20, halign: 'right' },
+      },
       margin: { left: marginLeft, right: marginRight },
     });
 
@@ -1674,10 +1809,19 @@ export class ReportesPdf {
       ],
       theme: 'grid',
       pageBreak: 'auto',
-      styles: { fontSize: 7, cellPadding: 2, overflow: 'hidden', valign: 'middle' },
+      styles: {
+        fontSize: 7,
+        cellPadding: 2,
+        overflow: 'hidden',
+        valign: 'middle',
+      },
       headStyles: {
-        fontSize: 7, fontStyle: 'bold', fillColor: [255,255,255], textColor: [0,0,0],
-        lineWidth: 0.1, halign: 'center',
+        fontSize: 7,
+        fontStyle: 'bold',
+        fillColor: [255, 255, 255],
+        textColor: [0, 0, 0],
+        lineWidth: 0.1,
+        halign: 'center',
       },
       columnStyles: {
         0: { cellWidth: 60 },
@@ -1702,19 +1846,43 @@ export class ReportesPdf {
       startY,
       head: [['DESCRIPCION', 'PORCENTAJE']],
       body: [
-        ['RENTABILIDAD (PROYECTO)', `${this.formatearNumero(rentabilidadProyecto7)}%`],
-        ['RENTABILIDAD (GANANCIA)', `${this.formatearNumero3(rentabilidadGanancia7)}%`],
-        ['RENTABILIDAD (COMPENSACIÓN DEL DUEÑO)', `${this.formatearNumero3(rentabilidadCompDueno7)}%`],
-        ['RENTABILIDAD (IMPUESTOS)', `${this.formatearNumero(rentabilidadImpuestos7)}%`],
+        [
+          'RENTABILIDAD (PROYECTO)',
+          `${this.formatearNumero(rentabilidadProyecto7)}%`,
+        ],
+        [
+          'RENTABILIDAD (GANANCIA)',
+          `${this.formatearNumero3(rentabilidadGanancia7)}%`,
+        ],
+        [
+          'RENTABILIDAD (COMPENSACIÓN DEL DUEÑO)',
+          `${this.formatearNumero3(rentabilidadCompDueno7)}%`,
+        ],
+        [
+          'RENTABILIDAD (IMPUESTOS)',
+          `${this.formatearNumero(rentabilidadImpuestos7)}%`,
+        ],
       ],
       theme: 'grid',
       pageBreak: 'auto',
-      styles: { fontSize: 7, cellPadding: 2, overflow: 'hidden', valign: 'middle' },
-      headStyles: {
-        fontSize: 7, fontStyle: 'bold', fillColor: [255,255,255], textColor: [0,0,0],
-        lineWidth: 0.1, halign: 'center',
+      styles: {
+        fontSize: 7,
+        cellPadding: 2,
+        overflow: 'hidden',
+        valign: 'middle',
       },
-      columnStyles: { 0: { cellWidth: 80 }, 1: { cellWidth: 25, halign: 'right' } },
+      headStyles: {
+        fontSize: 7,
+        fontStyle: 'bold',
+        fillColor: [255, 255, 255],
+        textColor: [0, 0, 0],
+        lineWidth: 0.1,
+        halign: 'center',
+      },
+      columnStyles: {
+        0: { cellWidth: 80 },
+        1: { cellWidth: 25, halign: 'right' },
+      },
       margin: { left: marginLeft, right: marginRight },
     });
 
@@ -1730,12 +1898,17 @@ export class ReportesPdf {
 
     autoTable(doc, {
       startY,
-      tableWidth: 'wrap', // ✅ evita que se estire y cree ese “cuadro” extra
+      tableWidth: 'wrap', //  evita que se estire y cree ese “cuadro” extra
       head: [['DESCRIPCION', 'N° DE TRANSACCION']],
       body: [['RETORNO', this.formatearNumero(retornoInversion8)]],
       theme: 'grid',
       pageBreak: 'auto',
-      styles: { fontSize: 7, cellPadding: 2, overflow: 'hidden', valign: 'middle' },
+      styles: {
+        fontSize: 7,
+        cellPadding: 2,
+        overflow: 'hidden',
+        valign: 'middle',
+      },
       headStyles: {
         fontSize: 7,
         fontStyle: 'bold',
@@ -1745,8 +1918,8 @@ export class ReportesPdf {
         halign: 'center',
       },
       columnStyles: {
-        0: { cellWidth: 80 },                 // ✅ igual que sección 7
-        1: { cellWidth: 35, halign: 'right' } // ✅ igual que sección 7 (segundo col)
+        0: { cellWidth: 80 }, //  igual que sección 7
+        1: { cellWidth: 35, halign: 'right' }, //  igual que sección 7 (segundo col)
       },
       margin: { left: marginLeft, right: marginRight },
     });

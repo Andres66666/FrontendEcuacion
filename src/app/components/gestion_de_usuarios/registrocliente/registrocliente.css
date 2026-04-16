@@ -1,0 +1,63 @@
+:host {
+  display: block;
+  width: 100%;
+}
+
+.registro-wrapper {
+  width: 100%;
+}
+
+.registro-card {
+  background: #ffffff;
+  max-width: 980px;
+  margin: 0 auto;
+}
+
+.form-label {
+  margin-bottom: 0.5rem;
+  font-size: 0.98rem;
+}
+
+.input-group-text {
+  background-color: #fff;
+  min-width: 52px;
+  justify-content: center;
+}
+
+.form-control,
+.input-group-text,
+.btn {
+  border-radius: 0.85rem;
+}
+
+.input-group > .form-control,
+.input-group > .input-group-text,
+.input-group > .btn {
+  min-height: 56px;
+}
+
+.alert {
+  font-size: 0.95rem;
+}
+
+@media (max-width: 991.98px) {
+  .registro-card {
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .card-body {
+    padding: 1.25rem !important;
+  }
+
+  h2 {
+    font-size: 1.75rem;
+  }
+
+  .btn,
+  .form-control,
+  .input-group-text {
+    font-size: 0.95rem;
+  }
+}

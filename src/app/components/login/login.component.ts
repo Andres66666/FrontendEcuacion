@@ -1,12 +1,12 @@
+import { CommonModule } from '@angular/common';
 import { Component, ElementRef, QueryList, ViewChildren } from '@angular/core';
+import { FormsModule, NgForm } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ServiciosService } from '../../services/servicios.service';
-import { CommonModule } from '@angular/common';
-import { FormsModule, NgForm } from '@angular/forms';
+import { Advertencia } from '../mensajes/advertencia/advertencia';
+import { ConfirmacionComponent } from '../mensajes/confirmacion/confirmacion.component';
 import { ErrorComponent } from '../mensajes/error/error.component';
 import { OkComponent } from '../mensajes/ok/ok.component';
-import { Advertencia } from '../mensajes/advertencia/advertencia';
-import { ConfirmacionComponent } from '../mensajes/confirmacion/confirmacion/confirmacion.component';
 
 @Component({
   selector: 'app-login',

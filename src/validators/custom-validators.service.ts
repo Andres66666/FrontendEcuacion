@@ -5,9 +5,9 @@ import {
   ValidationErrors,
   ValidatorFn,
 } from '@angular/forms';
-import { ServiciosService } from '../app/services/servicios.service';
-import { map, catchError } from 'rxjs/operators';
 import { of } from 'rxjs';
+import { catchError, map } from 'rxjs/operators';
+import { ServiciosService } from '../app/services/servicios.service';
 @Injectable({
   providedIn: 'root',
 })
@@ -74,7 +74,7 @@ export class CustomValidatorsService {
         catchError((error) => {
           console.error('Error al validar rol:', error);
           return of(null);
-        })
+        }),
       );
     };
   }
@@ -101,7 +101,7 @@ export class CustomValidatorsService {
         catchError((error) => {
           console.error('Error al validar permiso:', error);
           return of(null);
-        })
+        }),
       );
     };
   }
@@ -118,7 +118,7 @@ export class CustomValidatorsService {
   }
   correoUnico(): AsyncValidatorFn {
     return async (
-      control: AbstractControl
+      control: AbstractControl,
     ): Promise<ValidationErrors | null> => {
       const email = control.value?.trim().toLowerCase();
       if (!email) return null;
@@ -126,7 +126,7 @@ export class CustomValidatorsService {
       try {
         const users = await this.userService.getUsuarios().toPromise();
         const existe = users?.some(
-          (u) => u.correo.trim().toLowerCase() === email
+          (u) => u.correo.trim().toLowerCase() === email,
         );
         return existe ? { emailExists: true } : null;
       } catch {
@@ -145,7 +145,7 @@ export class CustomValidatorsService {
   }
   telefonoUnico(): AsyncValidatorFn {
     return async (
-      control: AbstractControl
+      control: AbstractControl,
     ): Promise<ValidationErrors | null> => {
       const phone = control.value?.trim();
       if (!phone) return null;
@@ -170,7 +170,7 @@ export class CustomValidatorsService {
   }
   ciUnico(): AsyncValidatorFn {
     return async (
-      control: AbstractControl
+      control: AbstractControl,
     ): Promise<ValidationErrors | null> => {
       const ci = control.value?.trim();
       if (!ci) return null;

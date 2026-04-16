@@ -17,7 +17,7 @@ import { Registrocliente } from '../gestion_de_usuarios/registrocliente/registro
   styleUrl: './index.component.css',
 })
 export class IndexComponent {
-  mostrarRegistro = false; // controla si se muestra el formulario
+  mostrarRegistro = false;
 
   constructor(private router: Router) {}
 
@@ -27,10 +27,8 @@ export class IndexComponent {
 
   mostrarFormularioRegistro() {
     this.mostrarRegistro = true;
-    window.scrollTo(0, 0); // opcional: desplazar al formulario
+    window.scrollTo(0, 0);
   }
-
-  // Se conecta con el EventEmitter del hijo
   cerrarFormularioRegistro() {
     this.mostrarRegistro = false;
   }

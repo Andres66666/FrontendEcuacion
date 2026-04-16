@@ -45,8 +45,8 @@ export interface Codigo2FA {
 
 export interface RegistroPendiente {
   id: number;
-  token: string; // UUID generado por backend
-  datos: string; // JSON con los datos del formulario
+  token: string;
+  datos: string;
   correo: string;
   creado_en: Date;
   verificado: boolean;

@@ -7,11 +7,11 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
-import { OkComponent } from '../../../mensajes/ok/ok.component';
-import { ErrorComponent } from '../../../mensajes/error/error.component';
+import { Router } from '@angular/router';
 import { Permiso, Rol } from '../../../../models/models';
 import { ServiciosService } from '../../../../services/servicios.service';
-import { Router } from '@angular/router';
+import { ErrorComponent } from '../../../mensajes/error/error.component';
+import { OkComponent } from '../../../mensajes/ok/ok.component';
 
 @Component({
   selector: 'app-crear-rol-permiso',
@@ -39,7 +39,7 @@ export class CrearRolPermisoComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private service: ServiciosService,
-    private router: Router
+    private router: Router,
   ) {
     this.form = this.fb.group({
       rol: ['', Validators.required],
@@ -51,7 +51,6 @@ export class CrearRolPermisoComponent implements OnInit {
     this.loadRoles();
     this.loadPermisos();
 
-    // Debug completo
     this.service.getRolPermiso().subscribe({
       next: (data) => {
         console.log('DATOS DE ROL_PERMISO DEL BACKEND:');
@@ -64,7 +63,7 @@ export class CrearRolPermisoComponent implements OnInit {
           console.log(
             'Tipo de permiso:',
             typeof data[0].permiso,
-            data[0].permiso
+            data[0].permiso,
           );
         } else {
           console.warn('El array de rol_permiso está VACÍO');
@@ -101,9 +100,7 @@ export class CrearRolPermisoComponent implements OnInit {
     });
   }
   onRolChange(): void {
-    const rolId = +this.form.value.rol; // Asegurar que es número
-
-    // Limpiar
+    const rolId = +this.form.value.rol;
     this.permisosDisponibles = [];
     this.permisosSeleccionados = [];
     this.form.controls['permiso'].setValue([]);
@@ -119,7 +116,7 @@ export class CrearRolPermisoComponent implements OnInit {
       next: (rolPermisos) => {
         console.log(
           '1. Total de relaciones en el sistema:',
-          rolPermisos.length
+          rolPermisos.length,
         );
 
         if (rolPermisos.length === 0) {
@@ -128,7 +125,6 @@ export class CrearRolPermisoComponent implements OnInit {
           return;
         }
 
-        // DEBUG DETALLADO de las primeras 3 relaciones
         console.log('2. Estructura de datos (primeras 3 relaciones):');
         rolPermisos.slice(0, 3).forEach((rp, index) => {
           console.log(`   Relación ${index + 1}:`, {
@@ -141,7 +137,6 @@ export class CrearRolPermisoComponent implements OnInit {
           });
         });
 
-        // Buscar relaciones de este rol específico
         const relacionesDelRol = rolPermisos.filter((rp) => {
           if (!rp.rol || !rp.permiso) return false;
 
@@ -152,7 +147,7 @@ export class CrearRolPermisoComponent implements OnInit {
         console.log(
           '3. Relaciones encontradas para rol',
           rolId + ':',
-          relacionesDelRol.length
+          relacionesDelRol.length,
         );
 
         const permisosAsignados = relacionesDelRol.map((rp) => {
@@ -162,18 +157,16 @@ export class CrearRolPermisoComponent implements OnInit {
         console.log('4. IDs de permisos asignados:', permisosAsignados);
         console.log('5. Total de permisos en sistema:', this.permisos.length);
 
-        // FILTRAR: Solo permisos que NO están asignados
         this.permisosDisponibles = this.permisos.filter(
-          (p) => !permisosAsignados.includes(p.id)
+          (p) => !permisosAsignados.includes(p.id),
         );
 
         console.log(
           '6. Permisos disponibles para asignar:',
-          this.permisosDisponibles.length
+          this.permisosDisponibles.length,
         );
         console.log('=== FIN DE CARGA ===');
 
-        // Mensajes
         if (this.permisosDisponibles.length === 0 && this.permisos.length > 0) {
           this.mensajeError = 'Este rol ya tiene todos los permisos asignados.';
         } else {
@@ -194,7 +187,7 @@ export class CrearRolPermisoComponent implements OnInit {
       }
     } else {
       this.permisosSeleccionados = this.permisosSeleccionados.filter(
-        (id) => id !== permisoId
+        (id) => id !== permisoId,
       );
     }
     this.form.controls['permiso'].setValue(this.permisosSeleccionados);
@@ -226,20 +219,18 @@ export class CrearRolPermisoComponent implements OnInit {
     let errores = 0;
     const totalPermisos = this.permisosSeleccionados.length;
 
-    // Obtener permisos ya asignados antes de registrar
     this.service.getRolPermiso().subscribe((data) => {
       console.log('Relaciones rol-permiso existentes:', data);
 
       this.permisosSeleccionados.forEach((permisoId) => {
-        // CORRECIÓN: Verificar correctamente la existencia
         const existe = data.some(
-          (rp) => rp.rol.id === rolId && rp.permiso.id === permisoId
+          (rp) => rp.rol.id === rolId && rp.permiso.id === permisoId,
         );
 
         console.log(
           `Verificando rol ${rolId} - permiso ${permisoId}: ${
             existe ? 'YA EXISTE' : 'NO EXISTE'
-          }`
+          }`,
         );
 
         if (!existe) {
@@ -266,16 +257,15 @@ export class CrearRolPermisoComponent implements OnInit {
     });
   }
 
-  // Método auxiliar para verificar cuando terminan todas las operaciones
   private verificarCompletado(
     exitos: number,
     errores: number,
-    total: number
+    total: number,
   ): void {
     if (exitos + errores === total) {
       if (exitos > 0) {
         this.mensajeExito = `${exitos} permisos asignados correctamente.`;
-        this.onRolChange(); // actualizar lista de permisos disponibles
+        this.onRolChange();
       }
       if (errores > 0) {
         this.mensajeError = `Hubo ${errores} errores en las asignaciones.`;

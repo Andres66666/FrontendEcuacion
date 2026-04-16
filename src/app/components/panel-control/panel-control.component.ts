@@ -1,18 +1,18 @@
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import {
   Component,
+  ElementRef,
   HostListener,
   Inject,
+  OnDestroy,
   OnInit,
   PLATFORM_ID,
-  OnDestroy,
-  ElementRef,
   ViewChild,
 } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
-import { StorageService } from '../../services/Storage.service';
-import { ConfirmacionComponent } from '../mensajes/confirmacion/confirmacion/confirmacion.component';
 import { ServiciosService } from '../../services/servicios.service';
+import { StorageService } from '../../services/Storage.service';
+import { ConfirmacionComponent } from '../mensajes/confirmacion/confirmacion.component';
 
 @Component({
   selector: 'app-panel-control',
@@ -40,15 +40,15 @@ export class PanelControlComponent implements OnInit, OnDestroy {
   mostrarConfirmacion: boolean = false;
   mensajeConfirmacion: string = '';
 
-  notificaciones: any[] = []; // ← NUEVO: Lista de usuarios desactivados (notificaciones)
-  mostrarNotificaciones = false; // ← NUEVO: Para toggle del dropdown de notificaciones
+  notificaciones: any[] = [];
+  mostrarNotificaciones = false;
   @ViewChild('notificacionesContainer') notificacionesContainer!: ElementRef;
 
   constructor(
     private router: Router,
     @Inject(PLATFORM_ID) private platformId: Object,
     private storageService: StorageService,
-    private serviciosService: ServiciosService, // ← NUEVO: Inyecta el servicio
+    private serviciosService: ServiciosService,
   ) {}
 
   ngOnInit(): void {
@@ -62,7 +62,6 @@ export class PanelControlComponent implements OnInit, OnDestroy {
       datosUsuario = {};
     }
 
-    // Adaptamos claves posibles para evitar undefined
     this.userRole = datosUsuario.rol ?? datosUsuario.roles ?? '';
     this.userName = `${datosUsuario.nombre ?? ''} ${
       datosUsuario.apellido ?? ''
@@ -73,13 +72,10 @@ export class PanelControlComponent implements OnInit, OnDestroy {
 
     this.checkScreenSize();
     this.resetInactivityTimer();
-    // ← NUEVO: Cargar notificaciones de usuarios desactivados
     this.cargarNotificaciones();
   }
   toggleSidebar() {
     this.isSidebarOpen = !this.isSidebarOpen;
-
-    // Si cerramos el sidebar a modo mini, cerramos los submenús abiertos
     if (!this.isSidebarOpen) {
       this.activeSection = null;
     }
@@ -89,16 +85,14 @@ export class PanelControlComponent implements OnInit, OnDestroy {
       clearTimeout(this.timeoutInactivity);
     }
   }
-  // ← NUEVO: Cargar notificaciones de usuarios desactivados
   cargarNotificaciones(): void {
     this.serviciosService.getUsuariosDesactivados().subscribe({
-      // Asume que agregas este método en ServiciosService
       next: (usuariosDesactivados: any[]) => {
         this.notificaciones = usuariosDesactivados.map((usuario) => ({
           id: usuario.id,
           nombre: `${usuario.nombre} ${usuario.apellido}`,
           correo: usuario.correo,
-          fechaBloqueo: usuario.fecha_actualizacion || new Date().toISOString(), // Usa fecha de actualización como referencia
+          fechaBloqueo: usuario.fecha_actualizacion || new Date().toISOString(),
         }));
       },
       error: (error) => {
@@ -112,24 +106,19 @@ export class PanelControlComponent implements OnInit, OnDestroy {
     event.stopPropagation();
     this.mostrarNotificaciones = !this.mostrarNotificaciones;
   }
-
-  // ← NUEVO: Manejar clic en notificación (muestra detalle del usuario bloqueado)
   verNotificacion(usuario: any): void {
     const detalle = `Usuario bloqueado: ${usuario.nombre} (Correo: ${usuario.correo})`;
-    alert(detalle); // ← Simple alert; puedes cambiar por modal o navegación a detalle
-    this.mostrarNotificaciones = false; // Cierra el dropdown
+    alert(detalle);
+    this.mostrarNotificaciones = false;
   }
   toggleSection(section: string) {
-    // SI el sidebar está cerrado (modo mini) y haces clic en un icono
     if (!this.isSidebarOpen) {
-      this.isSidebarOpen = true; // Abrimos la barra lateral
-      this.activeSection = section; // Mostramos el submenú
+      this.isSidebarOpen = true;
+      this.activeSection = section;
     } else {
-      // Comportamiento normal si ya está abierta
       this.activeSection = this.activeSection === section ? null : section;
     }
   }
-  // ← NUEVO: Recargar notificaciones (opcional, para refresh manual)
   recargarNotificaciones(): void {
     this.cargarNotificaciones();
   }
@@ -172,8 +161,6 @@ export class PanelControlComponent implements OnInit, OnDestroy {
     if (!clickedInsideNotificaciones && this.mostrarNotificaciones) {
       this.mostrarNotificaciones = false;
     }
-
-    // --- TU LÓGICA ACTUAL DEL SIDEBAR (NO CAMBIA) ---
     if (
       !clickedInsideSidebar &&
       !clickedInsideToggleButton &&
@@ -189,16 +176,13 @@ export class PanelControlComponent implements OnInit, OnDestroy {
     }
   }
 
-  // Agrega este método dentro de tu clase PanelControlComponent
   navegarYRegresar(ruta: string) {
     this.router.navigate([ruta]);
 
-    // Repliega la barra después de seleccionar
     if (this.windowWidth >= 768) {
       this.isSidebarOpen = false;
       this.activeSection = null;
     } else {
-      // En móviles la oculta totalmente
       this.isSidebarOpen = false;
     }
   }

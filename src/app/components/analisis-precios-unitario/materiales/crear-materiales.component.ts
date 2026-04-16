@@ -12,8 +12,8 @@ import {
 import { ActivatedRoute } from '@angular/router';
 import { BehaviorSubject, forkJoin } from 'rxjs';
 
-import { ServiciosProyectos } from '../../gestion_proyectos/service/servicios-proyectos';
 import { Materiales } from '../../gestion_proyectos/models/modelosProyectos';
+import { ServiciosProyectos } from '../../gestion_proyectos/service/servicios-proyectos';
 
 type RowVM = { index: number; uid: number };
 
@@ -57,14 +57,12 @@ export class CrearMaterialesComponent implements OnInit {
     private route: ActivatedRoute,
   ) {}
 
-  // ================== LIFECYCLE ==================
   ngOnInit(): void {
     this.initForm();
     this.bindPrecioGlobal();
     this.bindRouteParams();
   }
 
-  // ================== INIT / BINDINGS ==================
   private initForm(): void {
     this.formulario = this.fb.group({ materiales: this.fb.array([]) });
     this.ensureDraftRow();
@@ -111,7 +109,6 @@ export class CrearMaterialesComponent implements OnInit {
       ),
     }).subscribe({
       next: ({ materiales, catalogo }) => {
-        // ===== materiales =====
         this.materiales.clear();
         this.opcionesDescripcion = {};
         this.opcionesUnidad = {};
@@ -124,7 +121,6 @@ export class CrearMaterialesComponent implements OnInit {
           this.selectedIndexUnidad[i] = -1;
         });
 
-        // ===== catálogo =====
         const setUni = new Set<string>();
 
         this.catalogoMateriales = (catalogo || []).map((m: any) => ({
@@ -139,7 +135,6 @@ export class CrearMaterialesComponent implements OnInit {
 
         this.catalogoUnidades = Array.from(setUni);
 
-        // ✅ siempre una fila draft al final
         this.ensureDraftRow();
 
         this.isLoading = false;
@@ -151,7 +146,6 @@ export class CrearMaterialesComponent implements OnInit {
     });
   }
 
-  // ================== GETTERS / VIEWMODEL ==================
   get materiales(): FormArray {
     return this.formulario.get('materiales') as FormArray;
   }
@@ -165,7 +159,6 @@ export class CrearMaterialesComponent implements OnInit {
     for (let i = 0; i < this.materiales.length; i++) {
       const fg = this.getFg(i);
 
-      // siempre mostrar última fila draft
       if (i === lastIndex && !this.isRowWithId(fg)) {
         out.push({ index: i, uid: this.uidOfIndex(i) });
         continue;
@@ -185,7 +178,6 @@ export class CrearMaterialesComponent implements OnInit {
 
   trackByUid = (_: number, row: RowVM) => row.uid;
 
-  // ================== AUTOCOMPLETE DESCRIPCIÓN ==================
   mostrarDescripcion(i: number): void {
     this.opcionesDescripcion[i] =
       (this.opcionesDescripcion[i]?.length ?? 0) === 0
@@ -235,7 +227,6 @@ export class CrearMaterialesComponent implements OnInit {
     });
   }
 
-  // ================== AUTOCOMPLETE UNIDAD ==================
   mostrarUnidad(i: number): void {
     this.opcionesUnidad[i] =
       (this.opcionesUnidad[i]?.length ?? 0) === 0
@@ -293,7 +284,6 @@ export class CrearMaterialesComponent implements OnInit {
     if (event.key === 'Escape') this.ocultarUnidad(i);
   }
 
-  // ================== FILA DRAFT ==================
   private ensureDraftRow(): void {
     if (this.materiales.length === 0) {
       this.materiales.push(this.crearFormMaterial());
@@ -314,11 +304,6 @@ export class CrearMaterialesComponent implements OnInit {
       last.markAsPristine();
       last.markAsUntouched();
     }
-  }
-
-  private isDraftRow(index: number): boolean {
-    if (index !== this.materiales.length - 1) return false;
-    return !this.isRowWithId(this.getFg(index));
   }
 
   private isDraftCompletelyEmpty(fg: FormGroup): boolean {
@@ -352,7 +337,6 @@ export class CrearMaterialesComponent implements OnInit {
     this.selectedIndexUnidad[i] = -1;
   }
 
-  // ================== CRUD ==================
   guardar(i: number): void {
     const fg = this.getFg(i);
     if (fg.invalid) return;
@@ -417,7 +401,6 @@ export class CrearMaterialesComponent implements OnInit {
     };
   }
 
-  // ================== UTILITARIOS ==================
   onPrecioUniChange(control: AbstractControl, index?: number): void {
     const fg = control as FormGroup;
 
@@ -451,8 +434,6 @@ export class CrearMaterialesComponent implements OnInit {
         });
     }
   }
-
-
 
   parseNumero(valor: any): number {
     if (valor === null || valor === undefined || valor === '') return 0;
@@ -495,7 +476,6 @@ export class CrearMaterialesComponent implements OnInit {
     }).format(valor || 0);
   }
 
-  // ================== UID / MAPS ==================
   private attachUid(fg: FormGroup): void {
     (fg as any).__uid = ++this.uidSeq;
   }
@@ -520,7 +500,6 @@ export class CrearMaterialesComponent implements OnInit {
     this.selectedIndexUnidad = selMap;
   }
 
-  // ================== HELPERS ==================
   private getFg(i: number): FormGroup {
     return this.materiales.at(i) as FormGroup;
   }
@@ -532,21 +511,17 @@ export class CrearMaterialesComponent implements OnInit {
   private upperTrim(v: any): string {
     return (v ?? '').toString().trim().toUpperCase();
   }
-  private readonly ALFANUM = /^[A-Z0-9ÁÉÍÓÚÜÑ]+$/i;         
-  private readonly ALFANUM_ESPACIOS = /.*/; 
+  private readonly ALFANUM = /^[A-Z0-9ÁÉÍÓÚÜÑ]+$/i;
+  private readonly ALFANUM_ESPACIOS = /.*/;
 
   private sanitizeDescripcion(v: any): string {
-    return (v ?? '')
-      .toString()
-      .toUpperCase()
-      .replace(/\s+/g, ' ')
-      .trimStart();
+    return (v ?? '').toString().toUpperCase().replace(/\s+/g, ' ').trimStart();
   }
   private sanitizeUnidad(v: any): string {
     return (v ?? '')
       .toString()
       .toUpperCase()
-      .replace(/[^A-Z0-9ÁÉÍÓÚÜÑ]+/g, '') // solo letras/números
+      .replace(/[^A-Z0-9ÁÉÍÓÚÜÑ]+/g, '')
       .trimStart();
   }
 
@@ -564,16 +539,15 @@ export class CrearMaterialesComponent implements OnInit {
       return;
     }
 
-    ctrl.setValue((ctrl.value ?? '').toString().toUpperCase(), { emitEvent: false });
+    ctrl.setValue((ctrl.value ?? '').toString().toUpperCase(), {
+      emitEvent: false,
+    });
   }
   private crearFormMaterial(material?: Materiales): FormGroup {
     const fg = this.fb.group({
       id: [material?.id ?? null],
 
-      descripcion: [
-        material?.descripcion ?? '',
-        [Validators.required], // quitado pattern
-      ],
+      descripcion: [material?.descripcion ?? '', [Validators.required]],
 
       unidad: [
         material?.unidad ?? '',
@@ -593,7 +567,6 @@ export class CrearMaterialesComponent implements OnInit {
     this.attachUid(fg);
 
     fg.valueChanges.subscribe(() => {
-      // descripcion: solo normaliza (no filtra)
       const d = fg.get('descripcion')!;
       const u = fg.get('unidad')!;
 

@@ -10,7 +10,7 @@ import { ServiciosService } from '../../../../services/servicios.service';
   standalone: true,
   imports: [CommonModule, RouterModule, FormsModule],
   templateUrl: './listar-rol-permiso.component.html',
-  styleUrl: './listar-rol-permiso.component.css'
+  styleUrl: './listar-rol-permiso.component.css',
 })
 export class ListarRolPermisoComponent implements OnInit {
   usuarioRolSucursales: RolPermiso[] = [];

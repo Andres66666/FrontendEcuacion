@@ -6,11 +6,11 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
-import { OkComponent } from '../../../mensajes/ok/ok.component';
-import { ErrorComponent } from '../../../mensajes/error/error.component';
 import { ActivatedRoute, Router } from '@angular/router';
-import { ServiciosService } from '../../../../services/servicios.service';
 import { CustomValidatorsService } from '../../../../../validators/custom-validators.service';
+import { ServiciosService } from '../../../../services/servicios.service';
+import { ErrorComponent } from '../../../mensajes/error/error.component';
+import { OkComponent } from '../../../mensajes/ok/ok.component';
 
 @Component({
   selector: 'app-editar-permiso',
@@ -30,11 +30,10 @@ export class EditarPermisoComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private permisoService: ServiciosService,
-    private customValidators: CustomValidatorsService
+    private customValidators: CustomValidatorsService,
   ) {}
 
   ngOnInit(): void {
-    // Crear el formulario
     this.form = this.fb.group({
       id: [null],
       nombre: [
@@ -45,20 +44,17 @@ export class EditarPermisoComponent implements OnInit {
           Validators.maxLength(20),
           this.customValidators.soloTexto(),
         ],
-        [], // Aquí se agregará el asyncValidator después de obtener el permiso
+        [],
       ],
       estado: [true],
     });
 
-    // Obtener el ID desde la URL
     const id = Number(this.route.snapshot.paramMap.get('id'));
 
-    // Cargar los datos del permiso
     this.permisoService.getPermisoID(id).subscribe((data) => {
       this.permisoOriginal = data;
       this.form.patchValue(data);
 
-      // ✅ Aplicar el validador asíncrono de nombre único (permitiendo el mismo nombre del permiso actual)
       this.form
         .get('nombre')
         ?.setAsyncValidators(this.customValidators.permisoUnico(data.id));

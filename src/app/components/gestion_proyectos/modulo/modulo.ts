@@ -14,10 +14,10 @@ import { FormsModule } from '@angular/forms';
 import { Modulo } from '../models/modelosProyectos';
 import { ServiciosProyectos } from '../service/servicios-proyectos';
 
-import { ConfirmacionComponent } from '../../mensajes/confirmacion/confirmacion/confirmacion.component';
-import { OkComponent } from '../../mensajes/ok/ok.component';
-import { ErrorComponent } from '../../mensajes/error/error.component';
 import { Advertencia } from '../../mensajes/advertencia/advertencia';
+import { ConfirmacionComponent } from '../../mensajes/confirmacion/confirmacion.component';
+import { ErrorComponent } from '../../mensajes/error/error.component';
+import { OkComponent } from '../../mensajes/ok/ok.component';
 
 @Component({
   selector: 'app-modulo',
@@ -143,13 +143,8 @@ export class ModuloComponent implements OnInit, OnChanges {
     else this.crearModulo();
   }
 
-  // ✅ CAMBIO: ahora NOMBRE acepta caracteres especiales
-  // (solo normalizamos espacios + mayúsculas)
   private sanitizeNombre(v: string): string {
-    return (v || '')
-      .replace(/\s+/g, ' ')
-      .trimStart()
-      .toUpperCase();
+    return (v || '').replace(/\s+/g, ' ').trimStart().toUpperCase();
   }
 
   private sanitizeCodigo(v: string): string {
@@ -175,14 +170,12 @@ export class ModuloComponent implements OnInit, OnChanges {
       return;
     }
 
-    // ✅ NOMBRE: solo requerido (ya NO bloquea por caracteres especiales)
     const nombre = this.sanitizeNombre((this.moduloForm.nombre || '').trim());
     if (!nombre) {
       this.mensajeAdvertencia = 'El nombre del módulo es obligatorio.';
       return;
     }
 
-    // CÓDIGO: se mantiene igual
     const codigoRaw = (this.moduloForm.codigo || '').trim();
     const codigo = this.sanitizeCodigo(codigoRaw).trim();
 
@@ -191,7 +184,7 @@ export class ModuloComponent implements OnInit, OnChanges {
       return;
     }
 
-    const regexCodigo = /^[A-Z]+-[0-9]+$/; // EJ: ABC-123
+    const regexCodigo = /^[A-Z]+-[0-9]+$/;
     if (!regexCodigo.test(codigo)) {
       this.mensajeAdvertencia =
         'El código debe tener el formato LETRAS-NÚMEROS (ej: MOD-123) y solo un "-".';
@@ -199,7 +192,6 @@ export class ModuloComponent implements OnInit, OnChanges {
       return;
     }
 
-    // (opcional) duplicado por nombre
     const existeNombre = this.modulos.some(
       (m) => (m.nombre || '').toLowerCase() === nombre.toLowerCase(),
     );
@@ -208,7 +200,6 @@ export class ModuloComponent implements OnInit, OnChanges {
       return;
     }
 
-    // reflejar normalizado
     this.moduloForm.nombre = nombre;
     this.moduloForm.codigo = codigo;
 
@@ -245,14 +236,12 @@ export class ModuloComponent implements OnInit, OnChanges {
     this.clearMensajes();
     if (!this.moduloEditando) return;
 
-    // ✅ NOMBRE: solo requerido (acepta especiales)
     const nombre = this.sanitizeNombre((this.moduloForm.nombre || '').trim());
     if (!nombre) {
       this.mensajeAdvertencia = 'El nombre del módulo es obligatorio.';
       return;
     }
 
-    // CÓDIGO: se mantiene igual
     const codigoRaw = (this.moduloForm.codigo || '').trim();
     const codigo = this.sanitizeCodigo(codigoRaw).trim();
 
@@ -279,7 +268,6 @@ export class ModuloComponent implements OnInit, OnChanges {
       return;
     }
 
-    // reflejar normalizado
     this.moduloForm.nombre = nombre;
     this.moduloForm.codigo = codigo;
 
@@ -294,7 +282,9 @@ export class ModuloComponent implements OnInit, OnChanges {
 
     this.service.updateModulo(this.moduloEditando.id, payload).subscribe({
       next: (actualizado) => {
-        const idx = this.modulos.findIndex((m) => m.id === this.moduloEditando!.id);
+        const idx = this.modulos.findIndex(
+          (m) => m.id === this.moduloEditando!.id,
+        );
         if (idx !== -1) {
           const copia = [...this.modulos];
           copia[idx] = actualizado;

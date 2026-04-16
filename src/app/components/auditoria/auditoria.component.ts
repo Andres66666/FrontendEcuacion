@@ -1,10 +1,10 @@
-import { Component, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { AfterViewInit, Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
-import { ServiciosService } from '../../services/servicios.service';
-import { Atacante } from '../../models/models';
 import { AgCharts } from 'ag-charts-community';
+import { Atacante } from '../../models/models';
+import { ServiciosService } from '../../services/servicios.service';
 
 @Component({
   selector: 'app-auditoria',
@@ -94,7 +94,7 @@ export class AuditoriaComponent implements AfterViewInit {
     this.filteredAtacantes.forEach((a) =>
       a.tipos.forEach((t) => {
         counts[t] = (counts[t] || 0) + 1;
-      })
+      }),
     );
 
     const total = this.filteredAtacantes.length;
@@ -120,7 +120,7 @@ export class AuditoriaComponent implements AfterViewInit {
   getEstadoSummary() {
     const bloqueados = this.filteredAtacantes.filter((a) => a.bloqueado).length;
     const activos = this.filteredAtacantes.length - bloqueados;
-    return `Ataques Totales: ${this.filteredAtacantes.length} | Bloqueados: ${bloqueados} 🚫 | Activos: ${activos} ✅`;
+    return `Ataques Totales: ${this.filteredAtacantes.length} | Bloqueados: ${bloqueados} 🚫 | Activos: ${activos} `;
   }
 
   formatDate(f: string, r: 'dia' | 'mes' | 'anio') {
@@ -169,7 +169,7 @@ export class AuditoriaComponent implements AfterViewInit {
     const series: any[] = Object.keys(data[0] || {})
       .filter((k) => k !== 'fecha')
       .map((t) => ({
-        type: 'line',   //  Esto sí es correcto
+        type: 'line',
         xKey: 'fecha',
         yKey: t,
         yName: t,

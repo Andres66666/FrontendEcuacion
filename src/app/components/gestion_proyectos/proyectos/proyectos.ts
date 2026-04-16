@@ -1,17 +1,17 @@
-import { Component, ElementRef, HostListener, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Component, ElementRef, HostListener, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 
 import { Proyecto } from '../models/modelosProyectos';
 import { ServiciosProyectos } from '../service/servicios-proyectos';
 
-import { OkComponent } from '../../mensajes/ok/ok.component';
-import { ConfirmacionComponent } from '../../mensajes/confirmacion/confirmacion/confirmacion.component';
-import { ErrorComponent } from '../../mensajes/error/error.component';
 import { Advertencia } from '../../mensajes/advertencia/advertencia';
-import { ModuloComponent } from '../modulo/modulo';
+import { ConfirmacionComponent } from '../../mensajes/confirmacion/confirmacion.component';
+import { ErrorComponent } from '../../mensajes/error/error.component';
+import { OkComponent } from '../../mensajes/ok/ok.component';
 import { ItemsGastoOperacion } from '../items-gasto-operacion/items-gasto-operacion';
+import { ModuloComponent } from '../modulo/modulo';
 
 @Component({
   selector: 'app-proyectos',
@@ -73,9 +73,7 @@ export class Proyectos implements OnInit {
     this.cargarProyectos();
   }
 
-  // =============================
   // HELPERS
-  // =============================
   private clearMensajes(): void {
     this.mensajeExito = '';
     this.mensajeError = '';
@@ -142,9 +140,7 @@ export class Proyectos implements OnInit {
     });
   }
 
-  // =============================
   // UI ACTIONS
-  // =============================
   filtrarProyectos(): void {
     this.applyFiltro();
   }
@@ -180,15 +176,12 @@ export class Proyectos implements OnInit {
     this.mostrarModal = false;
   }
 
-
   upperNombre(): void {
     const raw = (this.proyectoForm.NombreProyecto || '').toString();
     this.proyectoForm.NombreProyecto = raw.toUpperCase().trimStart();
   }
 
-  // =============================
   // CRUD PROYECTO
-  // =============================
   guardar(): void {
     this.clearMensajes();
 
@@ -266,9 +259,7 @@ export class Proyectos implements OnInit {
     });
   }
 
-  // =============================
   // DUPLICAR (usando backend)
-  // =============================
   duplicarProyecto(proyecto: Proyecto, event: Event): void {
     event.stopPropagation();
     this.clearMensajes();
@@ -282,7 +273,6 @@ export class Proyectos implements OnInit {
         this.mensajeExito = 'Proyecto duplicado correctamente.';
         this.cargarProyectos();
 
-        // opcional: seleccionar el duplicado
         setTimeout(() => {
           const nuevo =
             this.proyectos.find((p) => p.id_proyecto === nuevo_id) ?? null;
@@ -311,9 +301,7 @@ export class Proyectos implements OnInit {
     this.progresoDuplicacion = Math.max(0, Math.min(100, Math.round(p)));
   }
 
-  // =============================
   // CLICK OUTSIDE
-  // =============================
   @HostListener('document:click', ['$event'])
   onClickOutside(event: MouseEvent): void {
     if (!this.dropdownAbierto) return;
@@ -321,9 +309,7 @@ export class Proyectos implements OnInit {
     if (!clickDentro) this.dropdownAbierto = false;
   }
 
-  // =============================
   // HANDLERS MENSAJES
-  // =============================
   manejarOk(): void {
     this.mensajeExito = '';
   }

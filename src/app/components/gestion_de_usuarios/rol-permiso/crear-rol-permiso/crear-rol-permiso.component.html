@@ -22,7 +22,6 @@
           </select>
         </div>
 
-        <!-- SOLO mostrar permisos disponibles (los que NO tiene el rol) -->
         <div class="mb-3" *ngIf="permisosDisponibles.length > 0">
           <label class="form-label fw-semibold">
             Permisos Disponibles para Asignar
@@ -44,7 +43,6 @@
           </div>
         </div>
 
-        <!-- Mensaje cuando el rol ya tiene todos los permisos -->
         <div
           class="alert alert-warning mb-3"
           *ngIf="
@@ -58,13 +56,11 @@
           disponibles para agregar.
         </div>
 
-        <!-- Mensaje cuando no hay permisos en el sistema -->
         <div class="alert alert-info mb-3" *ngIf="permisos.length === 0">
           <i class="bi bi-info-circle me-2"></i>
           No hay permisos disponibles en el sistema.
         </div>
 
-        <!-- Botones -->
         <div
           class="d-flex flex-column flex-md-row justify-content-between gap-2"
         >

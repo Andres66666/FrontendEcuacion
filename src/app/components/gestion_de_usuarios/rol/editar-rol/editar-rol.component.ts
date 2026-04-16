@@ -6,11 +6,11 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
-import { OkComponent } from '../../../mensajes/ok/ok.component';
-import { ErrorComponent } from '../../../mensajes/error/error.component';
-import { ServiciosService } from '../../../../services/servicios.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CustomValidatorsService } from '../../../../../validators/custom-validators.service';
+import { ServiciosService } from '../../../../services/servicios.service';
+import { ErrorComponent } from '../../../mensajes/error/error.component';
+import { OkComponent } from '../../../mensajes/ok/ok.component';
 
 @Component({
   selector: 'app-editar-rol',
@@ -30,7 +30,7 @@ export class EditarRolComponent implements OnInit {
     private rolService: ServiciosService,
     private route: ActivatedRoute,
     private router: Router,
-    private customValidators: CustomValidatorsService
+    private customValidators: CustomValidatorsService,
   ) {}
   ngOnInit(): void {
     this.form = this.fb.group({
@@ -50,7 +50,6 @@ export class EditarRolComponent implements OnInit {
     this.rolService.getRolID(id).subscribe((data) => {
       this.rolOriginal = data;
 
-      // ✅ Aplicar validador asíncrono rolUnico con el id actual
       this.form
         .get('nombre')
         ?.setAsyncValidators(this.customValidators.rolUnico(id));
@@ -91,7 +90,6 @@ export class EditarRolComponent implements OnInit {
   }
   manejarOk() {
     this.mensajeExito = '';
-    // Moved the navigation here, after the modal is closed
     this.router.navigate(['panel-control/listar-rol']);
   }
 

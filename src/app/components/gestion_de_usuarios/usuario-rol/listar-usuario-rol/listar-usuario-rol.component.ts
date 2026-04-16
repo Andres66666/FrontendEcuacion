@@ -10,7 +10,7 @@ import { ServiciosService } from '../../../../services/servicios.service';
   standalone: true,
   imports: [CommonModule, RouterModule, FormsModule],
   templateUrl: './listar-usuario-rol.component.html',
-  styleUrl: './listar-usuario-rol.component.css'
+  styleUrl: './listar-usuario-rol.component.css',
 })
 export class ListarUsuarioRolComponent implements OnInit {
   usuarioRolSucursales: UsuarioRol[] = [];
@@ -21,7 +21,6 @@ export class ListarUsuarioRolComponent implements OnInit {
   limite = 20;
 
   rolesDisponibles: string[] = [];
-
 
   rolSeleccionado = '';
   sucursalSeleccionada = '';
@@ -35,7 +34,7 @@ export class ListarUsuarioRolComponent implements OnInit {
     this.servicio.getUsuarioRoles().subscribe((data) => {
       this.usuarioRolSucursales = data;
       this.rolesDisponibles = [...new Set(data.map((urs) => urs.rol.nombre))];
-     
+
       this.filtrar();
     });
   }
@@ -65,7 +64,7 @@ export class ListarUsuarioRolComponent implements OnInit {
       (urs) =>
         urs.usuario.nombre.toLowerCase().includes(texto) &&
         (this.rolSeleccionado === '' ||
-          urs.rol.nombre === this.rolSeleccionado)
+          urs.rol.nombre === this.rolSeleccionado),
     );
     this.limite = 10;
     this.actualizarMostrados();

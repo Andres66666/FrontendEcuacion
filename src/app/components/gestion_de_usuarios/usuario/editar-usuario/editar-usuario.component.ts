@@ -7,11 +7,11 @@ import {
   Validators,
 } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { ServiciosService } from '../../../../services/servicios.service';
-import { OkComponent } from '../../../mensajes/ok/ok.component';
-import { ErrorComponent } from '../../../mensajes/error/error.component';
 import { of } from 'rxjs';
 import { CustomValidatorsService } from '../../../../../validators/custom-validators.service';
+import { ServiciosService } from '../../../../services/servicios.service';
+import { ErrorComponent } from '../../../mensajes/error/error.component';
+import { OkComponent } from '../../../mensajes/ok/ok.component';
 
 @Component({
   selector: 'app-editar-usuario',
@@ -36,7 +36,7 @@ export class EditarUsuarioComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private usuarioService: ServiciosService,
-    private customValidators: CustomValidatorsService
+    private customValidators: CustomValidatorsService,
   ) {}
 
   ngOnInit(): void {
@@ -102,18 +102,12 @@ export class EditarUsuarioComponent implements OnInit {
         '',
         [Validators.required, this.customValidators.mayorDeEdad()],
       ],
-      password: [
-        '',
-        [
-          this.customValidators.passwordSeguraeditar(), // opcional si se ingresa
-        ],
-      ],
+      password: ['', [this.customValidators.passwordSeguraeditar()]],
       imagen_url: [''],
       rol: [''],
       estado: [true],
     });
 
-    // Cargar datos iniciales
     const id = Number(this.route.snapshot.paramMap.get('id'));
     this.cargarUsuarioYRoles(id);
   }
@@ -132,7 +126,7 @@ export class EditarUsuarioComponent implements OnInit {
             this.usuarioService.getUsuarioRoles().subscribe({
               next: (usuarioRoles) => {
                 const relacion = usuarioRoles.find(
-                  (ur) => ur.usuario.id === usuarioData.id
+                  (ur) => ur.usuario.id === usuarioData.id,
                 );
                 if (relacion) {
                   this.rolAsignado = relacion.rol;
@@ -143,7 +137,6 @@ export class EditarUsuarioComponent implements OnInit {
           },
         });
 
-        // ✅ Marcar el formulario como "sin cambios" después de cargar datos
         setTimeout(() => this.form.markAsPristine(), 0);
       },
       error: (err) => {
@@ -160,10 +153,8 @@ export class EditarUsuarioComponent implements OnInit {
 
     const formData = new FormData();
 
-    // ✅ Solo agrega los campos válidos
     Object.entries(this.form.value).forEach(([key, value]) => {
       if (value !== null && value !== undefined && value !== '') {
-        // ⚠️ No enviar el password si está vacío
         if (key === 'password' && (!value || String(value).trim() === ''))
           return;
 
@@ -173,7 +164,7 @@ export class EditarUsuarioComponent implements OnInit {
 
     // Imagen
     const inputElement = document.getElementById(
-      'imagenInput'
+      'imagenInput',
     ) as HTMLInputElement;
     if (inputElement?.files?.length) {
       formData.append('imagen_url', inputElement.files[0]);
@@ -235,7 +226,7 @@ export class EditarUsuarioComponent implements OnInit {
     this.imagenPreview = null;
     this.errorMensaje = null;
     const inputElement = document.getElementById(
-      'imagenInput'
+      'imagenInput',
     ) as HTMLInputElement;
     if (inputElement) inputElement.value = '';
     this.form.patchValue({ imagen_url: null });

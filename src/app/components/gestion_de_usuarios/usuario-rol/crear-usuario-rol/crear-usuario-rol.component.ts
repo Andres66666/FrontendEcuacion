@@ -1,22 +1,22 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import {
+  AbstractControl,
+  AsyncValidatorFn,
   FormBuilder,
   FormGroup,
   FormsModule,
   ReactiveFormsModule,
-  Validators,
-  AbstractControl,
-  AsyncValidatorFn,
   ValidationErrors,
+  Validators,
 } from '@angular/forms';
-import { OkComponent } from '../../../mensajes/ok/ok.component';
-import { ErrorComponent } from '../../../mensajes/error/error.component';
-import { Rol, Usuario } from '../../../../models/models';
-import { ServiciosService } from '../../../../services/servicios.service';
 import { Router } from '@angular/router';
 import { Observable, of } from 'rxjs';
 import { map } from 'rxjs/operators';
+import { Rol, Usuario } from '../../../../models/models';
+import { ServiciosService } from '../../../../services/servicios.service';
+import { ErrorComponent } from '../../../mensajes/error/error.component';
+import { OkComponent } from '../../../mensajes/ok/ok.component';
 
 @Component({
   selector: 'app-crear-usuario-rol',
@@ -42,14 +42,14 @@ export class CrearUsuarioRolComponent {
   constructor(
     private fb: FormBuilder,
     private service: ServiciosService,
-    private router: Router
+    private router: Router,
   ) {
     this.form = this.fb.group(
       {
         usuario: ['', Validators.required],
         rol: ['', Validators.required],
       },
-      { asyncValidators: this.usuarioRolUnico() } // Validación asíncrona de duplicados
+      { asyncValidators: this.usuarioRolUnico() },
     );
   }
 
@@ -63,19 +63,18 @@ export class CrearUsuarioRolComponent {
       this.service.getUsuarioRoles().subscribe((asignaciones) => {
         const usuariosConRol = asignaciones.map((a) => a.usuario.id);
         this.usuarios = data.filter(
-          (u) => u.estado && !usuariosConRol.includes(u.id)
-        ); // solo usuarios activos sin rol asignado
+          (u) => u.estado && !usuariosConRol.includes(u.id),
+        );
       });
     });
   }
 
   loadRoles() {
     this.service.getRoles().subscribe((data) => {
-      this.roles = data.filter((r) => r.estado); // solo roles activos
+      this.roles = data.filter((r) => r.estado);
     });
   }
 
-  // Validador asíncrono para evitar duplicados y que un usuario tenga más de un rol
   usuarioRolUnico(): AsyncValidatorFn {
     return (control: AbstractControl): Observable<ValidationErrors | null> => {
       const usuario = control.get('usuario')?.value;
@@ -85,27 +84,25 @@ export class CrearUsuarioRolComponent {
 
       return this.service.getUsuarioRoles().pipe(
         map((asignaciones) => {
-          // Verifica si el usuario ya tiene el mismo rol
           const mismoRol = asignaciones.some(
             (asig: any) =>
-              asig.usuario.id === usuario.id && asig.rol.id === rol.id
+              asig.usuario.id === usuario.id && asig.rol.id === rol.id,
           );
 
           if (mismoRol) {
-            return { rolAsignado: true }; // ya tiene este rol
+            return { rolAsignado: true };
           }
 
-          // Verifica si el usuario tiene cualquier rol asignado
           const tieneOtroRol = asignaciones.some(
-            (asig: any) => asig.usuario.id === usuario.id
+            (asig: any) => asig.usuario.id === usuario.id,
           );
 
           if (tieneOtroRol) {
-            return { usuarioConRol: true }; // ya tiene otro rol
+            return { usuarioConRol: true };
           }
 
           return null;
-        })
+        }),
       );
     };
   }

@@ -6,11 +6,11 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
-import { OkComponent } from '../../../mensajes/ok/ok.component';
-import { ErrorComponent } from '../../../mensajes/error/error.component';
-import { ServiciosService } from '../../../../services/servicios.service';
 import { Router } from '@angular/router';
 import { CustomValidatorsService } from '../../../../../validators/custom-validators.service';
+import { ServiciosService } from '../../../../services/servicios.service';
+import { ErrorComponent } from '../../../mensajes/error/error.component';
+import { OkComponent } from '../../../mensajes/ok/ok.component';
 
 @Component({
   selector: 'app-crear-permiso',
@@ -27,7 +27,7 @@ export class CrearPermisoComponent {
     private fb: FormBuilder,
     private permisoService: ServiciosService,
     private router: Router,
-    private customValidators: CustomValidatorsService
+    private customValidators: CustomValidatorsService,
   ) {}
   ngOnInit(): void {
     this.form = this.fb.group({
@@ -48,7 +48,6 @@ export class CrearPermisoComponent {
 
   onSubmit(): void {
     if (this.form.valid) {
-      // 🔹 Normalizar nombre
       let nombre = this.form.value.nombre.trim().replace(/\s+/g, ' ');
       nombre = nombre.charAt(0).toUpperCase() + nombre.slice(1).toLowerCase();
 
@@ -84,7 +83,6 @@ export class CrearPermisoComponent {
   }
   manejarOk() {
     this.mensajeExito = '';
-    // Moved the navigation here, after the modal is closed
     this.router.navigate(['panel-control/listar-permiso']);
   }
 

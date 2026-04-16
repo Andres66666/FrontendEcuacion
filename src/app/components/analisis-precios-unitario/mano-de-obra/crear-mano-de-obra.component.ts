@@ -12,11 +12,11 @@ import {
 import { ActivatedRoute } from '@angular/router';
 import { BehaviorSubject } from 'rxjs';
 
-import { ServiciosProyectos } from '../../gestion_proyectos/service/servicios-proyectos';
 import {
   ManoDeObra,
   Proyecto,
 } from '../../gestion_proyectos/models/modelosProyectos';
+import { ServiciosProyectos } from '../../gestion_proyectos/service/servicios-proyectos';
 
 type RowVM = { index: number; uid: number };
 
@@ -45,19 +45,15 @@ export class CrearManoDeObraComponent implements OnInit {
   private id_proyecto = 0;
   private uidSeq = 0;
 
-  // Catálogos
   catalogoManoDeObra: ManoDeObra[] = [];
   catalogoUnidades: string[] = [];
 
-  // Autocomplete UI maps (indexados por índice del FormArray)
   opcionesDescripcion: Record<number, ManoDeObra[]> = {};
   opcionesUnidad: Record<number, string[]> = {};
   selectedIndexUnidad: Record<number, number> = {};
 
-  // Filtro
   filtroDescripcion = '';
 
-  // Propagación de precio unitario a filas con misma descripción
   private precioUnitario$ = new BehaviorSubject<PrecioUpdate | null>(null);
 
   constructor(
@@ -66,7 +62,6 @@ export class CrearManoDeObraComponent implements OnInit {
     private route: ActivatedRoute,
   ) {}
 
-  // ================== LIFECYCLE ==================
   ngOnInit(): void {
     this.initForm();
     this.bindPrecioGlobal();
@@ -84,10 +79,9 @@ export class CrearManoDeObraComponent implements OnInit {
     }
   }
 
-  // ================== INIT / BINDINGS ==================
   private initForm(): void {
     this.formulario = this.fb.group({ manoObra: this.fb.array([]) });
-    this.ensureDraftRow(); // siempre arranca con 1 fila vacía
+    this.ensureDraftRow();
   }
 
   private bindRouteParams(): void {
@@ -141,7 +135,6 @@ export class CrearManoDeObraComponent implements OnInit {
     });
   }
 
-  // ================== GETTERS / VIEWMODEL ==================
   get manoObra(): FormArray {
     return this.formulario.get('manoObra') as FormArray;
   }
@@ -155,29 +148,22 @@ export class CrearManoDeObraComponent implements OnInit {
     for (let i = 0; i < this.manoObra.length; i++) {
       const fg = this.getFg(i);
 
-      // ✅ siempre mostrar última fila draft
       if (i === lastIndex && !this.isRowWithId(fg)) {
         out.push({ index: i, uid: this.uidOfIndex(i) });
         continue;
       }
-
-      // ✅ sin filtro
       if (!term) {
         out.push({ index: i, uid: this.uidOfIndex(i) });
         continue;
       }
-
-      // ✅ con filtro
       const desc = this.upperTrim(fg.get('descripcion')?.value);
       if (desc.includes(term)) out.push({ index: i, uid: this.uidOfIndex(i) });
     }
-
     return out;
   }
 
   trackByUid = (_: number, row: RowVM) => row.uid;
 
-  // ================== AUTOCOMPLETE: DESCRIPCIÓN ==================
   mostrarDescripcion(i: number): void {
     this.opcionesDescripcion[i] =
       (this.opcionesDescripcion[i]?.length ?? 0) === 0
@@ -228,8 +214,6 @@ export class CrearManoDeObraComponent implements OnInit {
       return other === busqueda;
     });
   }
-
-  // ================== AUTOCOMPLETE: UNIDAD ==================
   mostrarUnidad(i: number): void {
     this.opcionesUnidad[i] =
       (this.opcionesUnidad[i]?.length ?? 0) === 0
@@ -284,8 +268,6 @@ export class CrearManoDeObraComponent implements OnInit {
 
     if (event.key === 'Escape') this.ocultarUnidad(i);
   }
-
-  // ================== CARGAS ==================
   private cargarManoDeObra(): void {
     this.servicio
       .getManoDeObraIDGasto(this.id_gasto_operaciones)
@@ -325,26 +307,20 @@ export class CrearManoDeObraComponent implements OnInit {
       this.catalogoUnidades = (unis || []).map((u) => (u || '').toUpperCase());
     });
   }
-
-  // ================== FILA DRAFT ==================
   private ensureDraftRow(): void {
     if (this.manoObra.length === 0) {
       this.manoObra.push(this.crearFormManoDeObra());
       this.reindexUiMaps();
       return;
     }
-
     const lastIndex = this.manoObra.length - 1;
     const last = this.getFg(lastIndex);
-
-    // si la última fila ya tiene id => agregar nueva fila vacía
     if (this.isRowWithId(last)) {
       this.manoObra.push(this.crearFormManoDeObra());
       this.reindexUiMaps();
       return;
     }
 
-    // si es draft y está totalmente vacía => limpiar estado
     if (this.isDraftCompletelyEmpty(last)) {
       last.get('total')?.setValue(0, { emitEvent: false });
       last.markAsPristine();
@@ -389,7 +365,6 @@ export class CrearManoDeObraComponent implements OnInit {
     this.selectedIndexUnidad[i] = -1;
   }
 
-  // ================== CRUD ==================
   guardar(i: number): void {
     const fg = this.getFg(i);
     if (fg.invalid) return;
@@ -409,7 +384,6 @@ export class CrearManoDeObraComponent implements OnInit {
 
         fg.markAsPristine();
 
-        // ✅ si era draft, crear otra fila vacía abajo
         if (esNuevo) this.ensureDraftRow();
       },
       error: (err) => {
@@ -423,7 +397,6 @@ export class CrearManoDeObraComponent implements OnInit {
     const fg = this.getFg(i);
     const id = fg.get('id')?.value;
 
-    // draft => limpiar y quedarse
     if (!id) {
       this.resetDraftRow(i, fg);
       return;
@@ -442,7 +415,6 @@ export class CrearManoDeObraComponent implements OnInit {
     });
   }
 
-  // ================== UTILITARIOS UI ==================
   onPrecioUniChange(control: AbstractControl, index?: number): void {
     const fg = control as FormGroup;
 
@@ -461,7 +433,6 @@ export class CrearManoDeObraComponent implements OnInit {
       });
     }
 
-    // ✅ si está guardado, actualiza precio global backend (sin recargar tabla)
     if (this.isRowWithId(fg) && this.id_proyecto && precio > 0) {
       this.servicio
         .actualizarPrecioManoObra(this.id_proyecto, desc, precio)
@@ -475,30 +446,21 @@ export class CrearManoDeObraComponent implements OnInit {
     }
   }
 
-
-  // ================== FORM BUILD / MAP ==================
-
-  // 1) agrega esto dentro de la clase
-  private readonly ALFANUM_ESPACIOS = /^[A-Z0-9ÁÉÍÓÚÜÑ ]+$/i; // DESCRIPCIÓN
-  private readonly ALFANUM = /^[A-Z0-9ÁÉÍÓÚÜÑ]+$/i;          // UNIDAD
+  private readonly ALFANUM_ESPACIOS = /^[A-Z0-9ÁÉÍÓÚÜÑ ]+$/i;
+  private readonly ALFANUM = /^[A-Z0-9ÁÉÍÓÚÜÑ]+$/i;
 
   private sanitizeDescripcion(v: any): string {
-    return (v ?? '')
-      .toString()
-      .toUpperCase()
-      .replace(/\s+/g, ' ')
-      .trimStart();
+    return (v ?? '').toString().toUpperCase().replace(/\s+/g, ' ').trimStart();
   }
 
   private sanitizeUnidad(v: any): string {
     return (v ?? '')
       .toString()
       .toUpperCase()
-      .replace(/[^A-Z0-9ÁÉÍÓÚÜÑ]+/g, '') // solo letras/números
+      .replace(/[^A-Z0-9ÁÉÍÓÚÜÑ]+/g, '')
       .trimStart();
   }
 
-  // 2) reemplaza convertirAMayusculas por este
   convertirAMayusculas(i: number, campo: string): void {
     const ctrl = this.getFg(i).get(campo);
     if (!ctrl) return;
@@ -513,26 +475,26 @@ export class CrearManoDeObraComponent implements OnInit {
       return;
     }
 
-    ctrl.setValue((ctrl.value ?? '').toString().toUpperCase(), { emitEvent: false });
+    ctrl.setValue((ctrl.value ?? '').toString().toUpperCase(), {
+      emitEvent: false,
+    });
   }
 
-  // 3) en crearFormManoDeObra(), cambia SOLO validators de descripcion/unidad
   private crearFormManoDeObra(mano?: ManoDeObra): FormGroup {
     const fg = this.fb.group({
       id: [mano?.id ?? null],
 
-      //  descripcion ahora acepta caracteres especiales
-      descripcion: [
-        mano?.descripcion ?? '',
-        [Validators.required], // antes: Validators.pattern(this.ALFANUM_ESPACIOS)
-      ],
+      descripcion: [mano?.descripcion ?? '', [Validators.required]],
 
       unidad: [
         mano?.unidad ?? '',
         [Validators.required, Validators.pattern(this.ALFANUM)],
       ],
 
-      cantidad: [mano?.cantidad ?? null, [Validators.required, Validators.min(0)]],
+      cantidad: [
+        mano?.cantidad ?? null,
+        [Validators.required, Validators.min(0)],
+      ],
       precio_unitario: [
         mano?.precio_unitario ?? null,
         [Validators.required, Validators.min(0)],
@@ -546,7 +508,6 @@ export class CrearManoDeObraComponent implements OnInit {
       const d = fg.get('descripcion')!;
       const u = fg.get('unidad')!;
 
-      //  no elimina símbolos
       const dSan = this.sanitizeDescripcion(d.value);
       if (d.value !== dSan) d.setValue(dSan, { emitEvent: false });
 
@@ -556,8 +517,12 @@ export class CrearManoDeObraComponent implements OnInit {
       if (this.isRowWithId(fg)) fg.markAsDirty();
     });
 
-    fg.get('cantidad')?.valueChanges.subscribe(() => this.actualizarPrecioParcial(fg));
-    fg.get('precio_unitario')?.valueChanges.subscribe(() => this.actualizarPrecioParcial(fg));
+    fg.get('cantidad')?.valueChanges.subscribe(() =>
+      this.actualizarPrecioParcial(fg),
+    );
+    fg.get('precio_unitario')?.valueChanges.subscribe(() =>
+      this.actualizarPrecioParcial(fg),
+    );
 
     return fg;
   }
@@ -580,12 +545,10 @@ export class CrearManoDeObraComponent implements OnInit {
     };
   }
 
-  // ================== TOTALES ==================
   get subtotalManoObra(): number {
     const subtotalCents = this.manoObra.controls.reduce((acc, c) => {
       const fg = c as FormGroup;
 
-      // no sumar la fila draft vacía
       if (
         !this.isRowWithId(fg) &&
         this.isDraftRow(this.manoObra.controls.indexOf(c))
@@ -649,7 +612,6 @@ export class CrearManoDeObraComponent implements OnInit {
     }).format(valor || 0);
   }
 
-  // ================== NUMBERS ==================
   parseNumero(valor: any): number {
     const s = this.normalizarDecimalInput(valor);
     if (!s || s === '-') return 0;
@@ -693,7 +655,6 @@ export class CrearManoDeObraComponent implements OnInit {
     return limpio;
   }
 
-  // ================== UID / MAPS ==================
   private attachUid(fg: FormGroup): void {
     (fg as any).__uid = ++this.uidSeq;
   }
@@ -718,7 +679,6 @@ export class CrearManoDeObraComponent implements OnInit {
     this.selectedIndexUnidad = selMap;
   }
 
-  // ================== HELPERS ==================
   private getFg(i: number): FormGroup {
     return this.manoObra.at(i) as FormGroup;
   }

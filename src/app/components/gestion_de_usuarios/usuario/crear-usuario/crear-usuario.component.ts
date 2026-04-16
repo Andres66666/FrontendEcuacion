@@ -6,12 +6,12 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
-import { OkComponent } from '../../../mensajes/ok/ok.component';
-import { ErrorComponent } from '../../../mensajes/error/error.component';
 import { Router } from '@angular/router';
-import { ServiciosService } from '../../../../services/servicios.service';
-import { Usuario } from '../../../../models/models';
 import { CustomValidatorsService } from '../../../../../validators/custom-validators.service';
+import { Usuario } from '../../../../models/models';
+import { ServiciosService } from '../../../../services/servicios.service';
+import { ErrorComponent } from '../../../mensajes/error/error.component';
+import { OkComponent } from '../../../mensajes/ok/ok.component';
 
 @Component({
   selector: 'app-crear-usuario',
@@ -23,8 +23,8 @@ import { CustomValidatorsService } from '../../../../../validators/custom-valida
 export class CrearUsuarioComponent implements OnInit {
   form!: FormGroup;
 
-  errorMensaje: string | null = null; // Mensaje de error
-  imagenPreview: string | ArrayBuffer | null = null; // Variable to hold the image preview
+  errorMensaje: string | null = null;
+  imagenPreview: string | ArrayBuffer | null = null;
   showPassword: boolean = false;
 
   mensajeExito: string = '';
@@ -35,7 +35,7 @@ export class CrearUsuarioComponent implements OnInit {
     private fb: FormBuilder,
     private usuarioService: ServiciosService,
     private router: Router,
-    private customValidators: CustomValidatorsService
+    private customValidators: CustomValidatorsService,
   ) {}
 
   ngOnInit(): void {
@@ -88,22 +88,21 @@ export class CrearUsuarioComponent implements OnInit {
         '',
         [Validators.required, this.customValidators.passwordSegura()],
       ],
-      imagen_url: [''], // opcional
+      imagen_url: [''],
       estado: [true],
-      rol: [''], // no requerido
+      rol: [''],
     });
   }
 
   loadRoles(): void {
     this.usuarioService.getRoles().subscribe((data) => {
-      this.roles = data.filter((r) => r.estado); // Solo roles activos
+      this.roles = data.filter((r) => r.estado);
     });
   }
 
   onSubmit(): void {
     if (this.form.valid) {
       const formData = new FormData();
-      // Agregamos cada campo manualmente
       formData.append('nombre', this.form.get('nombre')?.value);
       formData.append('apellido', this.form.get('apellido')?.value);
       formData.append('correo', this.form.get('correo')?.value);
@@ -111,19 +110,18 @@ export class CrearUsuarioComponent implements OnInit {
       formData.append('ci', this.form.get('ci')?.value);
       formData.append(
         'fecha_nacimiento',
-        this.form.get('fecha_nacimiento')?.value
+        this.form.get('fecha_nacimiento')?.value,
       );
       formData.append('password', this.form.get('password')?.value);
       formData.append('estado', this.form.get('estado')?.value);
       formData.append('rol', this.form.get('rol')?.value);
 
-      // Adjuntamos la imagen si existe
       const inputElement = document.getElementById(
-        'imagenInput'
+        'imagenInput',
       ) as HTMLInputElement;
       if (inputElement && inputElement.files && inputElement.files.length > 0) {
         const file = inputElement.files[0];
-        formData.append('imagen_url', file); // este nombre debe coincidir con el nombre en el backend
+        formData.append('imagen_url', file);
       }
 
       console.log('FormData a enviar:', formData);
@@ -147,12 +145,11 @@ export class CrearUsuarioComponent implements OnInit {
   volver(): void {
     this.router.navigate(['panel-control/listar-usuario']);
   }
-  // Agregar este método en la clase CrearUsuarioComponent
   quitarImagen(): void {
     this.imagenPreview = null;
     this.errorMensaje = null;
     const inputElement = document.getElementById(
-      'imagenInput'
+      'imagenInput',
     ) as HTMLInputElement;
     if (inputElement) {
       inputElement.value = '';
@@ -167,34 +164,31 @@ export class CrearUsuarioComponent implements OnInit {
       estado: true,
       imagen_url: null,
     });
-    this.quitarImagen(); // Usar la nueva función para limpiar la imagen
+    this.quitarImagen();
   }
 
   onFileChange(event: any): void {
     const inputElement = event.target as HTMLInputElement;
 
-    // Check if files are not null and has at least one file
     if (inputElement.files && inputElement.files.length > 0) {
       const file = inputElement.files[0];
 
-      // Validate the file type
       const validExtensions = ['image/png', 'image/jpeg'];
       if (!validExtensions.includes(file.type)) {
         this.errorMensaje =
-          'Formato de archivo incorrecto. Solo se permiten PNG y JPG.'; // Error message
-        this.imagenPreview = null; // Clear the preview
+          'Formato de archivo incorrecto. Solo se permiten PNG y JPG.';
+        this.imagenPreview = null;
         return;
       }
 
-      // If valid, update the form and show the preview
       const reader = new FileReader();
       reader.onload = () => {
-        this.imagenPreview = reader.result; // Set the image preview
+        this.imagenPreview = reader.result;
       };
-      reader.readAsDataURL(file); // Read the file as a data URL
+      reader.readAsDataURL(file);
     } else {
-      this.errorMensaje = 'Por favor, selecciona un archivo.'; // Error message if no file
-      this.imagenPreview = null; // Clear the preview
+      this.errorMensaje = 'Por favor, selecciona un archivo.';
+      this.imagenPreview = null;
     }
   }
   togglePasswordVisibility(): void {
@@ -202,7 +196,6 @@ export class CrearUsuarioComponent implements OnInit {
   }
   manejarOk() {
     this.mensajeExito = '';
-    // Moved the navigation here, after the modal is closed
     this.router.navigate(['panel-control/listar-usuario']);
   }
 

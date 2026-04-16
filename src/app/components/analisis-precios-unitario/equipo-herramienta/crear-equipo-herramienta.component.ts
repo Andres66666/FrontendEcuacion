@@ -12,11 +12,11 @@ import {
 import { ActivatedRoute } from '@angular/router';
 import { BehaviorSubject } from 'rxjs';
 
-import { ServiciosProyectos } from '../../gestion_proyectos/service/servicios-proyectos';
 import {
   EquipoHerramienta,
   Proyecto,
 } from '../../gestion_proyectos/models/modelosProyectos';
+import { ServiciosProyectos } from '../../gestion_proyectos/service/servicios-proyectos';
 
 type RowVM = { index: number; uid: number };
 
@@ -47,12 +47,10 @@ export class CrearEquipoHerramientaComponent implements OnInit {
   catalogoEquipoHerramienta: EquipoHerramienta[] = [];
   catalogoUnidades: string[] = [];
 
-  // Autocomplete UI maps (indexados por índice del FormArray)
   opcionesDescripcion: Record<number, EquipoHerramienta[]> = {};
   opcionesUnidad: Record<number, string[]> = {};
   selectedIndexUnidad: Record<number, number> = {};
 
-  // Filtro
   filtroDescripcion = '';
 
   private uidSeq = 0;
@@ -85,7 +83,7 @@ export class CrearEquipoHerramientaComponent implements OnInit {
   // ================== INIT / BINDINGS ==================
   private initForm(): void {
     this.formulario = this.fb.group({ equipos: this.fb.array([]) });
-    this.ensureDraftRow(); // siempre 1 fila vacía al inicio
+    this.ensureDraftRow();
   }
 
   private bindRouteParams(): void {
@@ -153,19 +151,16 @@ export class CrearEquipoHerramientaComponent implements OnInit {
     for (let i = 0; i < this.equipos.length; i++) {
       const fg = this.getFg(i);
 
-      //  siempre mostrar última fila draft
       if (i === lastIndex && !this.isRowWithId(fg)) {
         out.push({ index: i, uid: this.uidOfIndex(i) });
         continue;
       }
 
-      //  sin filtro
       if (!term) {
         out.push({ index: i, uid: this.uidOfIndex(i) });
         continue;
       }
 
-      //  con filtro por descripción
       const desc = this.upperTrim(fg.get('descripcion')?.value);
       if (desc.includes(term)) out.push({ index: i, uid: this.uidOfIndex(i) });
     }
@@ -337,14 +332,12 @@ export class CrearEquipoHerramientaComponent implements OnInit {
     const lastIndex = this.equipos.length - 1;
     const last = this.getFg(lastIndex);
 
-    // si la última fila ya tiene id => agregar nueva fila vacía
     if (this.isRowWithId(last)) {
       this.equipos.push(this.crearFormEquipoHerramienta());
       this.reindexUiMaps();
       return;
     }
 
-    // si es draft y está totalmente vacía => asegurar total 0 y estado limpio
     if (this.isDraftCompletelyEmpty(last)) {
       last.get('total')?.setValue(0, { emitEvent: false });
       last.markAsPristine();
@@ -399,13 +392,11 @@ export class CrearEquipoHerramientaComponent implements OnInit {
     const fg = this.getFg(i);
     const id = fg.get('id')?.value;
 
-    // draft => limpiar y quedarse en la tabla
     if (!id) {
       this.resetDraftRow(i, fg);
       return;
     }
 
-    // registrado => eliminar de backend y quitar fila
     this.servicio.deleteEquipoHerramienta(id).subscribe({
       next: () => {
         this.equipos.removeAt(i);
@@ -448,59 +439,45 @@ export class CrearEquipoHerramientaComponent implements OnInit {
   }
 
   private readonly ALFANUM_ESPACIOS = /^[A-Z0-9ÁÉÍÓÚÜÑ ]+$/i; // descripción
-  private readonly ALFANUM = /^[A-Z0-9ÁÉÍÓÚÜÑ]+$/i;            // unidad
+  private readonly ALFANUM = /^[A-Z0-9ÁÉÍÓÚÜÑ]+$/i; // unidad
 
-private sanitizeDescripcion(v: any): string {
-  return (v ?? '')
-    .toString()
-    .toUpperCase()
-    .replace(/\s+/g, ' ')   // normaliza espacios
-    .trimStart();          // mantiene caracteres especiales
-}
+  private sanitizeDescripcion(v: any): string {
+    return (v ?? '').toString().toUpperCase().replace(/\s+/g, ' ').trimStart();
+  }
 
   private sanitizeUnidad(v: any): string {
     return (v ?? '')
       .toString()
       .toUpperCase()
-      .replace(/[^A-Z0-9ÁÉÍÓÚÜÑ]+/g, '') // solo letras/números
+      .replace(/[^A-Z0-9ÁÉÍÓÚÜÑ]+/g, '')
       .trimStart();
   }
 
+  convertirAMayusculas(i: number, campo: string): void {
+    const ctrl = this.getFg(i).get(campo);
+    if (!ctrl) return;
 
-  // Reemplaza convertirAMayusculas por este
+    if (campo === 'descripcion') {
+      ctrl.setValue(this.sanitizeDescripcion(ctrl.value), { emitEvent: false });
+      return;
+    }
 
- convertirAMayusculas(i: number, campo: string): void {
-  const ctrl = this.getFg(i).get(campo);
-  if (!ctrl) return;
+    if (campo === 'unidad') {
+      ctrl.setValue(this.sanitizeUnidad(ctrl.value), { emitEvent: false });
+      return;
+    }
 
-  if (campo === 'descripcion') {
-    // ✅ acepta caracteres especiales, solo normaliza texto
-    ctrl.setValue(this.sanitizeDescripcion(ctrl.value), { emitEvent: false });
-    return;
+    ctrl.setValue((ctrl.value ?? '').toString().toUpperCase(), {
+      emitEvent: false,
+    });
   }
-
-  if (campo === 'unidad') {
-    // ✅ unidad sigue protegida
-    ctrl.setValue(this.sanitizeUnidad(ctrl.value), { emitEvent: false });
-    return;
-  }
-
-  ctrl.setValue((ctrl.value ?? '').toString().toUpperCase(), { emitEvent: false });
-}
-
-  // Modifica SOLO descripcion y unidad en crearFormEquipoHerramienta
 
   private crearFormEquipoHerramienta(equipo?: EquipoHerramienta): FormGroup {
     const fg = this.fb.group({
       id: [equipo?.id ?? null],
 
-      // ✅ CAMBIO: descripcion solo required (acepta especiales)
-      descripcion: [
-        equipo?.descripcion ?? '',
-        [Validators.required],
-      ],
+      descripcion: [equipo?.descripcion ?? '', [Validators.required]],
 
-      // ✅ unidad se queda igual (con patrón)
       unidad: [
         equipo?.unidad ?? '',
         [Validators.required, Validators.pattern(this.ALFANUM)],
@@ -522,7 +499,6 @@ private sanitizeDescripcion(v: any): string {
 
     this.attachUid(fg);
 
-    // solo normalizamos espacios + mayúsculas
     fg.valueChanges.subscribe(() => {
       const d = fg.get('descripcion')!;
       const u = fg.get('unidad')!;
@@ -530,15 +506,18 @@ private sanitizeDescripcion(v: any): string {
       const dSan = this.sanitizeDescripcion(d.value);
       if (d.value !== dSan) d.setValue(dSan, { emitEvent: false });
 
-      // ✅ unidad sí se sigue limpiando
       const uSan = this.sanitizeUnidad(u.value);
       if (u.value !== uSan) u.setValue(uSan, { emitEvent: false });
 
       if (this.isRowWithId(fg)) fg.markAsDirty();
     });
 
-    fg.get('cantidad')?.valueChanges.subscribe(() => this.actualizarPrecioParcial(fg));
-    fg.get('precio_unitario')?.valueChanges.subscribe(() => this.actualizarPrecioParcial(fg));
+    fg.get('cantidad')?.valueChanges.subscribe(() =>
+      this.actualizarPrecioParcial(fg),
+    );
+    fg.get('precio_unitario')?.valueChanges.subscribe(() =>
+      this.actualizarPrecioParcial(fg),
+    );
 
     return fg;
   }
@@ -609,7 +588,6 @@ private sanitizeDescripcion(v: any): string {
     const subtotalCents = this.equipos.controls.reduce((acc, c) => {
       const fg = c as FormGroup;
 
-      // no sumar la fila draft vacía
       if (
         !this.isRowWithId(fg) &&
         this.isDraftRow(this.equipos.controls.indexOf(c))

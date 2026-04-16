@@ -1,20 +1,20 @@
-import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { Injectable } from '@angular/core';
 import { map, Observable } from 'rxjs';
 import {
-  Rol,
+  Atacante,
   Permiso,
+  Rol,
+  RolPermiso,
   Usuario,
   UsuarioRol,
-  RolPermiso,
-  Atacante,
 } from '../models/models';
 
 @Injectable({
   providedIn: 'root',
 })
 export class ServiciosService {
-    private apiUrl = 'https://backendecuacion.onrender.com/api/';
+  private apiUrl = 'https://backendecuacion.onrender.com/api/';
 /*   private apiUrl = 'http://localhost:8000/api/'; */
   constructor(private http: HttpClient) {}
 

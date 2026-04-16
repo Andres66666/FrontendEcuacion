@@ -7,11 +7,11 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
-import { ErrorComponent } from '../../../mensajes/error/error.component';
-import { OkComponent } from '../../../mensajes/ok/ok.component';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Permiso, Rol, RolPermiso } from '../../../../models/models';
 import { ServiciosService } from '../../../../services/servicios.service';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ErrorComponent } from '../../../mensajes/error/error.component';
+import { OkComponent } from '../../../mensajes/ok/ok.component';
 
 @Component({
   selector: 'app-editar-rol-permiso',
@@ -42,7 +42,7 @@ export class EditarRolPermisoComponent implements OnInit {
     private fb: FormBuilder,
     private service: ServiciosService,
     private router: Router,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
   ) {
     this.form = this.fb.group({
       id: [null],
@@ -62,10 +62,10 @@ export class EditarRolPermisoComponent implements OnInit {
     this.service.getRoles().subscribe({
       next: (data) => {
         this.roles = data.filter((r) => r.estado);
-        console.log('✅ Roles cargados:', this.roles);
+        console.log('Roles cargados:', this.roles);
       },
       error: (error) => {
-        console.error('❌ Error al cargar roles:', error);
+        console.error('Error al cargar roles:', error);
         this.roles = [];
       },
     });
@@ -75,10 +75,10 @@ export class EditarRolPermisoComponent implements OnInit {
     this.service.getPermisos().subscribe({
       next: (data) => {
         this.permisos = data.filter((p) => p.estado);
-        console.log('✅ Permisos cargados:', this.permisos);
+        console.log('Permisos cargados:', this.permisos);
       },
       error: (error) => {
-        console.error('❌ Error al cargar permisos:', error);
+        console.error('Error al cargar permisos:', error);
         this.permisos = [];
       },
     });
@@ -88,7 +88,7 @@ export class EditarRolPermisoComponent implements OnInit {
     this.service.getRolPermisoID(this.id).subscribe({
       next: (data) => {
         this.relacionOriginal = data;
-        console.log('📋 Relación original cargada:', data);
+        console.log('Relación original cargada:', data);
 
         this.form.patchValue({
           id: data.id,
@@ -98,11 +98,10 @@ export class EditarRolPermisoComponent implements OnInit {
 
         this.permisoSeleccionado = data.permiso.id;
 
-        // Cargar permisos disponibles para el rol seleccionado
         this.cargarPermisosDisponibles(data.rol.id);
       },
       error: (error) => {
-        console.error('❌ Error al cargar la relación:', error);
+        console.error('Error al cargar la relación:', error);
         this.mensajeError = 'Error al cargar la relación rol-permiso.';
       },
     });
@@ -125,11 +124,9 @@ export class EditarRolPermisoComponent implements OnInit {
 
   onPermisoChange(permisoId: number): void {
     if (this.permisoSeleccionado === permisoId) {
-      // Deseleccionar si ya está seleccionado
       this.permisoSeleccionado = null;
       this.form.patchValue({ permiso: '' });
     } else {
-      // Seleccionar nuevo permiso
       this.permisoSeleccionado = permisoId;
       this.form.patchValue({ permiso: permisoId });
     }
@@ -142,22 +139,20 @@ export class EditarRolPermisoComponent implements OnInit {
     return this.permisoSeleccionado === permisoId;
   }
 
-  // Método para obtener el nombre del permiso seleccionado
   getNombrePermisoSeleccionado(): string {
     if (!this.permisoSeleccionado) return '';
 
     const permiso = this.permisosDisponibles.find(
-      (p) => p.id === this.permisoSeleccionado
+      (p) => p.id === this.permisoSeleccionado,
     );
     return permiso ? permiso.nombre : '';
   }
 
   private cargarPermisosDisponibles(rolId: number): void {
-    console.log('🔄 Cargando permisos disponibles para rol:', rolId);
+    console.log('Cargando permisos disponibles para rol:', rolId);
 
     this.service.getRolPermiso().subscribe({
       next: (rolPermisos) => {
-        // Obtener permisos ya asignados a este rol
         const permisosAsignados = rolPermisos
           .filter((rp) => {
             const idRol = typeof rp.rol === 'object' ? rp.rol.id : rp.rol;
@@ -167,32 +162,28 @@ export class EditarRolPermisoComponent implements OnInit {
             return typeof rp.permiso === 'object' ? rp.permiso.id : rp.permiso;
           });
 
-        console.log('❌ Permisos asignados al rol:', permisosAsignados);
+        console.log('Permisos asignados al rol:', permisosAsignados);
 
-        // Filtrar permisos disponibles (excluyendo los ya asignados)
-        // PERO incluir el permiso actual de la relación que estamos editando
         const permisoActual = this.relacionOriginal?.permiso?.id;
         this.permisosDisponibles = this.permisos.filter(
-          (p) => !permisosAsignados.includes(p.id) || p.id === permisoActual
+          (p) => !permisosAsignados.includes(p.id) || p.id === permisoActual,
         );
 
         console.log(
-          '✅ Permisos disponibles para seleccionar:',
-          this.permisosDisponibles
+          'Permisos disponibles para seleccionar:',
+          this.permisosDisponibles,
         );
 
-        // Si hay un permiso seleccionado previamente, verificar si sigue disponible
         if (
           this.permisoSeleccionado &&
           !this.permisosDisponibles.some(
-            (p) => p.id === this.permisoSeleccionado
+            (p) => p.id === this.permisoSeleccionado,
           )
         ) {
           this.permisoSeleccionado = null;
           this.form.patchValue({ permiso: '' });
         }
 
-        // Mostrar mensaje si no hay permisos disponibles
         if (this.permisosDisponibles.length === 0) {
           this.mensajeError = 'Este rol ya tiene todos los permisos asignados.';
         } else {
@@ -200,7 +191,7 @@ export class EditarRolPermisoComponent implements OnInit {
         }
       },
       error: (error) => {
-        console.error('❌ Error al cargar permisos disponibles:', error);
+        console.error('Error al cargar permisos disponibles:', error);
         this.mensajeError = 'Error al cargar los permisos disponibles.';
       },
     });
@@ -212,9 +203,8 @@ export class EditarRolPermisoComponent implements OnInit {
       const rolId = formData.rol;
       const permisoId = formData.permiso;
 
-      console.log('📤 Intentando actualizar relación:', formData);
+      console.log('Intentando actualizar relación:', formData);
 
-      // Verificar si es el mismo que el original (no hay cambio)
       if (
         this.relacionOriginal &&
         this.relacionOriginal.rol.id === rolId &&
@@ -224,14 +214,13 @@ export class EditarRolPermisoComponent implements OnInit {
         return;
       }
 
-      // Verificar si ya existe otra relación con el mismo rol y permiso
       this.service.getRolPermiso().subscribe({
         next: (data) => {
           const existe = data.some(
             (rp) =>
               rp.rol.id === rolId &&
               rp.permiso.id === permisoId &&
-              rp.id !== this.id
+              rp.id !== this.id,
           );
 
           if (existe) {
@@ -241,17 +230,17 @@ export class EditarRolPermisoComponent implements OnInit {
             this.service.updateRolPermiso(formData).subscribe({
               next: () => {
                 this.mensajeExito = 'Rol-Permiso actualizado correctamente.';
-                console.log('✅ Relación actualizada exitosamente');
+                console.log('Relación actualizada exitosamente');
               },
               error: (error) => {
-                console.error('❌ Error al actualizar:', error);
+                console.error('Error al actualizar:', error);
                 this.mensajeError = 'Error al actualizar el Rol-Permiso.';
               },
             });
           }
         },
         error: (error) => {
-          console.error('❌ Error al verificar existencia:', error);
+          console.error('Error al verificar existencia:', error);
           this.mensajeError = 'Error al verificar la relación.';
         },
       });

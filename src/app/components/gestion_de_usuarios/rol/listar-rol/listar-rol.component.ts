@@ -1,16 +1,16 @@
+import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { Router, RouterModule } from '@angular/router';
 import { Rol } from '../../../../models/models';
 import { ServiciosService } from '../../../../services/servicios.service';
-import { Router, RouterModule } from '@angular/router';
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-listar-rol',
   standalone: true,
   imports: [CommonModule, RouterModule, FormsModule],
   templateUrl: './listar-rol.component.html',
-  styleUrl: './listar-rol.component.css'
+  styleUrl: './listar-rol.component.css',
 })
 export class ListarRolComponent {
   roles: Rol[] = [];
@@ -18,14 +18,14 @@ export class ListarRolComponent {
   rolesMostrados: Rol[] = [];
 
   busqueda = '';
-  filtroEstado: string = 'activos'; // por defecto solo activos
+  filtroEstado: string = 'activos';
 
   limite = 10;
 
   constructor(
     private rolService: ServiciosService,
     private router: Router,
-  ) { }
+  ) {}
   ngOnInit(): void {
     this.rolService.getRoles().subscribe((data) => {
       this.roles = data;

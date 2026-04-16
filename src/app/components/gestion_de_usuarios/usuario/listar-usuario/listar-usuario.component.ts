@@ -18,13 +18,13 @@ export class ListarUsuarioComponent {
   usuariosMostrados: Usuario[] = [];
 
   busqueda = '';
-  filtroEstado: string = 'activos'; // por defecto mostrar activos
+  filtroEstado: string = 'activos';
 
   limite = 10;
 
   constructor(
     private usuarioService: ServiciosService,
-    private router: Router
+    private router: Router,
   ) {}
 
   ngOnInit(): void {

@@ -15,7 +15,7 @@
             formControlName="usuario"
             [ngClass]="{
               'is-invalid':
-                form.get('usuario')?.invalid && form.get('usuario')?.touched
+                form.get('usuario')?.invalid && form.get('usuario')?.touched,
             }"
             required
           >
@@ -34,7 +34,8 @@
             class="form-select"
             formControlName="rol"
             [ngClass]="{
-              'is-invalid': form.get('rol')?.invalid && form.get('rol')?.touched
+              'is-invalid':
+                form.get('rol')?.invalid && form.get('rol')?.touched,
             }"
             required
           >

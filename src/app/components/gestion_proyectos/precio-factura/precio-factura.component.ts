@@ -1,10 +1,9 @@
-// precio-factura.component.ts (refactor + redondeos consistentes + sumas exactas)
-import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { ServiciosProyectos } from '../service/servicios-proyectos';
 import { catchError, of } from 'rxjs';
+import { ServiciosProyectos } from '../service/servicios-proyectos';
 
 type Origen = 'ITEM' | 'PROYECTO' | 'MODULO' | '';
 
@@ -84,7 +83,6 @@ export class PrecioFacturaComponent implements OnInit {
           Number(params['total_Item_valor_agregado_item']) || 0;
       }
 
-      // Proyecto: trae parámetros tributarios y nombre
       if (this.id_proyecto_general > 0) {
         this.service
           .getProyectoID(this.id_proyecto_general)
@@ -107,8 +105,6 @@ export class PrecioFacturaComponent implements OnInit {
           });
       }
 
-      // Si en tu app también tienes nombreModulo / descripcionItem por params,
-      // puedes asignarlos aquí sin cambiar la lógica.
       this.nombreModulo = params['nombreModulo'] || this.nombreModulo;
       this.descripcionItem = params['descripcionItem'] || this.descripcionItem;
       this.id_item_gasto_operacion =
@@ -219,7 +215,6 @@ export class PrecioFacturaComponent implements OnInit {
   }
 
   get margenUtilidad(): number {
-    // misma lógica: PrecioFactura - CostoVenta - IVA
     return this.redondear2(this.precioFactura3 - this.costoVenta4 - this.iva13);
   }
 
