@@ -1,0 +1,66 @@
+.hero-section {
+  background-image: url("https://res.cloudinary.com/dsbgmboh1/image/upload/v1777092643/fondo_c4zmys.png");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+
+  min-height: 100vh;
+  position: relative;
+}
+
+/* overlay oscuro para que el texto se lea bien */
+.hero-section::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+}
+
+/* asegura que el contenido esté encima */
+.hero-section .container-fluid {
+  position: relative;
+  z-index: 2;
+}
+
+/* ===================== */
+/* MAPA */
+/* ===================== */
+
+.ratio iframe {
+  border-radius: 8px;
+}
+
+/* ===================== */
+/* RESPONSIVE */
+/* ===================== */
+
+@media (max-width: 768px) {
+  section {
+    padding: 50px 0;
+  }
+
+  .hero-section {
+    min-height: 70vh;
+    padding-top: 60px;
+  }
+
+  .hero-content {
+    text-align: center;
+    margin: 0 auto;
+  }
+
+  .hero-content p {
+    margin: 0 auto;
+  }
+}
+
+@media (max-width: 576px) {
+  header img {
+    max-width: 130px;
+  }
+
+  .btn {
+    font-size: 13px;
+    padding: 6px 12px;
+  }
+}

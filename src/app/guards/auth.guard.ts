@@ -1,8 +1,7 @@
 // auth.guard.ts
-import { inject } from '@angular/core';
-import { CanActivateFn, Router } from '@angular/router';
-import { PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
+import { inject, PLATFORM_ID } from '@angular/core';
+import { CanActivateFn, Router } from '@angular/router';
 import { StorageService } from '../services/Storage.service';
 
 export const authGuard: CanActivateFn = (route, state) => {
@@ -12,7 +11,7 @@ export const authGuard: CanActivateFn = (route, state) => {
 
   if (isPlatformBrowser(platformId)) {
     const token = storage.getItem('access_token'); // 👈 uso del servicio
-    
+
     if (token) {
       const parsedToken = JSON.parse(token);
       return true;
