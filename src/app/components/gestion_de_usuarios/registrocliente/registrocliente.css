@@ -8,9 +8,7 @@
 }
 
 .registro-card {
-  background: #ffffff;
-  max-width: 980px;
-  margin: 0 auto;
+  background: transparent;
 }
 
 .form-label {
@@ -19,9 +17,36 @@
 }
 
 .input-group-text {
-  background-color: #fff;
-  min-width: 52px;
-  justify-content: center;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+}
+.form-control {
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+}
+
+.form-control::placeholder {
+  color: rgba(255, 255, 255, 0.7);
+}
+.form-control:focus {
+  background: rgba(255, 255, 255, 0.25);
+  border-color: #0d6efd;
+  box-shadow: 0 0 0 0.15rem rgba(13, 110, 253, 0.25);
+  color: #fff;
+}
+.form-label {
+  color: rgba(255, 255, 255, 0.85);
+}
+.btn-primary {
+  background: rgba(13, 110, 253, 0.8);
+  border: none;
+}
+.input-group {
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border-radius: 0.85rem;
 }
 
 .form-control,

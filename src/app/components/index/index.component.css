@@ -3,7 +3,7 @@
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-
+  padding-top: 80px;
   min-height: 100vh;
   position: relative;
 }
@@ -20,6 +20,33 @@
 .hero-section .container-fluid {
   position: relative;
   z-index: 2;
+}
+
+.registro-overlay {
+  margin-top: -40px; /* súbelo un poco */
+}
+
+/* nuevos  */
+.registro-overlay {
+  margin-top: -60px;
+
+  background: rgba(255, 255, 255, 0.15); /* transparencia */
+  backdrop-filter: blur(10px); /* efecto vidrio */
+  -webkit-backdrop-filter: blur(10px);
+
+  border-radius: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+
+  color: #fff; /* texto blanco para que se vea */
+}
+.registro-overlay .card-body {
+  background: transparent;
+}
+header {
+  left: 0;
+  top: 0;
+  width: 100%;
+  z-index: 9999;
 }
 
 /* ===================== */
