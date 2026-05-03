@@ -98,3 +98,9 @@ h2 {
   border-color: rgba(25, 135, 84, 0.6);
   color: #fff;
 }
+@media (max-width: 768px) {
+  .login-page {
+    background-size: cover;
+    background-position: center top;
+  }
+}
