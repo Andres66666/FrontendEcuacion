@@ -324,7 +324,7 @@ export class LoginComponent {
             imagen_url: this.tempImagenUrl,
             roles: res.roles || this.tempRoles,
             permisos: this.tempPermisos,
-            dias_transcurridos: this.tempDiasTranscurridos,
+            dias_transcurridos: this.tempDiasTranscurridos ?? 0,
           };
           localStorage.setItem(
             'access_token',
@@ -375,6 +375,7 @@ export class LoginComponent {
       dias_transcurridos: res.dias_transcurridos,
     };
     localStorage.setItem('usuarioLogueado', JSON.stringify(usuario));
+
     // Modificación: Solo redirigir a cambiar contraseña si no es admin y requiere cambio
     const esAdmin = usuario.roles && usuario.roles.includes('Administrador');
     if (!esAdmin && res.requiere_cambio_password && res.mensaje_urgente) {
