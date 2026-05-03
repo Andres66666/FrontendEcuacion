@@ -67,8 +67,9 @@ header {
   }
 
   .hero-section {
-    min-height: 70vh;
-    padding-top: 60px;
+    background-image: url("https://res.cloudinary.com/dsbgmboh1/image/upload/v1777780642/logomovilindex_cn8ltc.jpg");
+    background-size: cover;
+    background-position: center;
   }
 
   .hero-content {
@@ -78,6 +79,9 @@ header {
 
   .hero-content p {
     margin: 0 auto;
+  }
+  .registro-overlay {
+    margin-top: 30px;
   }
 }
 
