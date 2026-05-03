@@ -1,15 +1,20 @@
-/*
+/* https://res.cloudinary.com/dsbgmboh1/image/upload/v1777767305/login2_c28lqx.jpg */
+:host {
+  display: block;
+  width: 100%;
+}
+
+/* FONDO */
 .login-page {
-  background-image: url("https://res.cloudinary.com/dsbgmboh1/image/upload/v1777092643/fondo_c4zmys.png");
+  background-image: url("https://res.cloudinary.com/dsbgmboh1/image/upload/v1777767305/login1_fncl0q.jpg");
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-
   min-height: 100vh;
   position: relative;
 }
 
-
+/* overlay */
 .login-page::before {
   content: "";
   position: absolute;
@@ -17,11 +22,78 @@
   background: rgba(11, 31, 58, 0.75);
 }
 
-
+/* contenido encima */
 .login-page .container-fluid {
   position: relative;
   z-index: 2;
 }
 
+/* TARJETA (MISMO ESTILO QUE REGISTRO) */
 
- */
+.login-card {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-radius: 1rem;
+}
+
+/* LABELS */
+.form-label {
+  margin-bottom: 0.5rem;
+  font-size: 0.98rem;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+/* INPUT GROUP */
+.input-group {
+  backdrop-filter: blur(6px);
+  border-radius: 0.85rem;
+}
+
+/* ICONOS */
+.input-group-text {
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+}
+
+/* INPUTS */
+.form-control {
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+}
+
+.form-control::placeholder {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.form-control:focus {
+  background: rgba(255, 255, 255, 0.25);
+  border-color: #0d6efd;
+  box-shadow: 0 0 0 0.15rem rgba(13, 110, 253, 0.25);
+  color: #fff;
+}
+
+/* BOTONES */
+.btn-success {
+  background: rgba(25, 135, 84, 0.85);
+  border: none;
+}
+
+.btn-secondary {
+  background: rgba(108, 117, 125, 0.85);
+  border: none;
+}
+
+p {
+  color: rgba(255, 255, 255, 0.85);
+}
+h2 {
+  color: rgba(255, 255, 255, 0.95);
+}
+.btn-2fa:hover {
+  background-color: rgba(25, 135, 84, 0.2); /* verde transparente */
+  border-color: rgba(25, 135, 84, 0.6);
+  color: #fff;
+}
