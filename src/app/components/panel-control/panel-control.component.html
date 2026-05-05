@@ -1,6 +1,7 @@
 <section class="layout">
   <nav class="navbar navbar-expand-md header">
-    <div class="container-fluid mx-2">
+    <div class="container-fluid mx-2 flex-nowrap">
+      <!-- BOTÓN SIDEBAR -->
       <button
         class="toggle-button btn border-0 shadow-sm"
         (click)="toggleSidebar()"
@@ -11,14 +12,16 @@
         ></i>
       </button>
 
+      <!-- LOGO (oculto en móviles pequeños) -->
       <img
         src="https://res.cloudinary.com/dsbgmboh1/image/upload/v1762419613/logomallafinita_uy4cw2.png"
         alt="Logo"
-        class="mx-3 img-fluid d-none d-sm-block"
-        style="max-width: 160px; filter: brightness(0) invert(1)"
+        class="logo-navbar d-none d-sm-block"
       />
 
-      <div class="ms-auto d-flex align-items-center gap-3">
+      <!-- ACCIONES DERECHA -->
+      <div class="ms-auto d-flex align-items-center gap-2 gap-md-3">
+        <!-- SERVICIOS -->
         <button
           class="toggle-button btn border-0 shadow-sm"
           title="Servicios"
@@ -26,6 +29,8 @@
         >
           <i class="bi bi-gear-fill"></i>
         </button>
+
+        <!-- NOTIFICACIONES -->
         <div class="position-relative" #notificacionesContainer>
           <button
             class="toggle-button btn border-0 shadow-sm"
@@ -33,91 +38,66 @@
             (click)="toggleNotificaciones($event)"
           >
             <i class="bi bi-bell-fill"></i>
-            <span
-              *ngIf="notificaciones.length > 0"
-              class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger border border-white"
-              style="font-size: 0.65rem"
-            >
+
+            <span *ngIf="notificaciones.length > 0" class="badge-notif">
               {{ notificaciones.length }}
             </span>
           </button>
+
           <div
             *ngIf="mostrarNotificaciones"
-            class="dropdown-menu dropdown-menu-end show mt-2 shadow-lg border-0 p-0"
-            style="width: 280px; overflow: hidden"
+            class="dropdown-menu dropdown-menu-end show notif-dropdown"
           >
-            <h6 class="dropdown-header bg-light text-dark py-2">
-              Usuarios Desactivados
-            </h6>
-            <div style="max-height: 250px; overflow-y: auto">
+            <h6 class="dropdown-header">Usuarios Desactivados</h6>
+
+            <div class="notif-list">
               <a
                 *ngFor="let notif of notificaciones"
-                class="dropdown-item border-bottom py-2"
+                class="dropdown-item"
                 (click)="verNotificacion(notif)"
               >
-                <div class="fw-bold text-dark">{{ notif.nombre }}</div>
-                <small class="text-muted">{{ notif.correo }}</small>
+                <div class="fw-bold">{{ notif.nombre }}</div>
+                <small>{{ notif.correo }}</small>
               </a>
-              <div
-                *ngIf="notificaciones.length === 0"
-                class="p-3 text-center text-muted"
-              >
-                No hay bloqueos
-              </div>
             </div>
-            <button
-              class="btn btn-light btn-sm w-100 rounded-0"
-              (click)="recargarNotificaciones()"
-            >
-              <i class="be bi-arrow-clockwise me-1">Actualizar</i>
-            </button>
           </div>
         </div>
 
+        <!-- DÍAS (ocultar en móvil pequeño) -->
         <div
-          class="d-flex align-items-center gap-2 bg-opacity-25"
+          class="d-none d-md-flex align-items-center gap-1"
           *ngIf="diasTranscurridos !== null"
         >
-          <i class="bi bi-hourglass-split" style="font-size: 1.2rem"></i>
-          <span class="fw-bold">Día: {{ diasTranscurridos }}</span>
+          <i class="bi bi-hourglass-split"></i>
+          <span>Día: {{ diasTranscurridos }}</span>
         </div>
+
+        <!-- USUARIO -->
         <div class="dropdown">
           <button
             class="btn dropdown-toggle d-flex align-items-center border-0"
-            type="button"
             data-bs-toggle="dropdown"
-            aria-expanded="false"
           >
-            <img
-              *ngIf="imagenUrl"
-              [src]="imagenUrl"
-              class="rounded-circle me-2 border border-2 border-white shadow-sm"
-              style="width: 38px; height: 38px; object-fit: cover"
-            />
+            <img *ngIf="imagenUrl" [src]="imagenUrl" class="avatar" />
 
-            <div class="d-none d-md-flex flex-column align-items-start lh-1">
-              <span class="fw-bold" style="font-size: 0.9rem">{{
-                userName
-              }}</span>
-              <span class="small opacity-75" style="font-size: 0.75rem">{{
-                userRole
-              }}</span>
+            <!-- SOLO EN DESKTOP -->
+            <div class="user-info d-none d-lg-flex">
+              <span>{{ userName }}</span>
+              <small>{{ userRole }}</small>
             </div>
           </button>
 
-          <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2">
+          <ul class="dropdown-menu dropdown-menu-end">
             <li>
-              <a class="dropdown-item py-2 text-success" (click)="verPerfil()">
-                <i class="bi-person me-2"></i>Mi Perfil
-              </a>
+              <a class="dropdown-item" (click)="verPerfil()">Mi Perfil</a>
             </li>
-            <li><hr class="dropdown-divider" /></li>
+            <li><hr /></li>
             <li>
               <a
-                class="dropdown-item text-danger py-2"
+                class="dropdown-item text-danger"
                 (click)="onSelectChange('cerrarSesion')"
               >
-                <i class="bi-box-arrow-right me-2"></i>Cerrar Sesión
+                Cerrar Sesión
               </a>
             </li>
           </ul>

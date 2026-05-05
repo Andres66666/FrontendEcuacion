@@ -260,3 +260,74 @@ body {
     transition: none !important;
   }
 }
+
+/* LOGO */
+.logo-navbar {
+  max-width: 140px;
+  filter: brightness(0) invert(1);
+}
+
+/* BADGE NOTIFICACIONES */
+.badge-notif {
+  position: absolute;
+  top: 0;
+  right: 0;
+  transform: translate(50%, -50%);
+  font-size: 0.6rem;
+  background: red;
+  color: white;
+  border-radius: 50%;
+  padding: 3px 6px;
+}
+
+/* AVATAR */
+.avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+/* USER INFO */
+.user-info {
+  flex-direction: column;
+  margin-left: 8px;
+  line-height: 1;
+}
+
+/* DROPDOWN NOTIFICACIONES */
+.notif-dropdown {
+  width: 90vw;
+  max-width: 300px;
+}
+
+/* LISTA NOTIFICACIONES */
+.notif-list {
+  max-height: 250px;
+  overflow-y: auto;
+}
+
+/* BOTONES MÁS PEQUEÑOS EN MÓVIL */
+@media (max-width: 576px) {
+  .toggle-button {
+    width: 36px;
+    height: 36px;
+  }
+
+  .header {
+    height: 60px;
+    padding: 0 0.5rem;
+  }
+}
+
+/* ULTRA MOBILE */
+@media (max-width: 400px) {
+  .header {
+    padding: 0 0.3rem;
+  }
+
+  .toggle-button {
+    width: 32px;
+    height: 32px;
+  }
+}
