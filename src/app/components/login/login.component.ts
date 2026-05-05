@@ -171,15 +171,12 @@ export class LoginComponent {
       next: (res: any) => {
         this.isLoading = false;
 
-        // Verificar si es admin
-        const esAdmin = res.roles && res.roles.includes('Administrador');
-
-        if (res.requiere_cambio_password && !esAdmin) {
-          // Modificación: Para primer acceso de no-admin, ir a 'olvide' con correo pre-llenado
+        // 🔥 CAMBIO: YA NO HAY EXCEPCIÓN PARA ADMIN
+        if (res.requiere_cambio_password) {
           this.vistaActual = 'olvide';
           this.correoReset = this.correo;
           this.mensajeExito =
-            'Como es su primer acceso, debe cambiar su contraseña. Ingrese su correo para recibir una temporal.';
+            'Debe cambiar su contraseña. Ingrese su correo para recibir una temporal.';
           setTimeout(() => {
             this.mensajeExito = '';
           }, 5000);
@@ -196,8 +193,10 @@ export class LoginComponent {
           this.tempRequiereCambioPassword =
             res.requiere_cambio_password || false;
           this.tempMensajeUrgente = res.mensaje_urgente || false;
+
           const mensajePrincipal = res.mensaje || '¡Inicio de sesión exitoso!';
           let mensajeCompleto = mensajePrincipal;
+
           if (this.tempMensajeAdicional) {
             mensajeCompleto += ` - ${this.tempMensajeAdicional}`;
           }
@@ -212,14 +211,8 @@ export class LoginComponent {
             this.tempTipoMensaje === 'advertencia_urgente'
           ) {
             this.mensajeAdvertencia = mensajeCompleto;
-            if (this.tempMensajeUrgente || this.tempRequiereCambioPassword) {
-              console.log('Mensaje urgente: Esperando clic del usuario...');
-            } else {
-              setTimeout(() => {
-                this.mensajeAdvertencia = '';
-              }, 7000);
-            }
           }
+
           this.vistaActual = 'seleccion_2fa';
           this.codigoEnviado = false;
           this.qrBase64 = null;
@@ -297,20 +290,24 @@ export class LoginComponent {
 
   verificarCodigo(): void {
     this.mensajeError = '';
+
     if (!this.usuarioId) {
       this.mensajeError = 'Usuario no definido';
       return;
     }
+
     if (this.codigo2FA.length !== 6) {
       this.mensajeError = 'Ingrese los 6 dígitos del código de verificación';
       return;
     }
+
     if (!this.metodoSeleccionado) {
       this.mensajeError = 'Método de verificación no seleccionado';
       return;
     }
 
     this.loading = true;
+
     this.service
       .verificar2FA(this.usuarioId, this.codigo2FA, this.metodoSeleccionado)
       .subscribe({
@@ -324,8 +321,9 @@ export class LoginComponent {
             imagen_url: this.tempImagenUrl,
             roles: res.roles || this.tempRoles,
             permisos: this.tempPermisos,
-            dias_transcurridos: this.tempDiasTranscurridos ?? 0,
+            dias_transcurridos: this.tempDiasTranscurridos,
           };
+
           localStorage.setItem(
             'access_token',
             JSON.stringify(res.access_token),
@@ -334,18 +332,12 @@ export class LoginComponent {
 
           this.mensajeExito = 'Autenticación 2FA exitosa';
 
-          // Modificación: Solo redirigir a cambiar contraseña si no es admin y requiere cambio
-          const esAdmin =
-            usuarioData.roles && usuarioData.roles.includes('Administrador');
-          if (
-            !esAdmin &&
-            this.tempRequiereCambioPassword &&
-            this.tempMensajeUrgente
-          ) {
+          // 🔥 CAMBIO: TODOS pasan por cambio de contraseña si aplica
+          if (this.tempRequiereCambioPassword && this.tempMensajeUrgente) {
             setTimeout(() => {
               this.router.navigate(['/cambiar-password']);
             }, 2000);
-          } else if (!esAdmin && this.tempRequiereCambioPassword) {
+          } else if (this.tempRequiereCambioPassword) {
             setTimeout(() => {
               this.router.navigate(['/cambiar-password']);
             }, 5000);
@@ -362,9 +354,9 @@ export class LoginComponent {
         },
       });
   }
-
   private guardarSesionYRedirigir(res: any): void {
     localStorage.setItem('access_token', JSON.stringify(res.access_token));
+
     const usuario = {
       id: res.usuario_id,
       nombre: res.nombre_usuario,
@@ -374,15 +366,15 @@ export class LoginComponent {
       permisos: res.permisos,
       dias_transcurridos: res.dias_transcurridos,
     };
+
     localStorage.setItem('usuarioLogueado', JSON.stringify(usuario));
 
-    // Modificación: Solo redirigir a cambiar contraseña si no es admin y requiere cambio
-    const esAdmin = usuario.roles && usuario.roles.includes('Administrador');
-    if (!esAdmin && res.requiere_cambio_password && res.mensaje_urgente) {
+    // 🔥 CAMBIO: SIN EXCEPCIÓN ADMIN
+    if (res.requiere_cambio_password && res.mensaje_urgente) {
       setTimeout(() => {
         this.router.navigate(['/cambiar-password']);
       }, 2000);
-    } else if (!esAdmin && res.requiere_cambio_password) {
+    } else if (res.requiere_cambio_password) {
       setTimeout(() => {
         this.router.navigate(['/cambiar-password']);
       }, 5000);
@@ -392,7 +384,6 @@ export class LoginComponent {
       }, 5000);
     }
   }
-
   enviarCorreoReset() {
     this.mensajeError = '';
     if (!this.correoReset.trim()) {

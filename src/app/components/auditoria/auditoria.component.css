@@ -35,8 +35,6 @@
   filter: invert(1); /* negro -> blanco */
 }
 
-
-
 /* estilos para la lista de atacantes */
 .list-group-item.active {
   background-color: rgba(0, 123, 255, 0.15); /* azul suave, transparencia */
@@ -44,5 +42,101 @@
   border-color: rgba(0, 123, 255, 0.25); /* borde suave */
 }
 .list-group-item.active:hover {
-  background-color: rgba(0, 123, 255, 0.2); /* un poquito más visible al hover */
+  background-color: rgba(
+    0,
+    123,
+    255,
+    0.2
+  ); /* un poquito más visible al hover */
+}
+/* 🔥 CONTENEDOR DE FILTROS */
+.filtros-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* 🔥 BOTONES RESPONSIVOS */
+.btn-group .btn {
+  flex: 1 1 auto;
+  min-width: 120px;
+  justify-content: center;
+}
+
+/* 🔥 ICONOS ADAPTATIVOS */
+.icono-tipo {
+  width: 30px;
+  height: 30px;
+  margin-right: 5px;
+}
+
+@media (min-width: 768px) {
+  .icono-tipo {
+    width: 40px;
+    height: 40px;
+  }
+}
+
+@media (min-width: 1200px) {
+  .icono-tipo {
+    width: 50px;
+    height: 50px;
+  }
+}
+
+/* 🔥 LISTA RESPONSIVA */
+.list-group-item {
+  flex-direction: column;
+  align-items: flex-start !important;
+}
+
+@media (min-width: 768px) {
+  .list-group-item {
+    flex-direction: row;
+    align-items: center !important;
+  }
+}
+
+/* 🔥 BOTÓN EN MÓVIL */
+.list-group-item .btn {
+  width: 100%;
+  margin-top: 8px;
+}
+
+@media (min-width: 768px) {
+  .list-group-item .btn {
+    width: auto;
+    margin-top: 0;
+  }
+}
+
+/* 🔥 GRÁFICO RESPONSIVO */
+.chart-responsive {
+  width: 100%;
+  height: 250px;
+}
+
+@media (min-width: 768px) {
+  .chart-responsive {
+    height: 350px;
+  }
+}
+
+@media (min-width: 1200px) {
+  .chart-responsive {
+    height: 400px;
+  }
+}
+
+/* 🔥 TEXTO DETALLES */
+dl.row dt,
+dl.row dd {
+  font-size: 14px;
+}
+
+@media (min-width: 768px) {
+  dl.row dt,
+  dl.row dd {
+    font-size: 16px;
+  }
 }

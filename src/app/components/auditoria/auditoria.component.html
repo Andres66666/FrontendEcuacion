@@ -3,8 +3,8 @@
     <div>
       <h3 class="mb-0">Panel de Bloqueo de Atacantes</h3>
     </div>
-    <div>
-      <div class="btn-group me-2" role="group">
+    <div class="filtros-container">
+      <div class="btn-group flex-wrap w-100" role="group">
         <button
           *ngFor="let tipo of tiposAtaque"
           type="button"
@@ -12,11 +12,7 @@
           [class.active]="selectedTipo === tipo"
           (click)="filterByTipo(tipo)"
         >
-          <img
-            [src]="tipoIconos[tipo]"
-            alt="{{ tipo }}"
-            style="width: 50px; height: 50px; margin-right: 6px"
-          />
+          <img [src]="tipoIconos[tipo]" alt="{{ tipo }}" class="icono-tipo" />
           {{ tipo }}
         </button>
       </div>
@@ -29,7 +25,7 @@
 
   <div class="row">
     <!-- Lista atacantes -->
-    <div class="col-lg-6 mb-3">
+    <div class="col-12 col-md-12 col-lg-6 mb-3">
       <div class="card h-100">
         <div class="card-body">
           <ul class="list-group">
@@ -47,7 +43,7 @@
                   {{ a.user_agent }}
                 </div>
                 <div class="small text-muted">
-                  Fecha: {{ a.fecha | date : "MM/dd/yy, h:mm a" }}
+                  Fecha: {{ a.fecha | date: "MM/dd/yy, h:mm a" }}
                 </div>
               </div>
               <div class="text-end">
@@ -87,7 +83,7 @@
 
             <dt class="col-sm-4">Fecha</dt>
             <dd class="col-sm-8">
-              {{ selectedAtacante.fecha | date : "MM/dd/yy, h:mm a" }}
+              {{ selectedAtacante.fecha | date: "MM/dd/yy, h:mm a" }}
             </dd>
 
             <dt class="col-sm-4">Estado</dt>
@@ -102,7 +98,7 @@
 </div>
 
 <div>
-  <div class="row align-items-center mb-4">
+  <div class="col-12 col-sm-6 col-md-4 col-lg-2 ms-lg-auto">
     <div class="col-md-auto me-auto mb-3 mb-md-0">
       <h3 class="mb-0">Panel de Auditoría</h3>
       <small class="text-muted">Evolución de ataques detectados</small>
@@ -122,7 +118,7 @@
       </select>
     </div>
 
-    <div class="col-6 col-md-3 col-lg-3">
+    <div class="col-12 col-sm-6 col-md-4 col-lg-3">
       <label for="tipoSelect" class="form-label mb-1">Tipo de ataque:</label>
       <select
         id="tipoSelect"
@@ -139,16 +135,16 @@
   </div>
 
   <div class="row">
-    <div class="col-lg-8 mb-3">
+    <div class="col-12 col-lg-8 mb-3">
       <div class="card h-100">
         <div class="card-body">
           <h5>Gráfico de Líneas - Evolución ataques</h5>
-          <div id="myChart" style="height: 400px; width: 100%"></div>
+          <div id="myChart" class="chart-responsive"></div>
         </div>
       </div>
     </div>
 
-    <div class="col-lg-4">
+    <div class="col-12 col-lg-4">
       <div class="card mb-3">
         <div class="card-body">
           <h5>Resumen: Distribución por Tipo</h5>
