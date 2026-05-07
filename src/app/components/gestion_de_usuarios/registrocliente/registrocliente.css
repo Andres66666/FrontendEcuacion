@@ -173,3 +173,59 @@
     min-height: 50px;
   }
 }
+
+/* 
+=======================================================
+   TEXTOS EN BLANCO / NEGRO SOLO EN CONFIRMACIÓN
+======================================================= 
+*/
+
+.registro-container.confirmacion-box,
+.registro-container.confirmacion-box h3,
+.registro-container.confirmacion-box label,
+.registro-container.confirmacion-box small,
+.registro-container.confirmacion-box span,
+.registro-container.confirmacion-box p {
+  color: #ffffff !important;
+}
+
+/* Placeholder */
+.registro-container.confirmacion-box .form-control::placeholder {
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+
+/* Texto dentro inputs */
+.registro-container.confirmacion-box .form-control {
+  color: #ffffff !important;
+}
+
+/* Iconos */
+.registro-container.confirmacion-box i {
+  color: #ffffff !important;
+}
+
+/* Input group */
+.registro-container.confirmacion-box .input-group-text {
+  color: #ffffff !important;
+}
+
+/* Mensajes */
+.registro-container.confirmacion-box .text-danger {
+  color: #ffd6d6 !important;
+}
+
+.registro-container.confirmacion-box .text-success {
+  color: #ffffff !important;
+  font-weight: 500;
+}
+
+.registro-container.confirmacion-box .text-warning {
+  color: #f5f5f5 !important;
+}
+
+/* Date input icon */
+.registro-container.confirmacion-box
+  input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+  cursor: pointer;
+}
