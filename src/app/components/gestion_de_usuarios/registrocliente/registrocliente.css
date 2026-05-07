@@ -1,100 +1,17 @@
-:host {
-  display: block;
-  width: 100%;
-}
+/* =======================================================
+   CONTENEDOR GENERAL
+======================================================= */
 
-.registro-wrapper {
-  width: 100%;
-}
-
-.registro-card {
-  background: transparent;
-}
-
-.form-label {
-  margin-bottom: 0.5rem;
-  font-size: 0.98rem;
-}
-
-.input-group-text {
-  background: rgba(255, 255, 255, 0.15);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: #fff;
-}
-.form-control {
-  background: rgba(255, 255, 255, 0.15);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: #fff;
-}
-
-.form-control::placeholder {
-  color: rgba(255, 255, 255, 0.7);
-}
-.form-control:focus {
-  background: rgba(255, 255, 255, 0.25);
-  border-color: #0d6efd;
-  box-shadow: 0 0 0 0.15rem rgba(13, 110, 253, 0.25);
-  color: #fff;
-}
-.form-label {
-  color: rgba(255, 255, 255, 0.85);
-}
-.btn-primary {
-  background: rgba(13, 110, 253, 0.8);
-  border: none;
-}
-.input-group {
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-  border-radius: 0.85rem;
-}
-
-.form-control,
-.input-group-text,
-.btn {
-  border-radius: 0.85rem;
-}
-
-.input-group > .form-control,
-.input-group > .input-group-text,
-.input-group > .btn {
-  min-height: 56px;
-}
-
-.alert {
-  font-size: 0.95rem;
-}
-
-@media (max-width: 991.98px) {
-  .registro-card {
-    max-width: 100%;
-  }
-}
-
-@media (max-width: 575.98px) {
-  .card-body {
-    padding: 1.25rem !important;
-  }
-
-  h2 {
-    font-size: 1.75rem;
-  }
-
-  .btn,
-  .form-control,
-  .input-group-text {
-    font-size: 0.95rem;
-  }
-}
-
-/* fondo para la onfirmacon del registro  */
 .registro-wrapper {
   width: 100%;
   min-height: 100vh;
   transition: all 0.4s ease;
 }
 
-/* SOLO cuando viene desde confirmación */
+/* =======================================================
+   SOLO VISTA CONFIRMACIÓN
+======================================================= */
+
 .registro-wrapper.confirmacion-activa {
   background-image: url("https://res.cloudinary.com/dsbgmboh1/image/upload/v1777767305/login1_fncl0q.jpg");
   background-size: cover;
@@ -106,19 +23,153 @@
   justify-content: center;
 
   padding: 2rem;
-  border-radius: 1rem;
 
   position: relative;
   overflow: hidden;
 }
-.registro-wrapper.confirmacion-activa .registro-card,
-.registro-wrapper.confirmacion-activa form {
+
+/* Overlay oscuro elegante */
+.registro-wrapper.confirmacion-activa::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+
   background: rgba(0, 0, 0, 0.45);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
 
-  padding: 2rem;
-  border-radius: 1.5rem;
+  z-index: 1;
+}
 
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
+/* =======================================================
+   CAJA CENTRAL
+======================================================= */
+
+.registro-container {
+  width: 100%;
+  position: relative;
+  z-index: 2;
+}
+
+/* SOLO EN CONFIRMACIÓN */
+.registro-container.confirmacion-box {
+  max-width: 980px;
+
+  background: rgba(255, 255, 255, 0.08);
+
+  border: 1px solid rgba(255, 255, 255, 0.15);
+
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+
+  border-radius: 28px;
+
+  padding: 2.5rem;
+
+  box-shadow:
+    0 10px 40px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+
+  animation: aparecerFormulario 0.45s ease;
+}
+
+/* =======================================================
+   ANIMACIÓN
+======================================================= */
+
+@keyframes aparecerFormulario {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* =======================================================
+   TITULO
+======================================================= */
+
+.registro-container.confirmacion-box h3 {
+  font-size: 2rem;
+  margin-bottom: 2rem !important;
+  letter-spacing: 0.5px;
+}
+
+/* =======================================================
+   INPUTS MÁS ELEGANTES
+======================================================= */
+
+.registro-container.confirmacion-box .form-control,
+.registro-container.confirmacion-box .input-group-text {
+  background: rgba(255, 255, 255, 0.12);
+
+  border: 1px solid rgba(255, 255, 255, 0.18);
+
+  color: #fff;
+}
+
+/* Hover elegante */
+.registro-container.confirmacion-box .form-control:hover {
+  background: rgba(255, 255, 255, 0.18);
+}
+
+/* =======================================================
+   BOTONES
+======================================================= */
+
+.registro-container.confirmacion-box .btn-success {
+  background: linear-gradient(135deg, #198754, #20c997);
+  border: none;
+}
+
+.registro-container.confirmacion-box .btn-secondary {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+}
+
+/* =======================================================
+   RESPONSIVE
+======================================================= */
+
+@media (max-width: 992px) {
+  .registro-container.confirmacion-box {
+    max-width: 100%;
+    padding: 2rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .registro-wrapper.confirmacion-activa {
+    padding: 1rem;
+  }
+
+  .registro-container.confirmacion-box {
+    padding: 1.5rem;
+    border-radius: 22px;
+  }
+
+  .registro-container.confirmacion-box h3 {
+    font-size: 1.6rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .registro-container.confirmacion-box {
+    padding: 1.2rem;
+    border-radius: 18px;
+  }
+
+  .registro-container.confirmacion-box h3 {
+    font-size: 1.4rem;
+  }
+
+  .input-group > .form-control,
+  .input-group > .input-group-text,
+  .input-group > .btn {
+    min-height: 50px;
+  }
 }

@@ -1,5 +1,5 @@
 <div class="registro-wrapper" [class.confirmacion-activa]="tokenVerificacion">
-  <div class="w-100">
+  <div class="registro-container" [class.confirmacion-box]="tokenVerificacion">
     <h3 class="text-center mb-4 text-white fw-bold">Registro de Cliente</h3>
     <form (ngSubmit)="registrar(f)" #f="ngForm" novalidate>
       <div class="row g-3">
