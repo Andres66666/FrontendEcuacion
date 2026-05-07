@@ -86,3 +86,39 @@
     font-size: 0.95rem;
   }
 }
+
+/* fondo para la onfirmacon del registro  */
+.registro-wrapper {
+  width: 100%;
+  min-height: 100vh;
+  transition: all 0.4s ease;
+}
+
+/* SOLO cuando viene desde confirmación */
+.registro-wrapper.confirmacion-activa {
+  background-image: url("https://res.cloudinary.com/dsbgmboh1/image/upload/v1777767305/login1_fncl0q.jpg");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 2rem;
+  border-radius: 1rem;
+
+  position: relative;
+  overflow: hidden;
+}
+.registro-wrapper.confirmacion-activa .registro-card,
+.registro-wrapper.confirmacion-activa form {
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+
+  padding: 2rem;
+  border-radius: 1.5rem;
+
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
+}

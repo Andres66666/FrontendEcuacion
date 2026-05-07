@@ -100,7 +100,7 @@ export class Servicios {
     },
     {
       nombre: 'Institucional',
-      mensual: 1200,
+      mensual: 1800,
       anual: 14400,
       color: '#bfc230',
       beneficios: [
