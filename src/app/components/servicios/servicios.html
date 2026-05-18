@@ -1,80 +1,139 @@
-<div class="container-fluid py-4">
-  <div class="text-center mb-5 mt-3">
-    <h2 class="display-5 fw-bold text-dark header-title">Nuestros Servicios</h2>
-    <p class="text-secondary fs-5 mt-2">
-      Potencia tu negocio con planes diseñados a tu medida
+<div class="container-fluid py-5 bg-light">
+  <!-- HEADER -->
+  <div class="text-center mb-5">
+    <h1 class="fw-bold display-5">Planes y Servicios</h1>
+
+    <p class="text-secondary fs-5">
+      Plataforma profesional para gestión de proyectos, presupuestos, costos
+      operativos y análisis financiero en construcción.
     </p>
   </div>
 
-  <div class="pricing-wrapper">
-    <div class="plan-card" *ngFor="let plan of planes">
+  <!-- PLANES -->
+  <div class="row flex-nowrap overflow-auto g-4 pb-4">
+    <div class="col-12 col-md-6 col-xl-3" *ngFor="let plan of planes">
       <div
-        class="card-header-gradient"
-        [style.background]="'linear-gradient(135deg, ' + plan.color + ', #ffffff)'"
+        class="card h-100 border-0 shadow-lg rounded-4 position-relative"
+        [ngClass]="{
+          'border border-3 border-primary': plan.destacado
+        }"
       >
-        <div class="ribbon-name text-center">{{ plan.nombre }}</div>
-
-        <div class="price-tag">
-          <span class="currency-symbol">Bs</span>
-          <span class="price-number">
-            {{ planSeleccionado?.nombre === plan.nombre ? precioFinal :
-            plan.mensual }}
+        <!-- BADGE -->
+        <div class="position-absolute top-0 start-50 translate-middle">
+          <span
+            class="badge rounded-pill px-4 py-2 fs-6"
+            [ngClass]="'bg-' + plan.color"
+          >
+            {{ plan.badge }}
           </span>
         </div>
 
-        <div class="text-center text-secondary fw-bold small opacity-75">
-          {{ planSeleccionado?.nombre === plan.nombre ? tipoPago : 'Mensual' }}
-        </div>
-
+        <!-- HEADER -->
         <div
-          class="price-bubble-tail"
-          [style.background-color]="plan.color"
-        ></div>
-      </div>
+          class="card-header text-center border-0 pt-5 pb-4 rounded-top-4"
+          [ngClass]="'bg-' + plan.color"
+        >
+          <h3 class="fw-bold text-white mb-2">{{ plan.nombre }}</h3>
 
-      <div class="text-center my-4">
-        <div class="btn-group p-1 bg-light rounded-pill shadow-sm">
-          <button
-            class="btn btn-sm rounded-pill px-3"
-            [class.btn-primary]="tipoPago === 'Mensual' && planSeleccionado?.nombre === plan.nombre"
-            [class.btn-light]="!(tipoPago === 'Mensual' && planSeleccionado?.nombre === plan.nombre)"
-            (click)="seleccionarPlan(plan, 'Mensual')"
-          >
-            Mes
-          </button>
-          <button
-            class="btn btn-sm rounded-pill px-3"
-            [class.btn-primary]="tipoPago === 'Anual' && planSeleccionado?.nombre === plan.nombre"
-            [class.btn-light]="!(tipoPago === 'Anual' && planSeleccionado?.nombre === plan.nombre)"
-            (click)="seleccionarPlan(plan, 'Anual')"
-          >
-            Año
-          </button>
+          <p class="text-white small mb-3">{{ plan.descripcion }}</p>
+
+          <div class="mb-2">
+            <span class="badge bg-white text-dark fw-bold">
+              {{ plan.descuento }}
+            </span>
+          </div>
+
+          <div class="text-white">
+            <span class="fs-6 align-top">Bs</span>
+
+            <span class="display-4 fw-bold">
+              {{ planSeleccionado?.nombre === plan.nombre ? precioFinal :
+              plan.mensual }}
+            </span>
+
+            <span class="fs-6"> /mes </span>
+          </div>
+
+          <div class="small text-white-50 mt-2">
+            Pago anual con descuento incluido
+          </div>
+        </div>
+
+        <!-- BODY -->
+        <div class="card-body d-flex flex-column">
+          <!-- SWITCH -->
+          <div class="d-flex justify-content-center mb-4">
+            <div class="btn-group">
+              <button
+                class="btn"
+                [ngClass]="
+                  tipoPago === 'Mensual' &&
+                  planSeleccionado?.nombre === plan.nombre
+                    ? 'btn-dark'
+                    : 'btn-outline-dark'
+                "
+                (click)="seleccionarPlan(plan, 'Mensual')"
+              >
+                Mensual
+              </button>
+
+              <button
+                class="btn"
+                [ngClass]="
+                  tipoPago === 'Anual' &&
+                  planSeleccionado?.nombre === plan.nombre
+                    ? 'btn-dark'
+                    : 'btn-outline-dark'
+                "
+                (click)="seleccionarPlan(plan, 'Anual')"
+              >
+                Anual -20%
+              </button>
+            </div>
+          </div>
+
+          <!-- BENEFICIOS -->
+          <div class="flex-grow-1">
+            <div
+              class="d-flex align-items-start mb-3"
+              *ngFor="let ben of plan.beneficios"
+            >
+              <div class="me-3">
+                <i
+                  class="bi fs-5"
+                  [ngClass]="[
+                    ben.icono,
+                    ben.incluido
+                      ? 'text-success'
+                      : 'text-secondary'
+                  ]"
+                ></i>
+              </div>
+
+              <div
+                class="small"
+                [ngClass]="{
+                  'text-muted text-decoration-line-through':
+                    !ben.incluido
+                }"
+              >
+                {{ ben.texto }}
+              </div>
+            </div>
+          </div>
+
+          <!-- BUTTON -->
+          <div class="mt-4 d-grid">
+            <button
+              class="btn btn-lg fw-bold rounded-3"
+              [ngClass]="'btn-' + plan.color"
+              (click)="seleccionarPlan(plan, tipoPago); abrirPago()"
+            >
+              ADQUIRIR PLAN
+            </button>
+          </div>
         </div>
       </div>
-
-      <ul class="benefits-list">
-        <li
-          class="benefit-item"
-          *ngFor="let ben of plan.beneficios"
-          [ngClass]="{'opacity-50': !ben.incluido}"
-        >
-          <i
-            class="bi"
-            [ngClass]="ben.incluido ? 'bi-check-circle-fill' : 'bi-x-circle-fill'"
-            [style.color]="ben.incluido ? plan.color : '#ff4444'"
-          ></i>
-          <span class="small">{{ ben.texto }}</span>
-        </li>
-      </ul>
-
-      <button
-        class="btn-action shadow"
-        [style.background-color]="plan.color"
-        (click)="seleccionarPlan(plan, tipoPago); abrirPago()"
-      >
-        ADQUIRIR PLAN
-      </button>
     </div>
   </div>
 </div>
