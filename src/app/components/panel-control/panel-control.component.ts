@@ -62,7 +62,9 @@ export class PanelControlComponent implements OnInit, OnDestroy {
       datosUsuario = {};
     }
 
-    this.userRole = datosUsuario.rol ?? datosUsuario.roles ?? '';
+    this.userRole = Array.isArray(datosUsuario.roles)
+      ? datosUsuario.roles[0]
+      : datosUsuario.rol || datosUsuario.roles || '';
     this.userName = `${datosUsuario.nombre ?? ''} ${
       datosUsuario.apellido ?? ''
     }`.trim();
@@ -72,7 +74,9 @@ export class PanelControlComponent implements OnInit, OnDestroy {
 
     this.checkScreenSize();
     this.resetInactivityTimer();
-    this.cargarNotificaciones();
+    if (this.userRole === 'Administrador') {
+      this.cargarNotificaciones();
+    }
   }
   toggleSidebar() {
     this.isSidebarOpen = !this.isSidebarOpen;

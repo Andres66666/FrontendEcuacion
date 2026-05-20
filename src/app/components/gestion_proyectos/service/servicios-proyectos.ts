@@ -19,7 +19,7 @@ export type MaterialPayload = Omit<Materiales, 'id' | 'total'> & {
   providedIn: 'root',
 })
 export class ServiciosProyectos {
-  /* private apiUrl = 'http://localhost:8000/api/'; */
+/*   private apiUrl = 'http://localhost:8000/api/'; */
   private apiUrl = 'https://backendecuacion.onrender.com/api/';
 
   private dataChanged = new BehaviorSubject<void>(undefined);
