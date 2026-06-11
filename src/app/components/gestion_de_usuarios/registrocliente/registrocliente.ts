@@ -117,7 +117,7 @@ export class Registrocliente {
   }
 
   ciValido(ci: string): boolean {
-    return /^\d{8,9}$/.test(ci);
+    return /^\d{7,8}$/.test(ci);
   }
 
   nombreValido(nombre: string): boolean {

@@ -263,8 +263,9 @@ body {
 
 /* LOGO */
 .logo-navbar {
-  max-width: 140px;
-  filter: brightness(0) invert(1);
+  height: 50px;
+  width: auto;
+  object-fit: contain;
 }
 
 /* BADGE NOTIFICACIONES */

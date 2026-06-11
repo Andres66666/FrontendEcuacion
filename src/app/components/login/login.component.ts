@@ -39,9 +39,7 @@ export class LoginComponent {
   codigo2FA: string = '';
   codigoEnviado = false;
   loading: boolean = false;
-  qrBase64: string | null = null;
-  metodoSeleccionado: 'correo' | 'totp' | null = null;
-
+  metodoSeleccionado: string | null = null;
   // NUEVO: Array para manejar los 6 inputs de forma separada
   codigoInputs: string[] = ['', '', '', '', '', ''];
 
@@ -215,7 +213,6 @@ export class LoginComponent {
 
           this.vistaActual = 'seleccion_2fa';
           this.codigoEnviado = false;
-          this.qrBase64 = null;
           this.metodoSeleccionado = null;
         } else {
           this.guardarSesionYRedirigir(res);
@@ -235,13 +232,10 @@ export class LoginComponent {
     this.codigo2FA = '';
     this.codigoInputs = ['', '', '', '', '', ''];
     this.codigoEnviado = false;
-    this.qrBase64 = null;
     this.loading = true;
 
     if (metodo === 'correo') {
       this.usarCorreo();
-    } else if (metodo === 'totp') {
-      this.usarAuthenticator();
     }
   }
 
@@ -264,96 +258,76 @@ export class LoginComponent {
     });
   }
 
-  usarAuthenticator(): void {
-    if (!this.usuarioId) {
-      this.mensajeError = 'No hay usuario para generar QR';
-      this.loading = false;
-      return;
-    }
-    this.service.generarQR(this.usuarioId).subscribe({
+
+verificarCodigo(): void {
+  this.mensajeError = '';
+
+  if (!this.usuarioId) {
+    this.mensajeError = 'Usuario no definido';
+    return;
+  }
+
+  if (this.codigo2FA.length !== 6) {
+    this.mensajeError =
+      'Ingrese los 6 dígitos del código de verificación';
+    return;
+  }
+
+  this.loading = true;
+
+  this.service
+    .verificar2FA(this.usuarioId, this.codigo2FA)
+    .subscribe({
       next: (res: any) => {
-        if (res.qr_base64) {
-          this.qrBase64 = 'data:image/png;base64,' + res.qr_base64;
-        } else {
-          this.mensajeError =
-            'No se pudo generar el código QR. Intente nuevamente.';
-        }
         this.loading = false;
+
+        const usuarioData = {
+          id: res.usuario_id || this.usuarioId,
+          nombre: this.tempNombreUsuario,
+          apellido: this.tempApellido,
+          imagen_url: this.tempImagenUrl,
+          roles: res.roles || this.tempRoles,
+          permisos: this.tempPermisos,
+          dias_transcurridos: this.tempDiasTranscurridos,
+        };
+
+        localStorage.setItem(
+          'access_token',
+          JSON.stringify(res.access_token)
+        );
+
+        localStorage.setItem(
+          'usuarioLogueado',
+          JSON.stringify(usuarioData)
+        );
+
+        this.mensajeExito = 'Código verificado correctamente';
+
+        if (
+          this.tempRequiereCambioPassword &&
+          this.tempMensajeUrgente
+        ) {
+          setTimeout(() => {
+            this.router.navigate(['/cambiar-password']);
+          }, 2000);
+        } else if (this.tempRequiereCambioPassword) {
+          setTimeout(() => {
+            this.router.navigate(['/cambiar-password']);
+          }, 5000);
+        } else {
+          setTimeout(() => {
+            this.router.navigate(['/panel-control']);
+          }, 2000);
+        }
       },
       error: (err: any) => {
-        this.mensajeError =
-          err.error?.error || 'No se pudo generar el código QR';
         this.loading = false;
+        this.mensajeError =
+          err.error?.error ||
+          'Código incorrecto o caducado';
       },
     });
-  }
-
-  verificarCodigo(): void {
-    this.mensajeError = '';
-
-    if (!this.usuarioId) {
-      this.mensajeError = 'Usuario no definido';
-      return;
-    }
-
-    if (this.codigo2FA.length !== 6) {
-      this.mensajeError = 'Ingrese los 6 dígitos del código de verificación';
-      return;
-    }
-
-    if (!this.metodoSeleccionado) {
-      this.mensajeError = 'Método de verificación no seleccionado';
-      return;
-    }
-
-    this.loading = true;
-
-    this.service
-      .verificar2FA(this.usuarioId, this.codigo2FA, this.metodoSeleccionado)
-      .subscribe({
-        next: (res: any) => {
-          this.loading = false;
-
-          const usuarioData = {
-            id: res.usuario_id || this.usuarioId!,
-            nombre: this.tempNombreUsuario,
-            apellido: this.tempApellido,
-            imagen_url: this.tempImagenUrl,
-            roles: res.roles || this.tempRoles,
-            permisos: this.tempPermisos,
-            dias_transcurridos: this.tempDiasTranscurridos,
-          };
-
-          localStorage.setItem(
-            'access_token',
-            JSON.stringify(res.access_token),
-          );
-          localStorage.setItem('usuarioLogueado', JSON.stringify(usuarioData));
-
-          this.mensajeExito = 'Autenticación 2FA exitosa';
-
-          // 🔥 CAMBIO: TODOS pasan por cambio de contraseña si aplica
-          if (this.tempRequiereCambioPassword && this.tempMensajeUrgente) {
-            setTimeout(() => {
-              this.router.navigate(['/cambiar-password']);
-            }, 2000);
-          } else if (this.tempRequiereCambioPassword) {
-            setTimeout(() => {
-              this.router.navigate(['/cambiar-password']);
-            }, 5000);
-          } else {
-            setTimeout(() => {
-              this.router.navigate(['/panel-control']);
-            }, 2000);
-          }
-        },
-        error: (err: any) => {
-          this.loading = false;
-          this.mensajeError =
-            err.error?.error || 'Código incorrecto o caducado';
-        },
-      });
-  }
+}
   private guardarSesionYRedirigir(res: any): void {
     localStorage.setItem('access_token', JSON.stringify(res.access_token));
 
@@ -510,7 +484,6 @@ export class LoginComponent {
     this.codigo2FA = '';
     this.codigoInputs = ['', '', '', '', '', '']; // Reset de los inputs separados
     this.codigoEnviado = false;
-    this.qrBase64 = null;
     this.metodoSeleccionado = null;
     this.loading = false;
     this.tempVerificado = false;

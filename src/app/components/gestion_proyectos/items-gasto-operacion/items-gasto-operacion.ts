@@ -88,12 +88,13 @@ export class ItemsGastoOperacion {
   modulosDestinoFiltrados: Modulo[] = [];
 
   filtroInsumos = '';
+
   insumosFiltrados: Array<{
     descripcion: string;
+    unidad: string;
     precio_unitario: number;
     precioOriginal: number;
   }> = [];
-
   // 4) FORMULARIO (REGISTRAR / EDITAR)
 
   mostrarModal = false;
@@ -137,6 +138,7 @@ export class ItemsGastoOperacion {
 
   insumosProyecto: Array<{
     descripcion: string;
+    unidad: string;
     precio_unitario: number;
     precioOriginal: number;
   }> = [];
@@ -1017,6 +1019,7 @@ export class ItemsGastoOperacion {
           string,
           {
             descripcion: string;
+            unidad: string;
             precio_unitario: number;
             precioOriginal: number;
           }
@@ -1026,11 +1029,15 @@ export class ItemsGastoOperacion {
           const desc = (r?.descripcion || '').toUpperCase().trim();
           if (!desc) return;
 
+          const unidad = (r?.unidad || '').toUpperCase().trim();
           const p = Number(r?.precio_unitario) || 0;
 
-          if (!map.has(desc)) {
-            map.set(desc, {
+          const key = `${desc}|${unidad}`;
+
+          if (!map.has(key)) {
+            map.set(key, {
               descripcion: desc,
+              unidad,
               precio_unitario: p,
               precioOriginal: p,
             });

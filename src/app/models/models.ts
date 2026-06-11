@@ -51,14 +51,3 @@ export interface RegistroPendiente {
   creado_en: Date;
   verificado: boolean;
 }
-
-export interface Atacante {
-  id?: number;
-  ip: string;
-  tipos: string[];
-  descripcion: string;
-  payload: string;
-  user_agent: string;
-  fecha: string;
-  bloqueado: boolean;
-}

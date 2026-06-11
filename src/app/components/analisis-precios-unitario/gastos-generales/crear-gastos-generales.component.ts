@@ -101,23 +101,7 @@ export class CrearGastosGeneralesComponent implements OnInit, OnChanges {
     });
   }
 
-  registrarGastosGenerales(): void {
-    if (!this.id_gasto_operaciones) return;
 
-    this.servicio
-      .recalcularGastosGeneralesItem(this.id_gasto_operaciones)
-      .subscribe({
-        next: (res: any) => {
-          this.gastoExistente = res;
-          this.mensajeExito = 'Gastos generales recalculados correctamente.';
-          this.cargarGastosGeneralesExistente();
-        },
-        error: (err) => {
-          console.error('Error al recalcular:', err);
-          this.mensajeError = 'Error al recalcular gastos generales.';
-        },
-      });
-  }
 
   manejarOk(): void {
     this.mensajeExito = '';

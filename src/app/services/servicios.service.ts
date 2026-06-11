@@ -2,7 +2,6 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { map, Observable } from 'rxjs';
 import {
-  Atacante,
   Permiso,
   Rol,
   RolPermiso,
@@ -36,24 +35,15 @@ export class ServiciosService {
     });
   }
 
-  generarQR(usuarioId: number): Observable<any> {
-    return this.http.post(`${this.apiUrl}generar-qr/`, {
-      usuario_id: usuarioId,
-    });
-  }
-
   verificar2FA(
     usuarioId: number,
     codigo: string,
-    metodo: 'correo' | 'totp',
   ): Observable<any> {
     return this.http.post(`${this.apiUrl}verificar-2fa/`, {
       usuario_id: usuarioId,
       codigo,
-      metodo,
     });
   }
-
   verificarTempPassword(
     usuarioId: number,
     tempToken: string,
@@ -80,28 +70,6 @@ export class ServiciosService {
     });
   }
 
-  // =====================================================
-  // 🔒 SECCIÓN 2: Auditoría y Seguridad del Sistema
-  // =====================================================
-
-  getAtaquesDB(): Observable<Atacante[]> {
-    return this.http.get<any[]>(`${this.apiUrl}auditoria_db/`).pipe(
-      map((ataques: any[]) =>
-        ataques.map((a) => ({
-          ...a,
-          tipos: Array.isArray(a.tipos)
-            ? a.tipos
-            : a.tipos
-              ? a.tipos.split(',')
-              : [],
-        })),
-      ),
-    );
-  }
-
-  updateAtacanteBloqueo(id: number, bloqueado: boolean): Observable<any> {
-    return this.http.patch(`${this.apiUrl}auditoria_db/${id}/`, { bloqueado });
-  }
   // =====================================================
   // SECCIÓN 3: Gestión de Usuarios, Roles y Permisos
   // =====================================================

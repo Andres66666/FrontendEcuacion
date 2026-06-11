@@ -1,6 +1,6 @@
 <section class="layout">
   <nav class="navbar navbar-expand-md header">
-    <div class="container-fluid mx-2 flex-nowrap">
+    <div class="container-fluid mx-2 flex-nowrap gap-2 gap-md-3">
       <!-- BOTÓN SIDEBAR -->
       <button
         class="toggle-button btn border-0 shadow-sm"
@@ -13,8 +13,9 @@
       </button>
 
       <!-- LOGO (oculto en móviles pequeños) -->
+
       <img
-        src="https://res.cloudinary.com/dsbgmboh1/image/upload/v1762419613/logomallafinita_uy4cw2.png"
+        src="https://res.cloudinary.com/dsbgmboh1/image/upload/v1781144492/logoPNG_s8wars.png"
         alt="Logo"
         class="logo-navbar d-none d-sm-block"
       />
@@ -215,42 +216,6 @@
         >
           <i class="bi bi-cash-stack me-2"></i>
           <span class="text-dark">Gastos Operaciones</span>
-        </li>
-      </ul>
-
-      <li
-        class="d-flex align-items-center p-3 rounded mt-2 pointer"
-        *ngIf="puedeVer('Reportes')"
-        (click)="toggleSection('Reportes')"
-        [title]="!isSidebarOpen ? 'Reportes de Seguridad' : ''"
-      >
-        <div style="flex-shrink: 0" class="mx-auto mx-md-0">
-          <i class="bi bi-shield-exclamation"></i>
-        </div>
-
-        <div class="flex-grow-1 text-start ms-3" *ngIf="isSidebarOpen">
-          <span class="text-dark fw-medium">Reportes</span>
-        </div>
-
-        <i
-          *ngIf="isSidebarOpen"
-          class="bi text-dark small"
-          [ngClass]="
-            isActive('Reportes') ? 'bi-chevron-down' : 'bi-chevron-right'
-          "
-        ></i>
-      </li>
-
-      <ul
-        class="list-group ps-3 mt-1"
-        *ngIf="isActive('Reportes') && isSidebarOpen"
-      >
-        <li
-          class="d-flex align-items-center p-2 rounded pointer sub-menu-item"
-          (click)="navegarYRegresar('/panel-control/auditoria')"
-        >
-          <i class="bi bi-shield-lock me-2"></i>
-          <span class="text-dark">Auditoría de Ataques</span>
         </li>
       </ul>
     </ul>

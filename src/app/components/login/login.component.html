@@ -160,7 +160,7 @@
               <i class="bi bi-shield-check me-2"></i>Verificación 2FA
             </h3>
             <p class="text-center mb-4 text-white">
-              Elija el método para completar su autenticación.
+              Método para completar su autenticación.
             </p>
             <div
               class="d-flex flex-column flex-md-row gap-3 justify-content-center"
@@ -181,23 +181,6 @@
                   "
                 />
                 <span class="fw-semibold text-white">Correo</span>
-              </button>
-              <button
-                class="btn btn-outline-light btn-2fa flex-fill py-3 shadow-sm d-flex flex-column align-items-center rounded-3"
-                (click)="seleccionarMetodo('totp')"
-                [disabled]="loading"
-              >
-                <img
-                  src="https://img.icons8.com/?size=96&id=QvWnAvQBL2Gk&format=png"
-                  alt="Google Authenticator"
-                  class="img-fluid mb-2"
-                  style="
-                    width: clamp(2rem, 5vw, 3rem);
-                    height: auto;
-                    max-width: 100%;
-                  "
-                />
-                <span class="fw-semibold text-white">Authenticator</span>
               </button>
             </div>
             <button
@@ -313,109 +296,6 @@
                   [disabled]="loading"
                   (keyup.enter)="codigo2FA.length === 6 && verificarCodigo()"
                 />
-              </div>
-            </div>
-
-            <!-- Método App (Authenticator) -->
-            <div *ngIf="metodoSeleccionado === 'totp'" class="mb-4">
-              <!-- INPUTS (SIEMPRE ARRIBA) -->
-              <div
-                class="d-flex justify-content-center gap-2 mb-4 flex-nowrap overflow-auto"
-              >
-                <input
-                  #input0
-                  type="text"
-                  maxlength="1"
-                  class="form-control text-center fw-bold codigo-input"
-                  [(ngModel)]="codigoInputs[0]"
-                  (input)="onInputCode($event, 0, input1)"
-                  (keydown.backspace)="onBackspace($event, 0, null)"
-                  (paste)="onPaste($event, 0)"
-                  [disabled]="loading"
-                  (keyup.enter)="codigo2FA.length === 6 && verificarCodigo()"
-                />
-
-                <input
-                  #input1
-                  type="text"
-                  maxlength="1"
-                  class="form-control text-center fw-bold codigo-input"
-                  [(ngModel)]="codigoInputs[1]"
-                  (input)="onInputCode($event, 1, input2)"
-                  (keydown.backspace)="onBackspace($event, 1, input0)"
-                  (paste)="onPaste($event, 1)"
-                  [disabled]="loading"
-                  (keyup.enter)="codigo2FA.length === 6 && verificarCodigo()"
-                />
-
-                <input
-                  #input2
-                  type="text"
-                  maxlength="1"
-                  class="form-control text-center fw-bold codigo-input"
-                  [(ngModel)]="codigoInputs[2]"
-                  (input)="onInputCode($event, 2, input3)"
-                  (keydown.backspace)="onBackspace($event, 2, input1)"
-                  (paste)="onPaste($event, 2)"
-                  [disabled]="loading"
-                  (keyup.enter)="codigo2FA.length === 6 && verificarCodigo()"
-                />
-
-                <input
-                  #input3
-                  type="text"
-                  maxlength="1"
-                  class="form-control text-center fw-bold codigo-input"
-                  [(ngModel)]="codigoInputs[3]"
-                  (input)="onInputCode($event, 3, input4)"
-                  (keydown.backspace)="onBackspace($event, 3, input2)"
-                  (paste)="onPaste($event, 3)"
-                  [disabled]="loading"
-                  (keyup.enter)="codigo2FA.length === 6 && verificarCodigo()"
-                />
-
-                <input
-                  #input4
-                  type="text"
-                  maxlength="1"
-                  class="form-control text-center fw-bold codigo-input"
-                  [(ngModel)]="codigoInputs[4]"
-                  (input)="onInputCode($event, 4, input5)"
-                  (keydown.backspace)="onBackspace($event, 4, input3)"
-                  (paste)="onPaste($event, 4)"
-                  [disabled]="loading"
-                  (keyup.enter)="codigo2FA.length === 6 && verificarCodigo()"
-                />
-
-                <input
-                  #input5
-                  type="text"
-                  maxlength="1"
-                  class="form-control text-center fw-bold codigo-input"
-                  [(ngModel)]="codigoInputs[5]"
-                  (input)="onInputCode($event, 5, null)"
-                  (keydown.backspace)="onBackspace($event, 5, input4)"
-                  (paste)="onPaste($event, 5)"
-                  [disabled]="loading"
-                  (keyup.enter)="codigo2FA.length === 6 && verificarCodigo()"
-                />
-              </div>
-
-              <!-- QR (SIEMPRE ABAJO) -->
-              <div class="text-center">
-                <p class="mb-2">
-                  Escanee este código QR con Google Authenticator:
-                </p>
-
-                <img
-                  [src]="qrBase64"
-                  class="img-fluid border rounded p-2"
-                  style="max-width: clamp(180px, 40vw, 280px)"
-                />
-
-                <p class="mt-2 small">
-                  Ingrese el código generado por la aplicación.
-                </p>
               </div>
             </div>
 

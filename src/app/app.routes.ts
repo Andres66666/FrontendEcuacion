@@ -26,7 +26,6 @@ import { CrearEquipoHerramientaComponent } from './components/analisis-precios-u
 import { CrearEcuacionComponent } from './components/analisis-precios-unitario/1-2-3-4/crear-ecuacion.component';
 import { CrearGastosGeneralesComponent } from './components/analisis-precios-unitario/gastos-generales/crear-gastos-generales.component';
 import { PrecioFacturaComponent } from './components/gestion_proyectos/precio-factura/precio-factura.component';
-import { AuditoriaComponent } from './components/auditoria/auditoria.component';
 import { Proyectos } from './components/gestion_proyectos/proyectos/proyectos';
 import { Servicios } from './components/servicios/servicios';
 import { Registrocliente } from './components/gestion_de_usuarios/registrocliente/registrocliente';
@@ -110,18 +109,6 @@ export const routes: Routes = [
       // ===============================
 
       { path: 'PrecioFactura', component: PrecioFacturaComponent },
-
-      // ===============================
-      // |||  SECCIÓN 5 — REPORTES    |||
-      // ===============================
-
-      //{ path: 'PDF', component: ReportesPDf },
-
-      // ===============================
-      // |||  SECCIÓN 6 — AUDITORÍA   |||
-      // ===============================
-
-      { path: 'auditoria', component: AuditoriaComponent },
 
       // Ruta por defecto
       { path: '', redirectTo: 'servicios', pathMatch: 'full' },
