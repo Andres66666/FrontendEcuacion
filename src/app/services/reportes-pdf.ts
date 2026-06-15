@@ -775,90 +775,24 @@ export class ReportesPdf {
         },
       ]);
 
-      if (moPorItem.length) {
-        // 🔹 1) SUBTOTAL EXACTO (igual que componente)
-        let subtotalBruto = 0;
+      let subtotalBruto = 0;
 
+      if (moPorItem.length) {
         moPorItem.forEach((mo) => {
           const cantidad = this.parseNumero(mo.cantidad);
           const precioUnit = this.parseNumero(mo.precio_unitario);
 
-          const totalFilaBruto = cantidad * precioUnit; // sin redondear aquí
+          const totalFilaBruto = cantidad * precioUnit;
           subtotalBruto += totalFilaBruto;
 
           body.push([
             mo.descripcion || '',
             mo.unidad || '',
             this.formatearNumero5(cantidad),
-            this.formatearNumero(this.redondear2(precioUnit)), // solo visual
-            this.formatearNumero(this.roundMoney(totalFilaBruto)), // visual 2 decimales
+            this.formatearNumero(this.redondear2(precioUnit)),
+            this.formatearNumero(this.roundMoney(totalFilaBruto)),
           ]);
         });
-
-        // 🔹 Redondeo final del subtotal (centavos)
-        const subtotalMO = this.roundMoney(subtotalBruto);
-
-        body.push([
-          {
-            content: 'SUBTOTAL MANO DE OBRA',
-            colSpan: 4,
-            styles: { halign: 'right', fontStyle: 'bold' },
-          },
-          {
-            content: this.formatearNumero(subtotalMO),
-            styles: { fontStyle: 'bold' },
-          },
-        ]);
-
-        const cargaSocial = this.parseNumero(data.proyecto?.carga_social);
-        const ivaEfectiva = this.parseNumero(data.proyecto?.iva_efectiva);
-
-        // 🔹 2) CARGAS SOCIALES EXACTAS (centavos)
-        const subtotalCents = this.toCents(subtotalMO);
-        const cargasCents = this.applyPercentCents(subtotalCents, cargaSocial);
-        const cargas = this.fromCents(cargasCents);
-
-        body.push([
-          {
-            content: 'CARGAS SOCIALES - % DEL SUBTOTAL DE MANO DE OBRA',
-            colSpan: 3,
-            styles: { halign: 'left' },
-          },
-          {
-            content: `${this.formatearNumero(cargaSocial)}%`,
-            styles: { halign: 'right' },
-          },
-          {
-            content: this.formatearNumero(cargas),
-            styles: { halign: 'right' },
-          },
-        ]);
-
-        // 🔹 3) IVA EXACTO sobre (SUBTOTAL + CARGAS)
-        const baseCents = subtotalCents + cargasCents;
-        const ivaCents = this.applyPercentCents(baseCents, ivaEfectiva);
-        const iva = this.fromCents(ivaCents);
-
-        body.push([
-          {
-            content:
-              'IMPUESTOS IVA - % (SUBTOTAL MANO DE OBRA + CARGAS SOCIALES)',
-            colSpan: 3,
-            styles: { halign: 'left' },
-          },
-          {
-            content: `${this.formatearNumero(ivaEfectiva)}%`,
-            styles: { halign: 'right' },
-          },
-          {
-            content: this.formatearNumero(iva),
-            styles: { halign: 'right' },
-          },
-        ]);
-
-        // 🔹 4) TOTAL EXACTO
-        const totalCents = subtotalCents + cargasCents + ivaCents;
-        totalManoObra = this.fromCents(totalCents);
       } else {
         body.push([
           '',
@@ -868,6 +802,66 @@ export class ReportesPdf {
           this.formatearNumero(0),
         ]);
       }
+
+      const subtotalMO = this.roundMoney(subtotalBruto);
+      const cargaSocial = this.parseNumero(data.proyecto?.carga_social);
+      const ivaEfectiva = this.parseNumero(data.proyecto?.iva_efectiva);
+
+      body.push([
+        {
+          content: 'SUBTOTAL MANO DE OBRA',
+          colSpan: 4,
+          styles: { halign: 'right', fontStyle: 'bold' },
+        },
+        {
+          content: this.formatearNumero(subtotalMO),
+          styles: { fontStyle: 'bold' },
+        },
+      ]);
+
+      const subtotalCents = this.toCents(subtotalMO);
+      const cargasCents = this.applyPercentCents(subtotalCents, cargaSocial);
+      const cargas = this.fromCents(cargasCents);
+
+      body.push([
+        {
+          content: 'CARGAS SOCIALES - % DEL SUBTOTAL DE MANO DE OBRA',
+          colSpan: 3,
+          styles: { halign: 'left' },
+        },
+        {
+          content: `${this.formatearNumero(cargaSocial)}%`,
+          styles: { halign: 'right' },
+        },
+        {
+          content: this.formatearNumero(cargas),
+          styles: { halign: 'right' },
+        },
+      ]);
+
+      const baseCents = subtotalCents + cargasCents;
+      const ivaCents = this.applyPercentCents(baseCents, ivaEfectiva);
+      const iva = this.fromCents(ivaCents);
+
+      body.push([
+        {
+          content:
+            'IMPUESTOS IVA - % (SUBTOTAL MANO DE OBRA + CARGAS SOCIALES)',
+          colSpan: 3,
+          styles: { halign: 'left' },
+        },
+        {
+          content: `${this.formatearNumero(ivaEfectiva)}%`,
+          styles: { halign: 'right' },
+        },
+        {
+          content: this.formatearNumero(iva),
+          styles: { halign: 'right' },
+        },
+      ]);
+
+      const totalCents = subtotalCents + cargasCents + ivaCents;
+      totalManoObra = this.fromCents(totalCents);
 
       body.push([
         {

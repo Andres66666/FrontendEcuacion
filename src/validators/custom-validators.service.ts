@@ -18,9 +18,10 @@ export class CustomValidatorsService {
   limpiarEspaciosValidator(): ValidatorFn {
     return (control: AbstractControl): ValidationErrors | null => {
       if (!control.value) return null;
-      const valor = control.value.trim().replace(/\s+/g, ' ');
-      if (valor !== control.value) {
-        control.setValue(valor, { emitEvent: false });
+      const valor = control.value;
+      // No permitir dos o más espacios seguidos
+      if (/\s{2,}/.test(valor)) {
+        return { espaciosMultiples: true };
       }
       return null;
     };
@@ -28,14 +29,13 @@ export class CustomValidatorsService {
   soloTextoUnEspacio(): ValidatorFn {
     return (control: AbstractControl): { [key: string]: any } | null => {
       if (!control.value) return null;
-      // Regex ajustada: Permite letras, acentos, y solo espacios simples entre palabras
       const regex = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ]+(?:\s[a-zA-ZáéíóúÁÉÍÓÚñÑ]+)*$/;
       return regex.test(control.value) ? null : { soloTexto: true };
     };
   }
   soloTexto(): ValidatorFn {
     return (control: AbstractControl): { [key: string]: any } | null => {
-      if (!control.value) return null; // Si el campo está vacío, es válido
+      if (!control.value) return null; 
       const regex = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/; // Solo letras (mayúsculas y minúsculas) y espacios
       return regex.test(control.value) ? null : { soloTexto: true }; // Devuelve error si no cumple
     };
@@ -204,7 +204,7 @@ export class CustomValidatorsService {
       const password = control.value;
       if (!password || password.trim() === '') return { required: true };
 
-      const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
+      const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{11,}$/;
       return regex.test(password) ? null : { invalidPassword: true };
     };
   }
@@ -212,7 +212,7 @@ export class CustomValidatorsService {
     return (control: AbstractControl): ValidationErrors | null => {
       const password = control.value;
       if (!password || password.trim() === '') return null; // Cambio aquí: Si está vacío, no retorna error
-      const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/; // Solo valida si hay un valor
+      const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{11,}$/; // Solo valida si hay un valor
       return regex.test(password) ? null : { invalidPassword: true };
     };
   }

@@ -1,5 +1,5 @@
 <div class="container py-4">
-  <div class="card shadow rounded-4 mx-auto" style="max-width: 700px">
+  <div class="card mx-auto">
     <div class="card-body">
       <h3 class="card-title mb-4 text-center text-primary">
         Registrar Usuario
@@ -9,16 +9,21 @@
         <div class="row g-3">
           <div class="col-md-6">
             <label class="form-label fw-semibold">Nombre</label>
-            <input
-              type="text"
-              class="form-control"
-              formControlName="nombre"
-              placeholder="Ingrese sus nombres"
-              (input)="form.get('nombre')?.markAsTouched()"
-              [class.is-invalid]="
-                form.get('nombre')?.invalid && form.get('nombre')?.touched
-              "
-            />
+            <div class="input-group input-group-lg">
+              <span class="input-group-text">
+                <i class="bi bi-person"></i>
+              </span>
+              <input
+                type="text"
+                class="form-control"
+                formControlName="nombre"
+                placeholder="Ingrese sus nombres"
+                (input)="form.get('nombre')?.markAsTouched()"
+                [class.is-invalid]="
+                  form.get('nombre')?.invalid && form.get('nombre')?.touched
+                "
+              />
+            </div>
             <div class="invalid-feedback" *ngIf="form.get('nombre')?.touched">
               <div *ngIf="form.get('nombre')?.hasError('required')">
                 El nombre es obligatorio
@@ -37,16 +42,21 @@
 
           <div class="col-md-6">
             <label class="form-label fw-semibold">Apellido</label>
-            <input
-              type="text"
-              class="form-control"
-              formControlName="apellido"
-              placeholder="Ingrese sus apellidos"
-              (input)="form.get('apellido')?.markAsTouched()"
-              [class.is-invalid]="
-                form.get('apellido')?.invalid && form.get('apellido')?.touched
-              "
-            />
+            <div class="input-group input-group-lg">
+              <span class="input-group-text">
+                <i class="bi bi-person-badge"></i>
+              </span>
+              <input
+                type="text"
+                class="form-control"
+                formControlName="apellido"
+                placeholder="Ingrese sus apellidos"
+                (input)="form.get('apellido')?.markAsTouched()"
+                [class.is-invalid]="
+                  form.get('apellido')?.invalid && form.get('apellido')?.touched
+                "
+              />
+            </div>
             <div class="invalid-feedback" *ngIf="form.get('apellido')?.touched">
               <div *ngIf="form.get('apellido')?.hasError('required')">
                 El apellido es obligatorio
@@ -65,15 +75,20 @@
 
           <div class="col-md-6">
             <label class="form-label fw-semibold">Correo</label>
-            <input
-              type="email"
-              class="form-control"
-              formControlName="correo"
-              placeholder="ejemplo@gmail.com"
-              [class.is-invalid]="
-                form.get('correo')?.invalid && form.get('correo')?.touched
-              "
-            />
+            <div class="input-group input-group-lg">
+              <span class="input-group-text">
+                <i class="bi bi-envelope"></i>
+              </span>
+              <input
+                type="email"
+                class="form-control"
+                formControlName="correo"
+                placeholder="ejemplo@gmail.com"
+                [class.is-invalid]="
+                  form.get('correo')?.invalid && form.get('correo')?.touched
+                "
+              />
+            </div>
             <div class="invalid-feedback" *ngIf="form.get('correo')?.touched">
               <div *ngIf="form.get('correo')?.hasError('required')">
                 El correo es obligatorio
@@ -95,17 +110,22 @@
 
           <div class="col-md-6">
             <label class="form-label fw-semibold">Teléfono</label>
-            <input
-              type="text"
-              class="form-control"
-              formControlName="telefono"
-              placeholder="Ej: 71234567"
-              inputmode="numeric"
-              maxlength="8"
-              [class.is-invalid]="
-                form.get('telefono')?.invalid && form.get('telefono')?.touched
-              "
-            />
+            <div class="input-group input-group-lg">
+              <span class="input-group-text">
+                <i class="bi bi-telephone"></i>
+              </span>
+              <input
+                type="text"
+                class="form-control"
+                formControlName="telefono"
+                placeholder="Ej: 71234567"
+                inputmode="numeric"
+                maxlength="8"
+                [class.is-invalid]="
+                  form.get('telefono')?.invalid && form.get('telefono')?.touched
+                "
+              />
+            </div>
             <div class="invalid-feedback" *ngIf="form.get('telefono')?.touched">
               <div *ngIf="form.get('telefono')?.hasError('required')">
                 El teléfono es obligatorio
@@ -127,16 +147,21 @@
 
           <div class="col-md-6">
             <label class="form-label fw-semibold">Cédula de Identidad</label>
-            <input
-              type="text"
-              class="form-control"
-              formControlName="ci"
-              placeholder="Ej: 12345678"
-              maxlength="8"
-              [class.is-invalid]="
-                form.get('ci')?.invalid && form.get('ci')?.touched
-              "
-            />
+            <div class="input-group input-group-lg">
+              <span class="input-group-text">
+                <i class="bi bi-credit-card"></i>
+              </span>
+              <input
+                type="text"
+                class="form-control"
+                formControlName="ci"
+                placeholder="Ej: 12345678"
+                maxlength="8"
+                [class.is-invalid]="
+                  form.get('ci')?.invalid && form.get('ci')?.touched
+                "
+              />
+            </div>
             <div class="invalid-feedback" *ngIf="form.get('ci')?.touched">
               <div *ngIf="form.get('ci')?.hasError('required')">
                 El CI es obligatorio
@@ -158,15 +183,20 @@
 
           <div class="col-md-6">
             <label class="form-label fw-semibold">Fecha de Nacimiento</label>
-            <input
-              type="date"
-              class="form-control"
-              formControlName="fecha_nacimiento"
-              [class.is-invalid]="
-                form.get('fecha_nacimiento')?.invalid &&
-                form.get('fecha_nacimiento')?.touched
-              "
-            />
+            <div class="input-group input-group-lg">
+              <span class="input-group-text">
+                <i class="bi bi-calendar-date"></i>
+              </span>
+              <input
+                type="date"
+                class="form-control"
+                formControlName="fecha_nacimiento"
+                [class.is-invalid]="
+                  form.get('fecha_nacimiento')?.invalid &&
+                  form.get('fecha_nacimiento')?.touched
+                "
+              />
+            </div>
             <div
               class="invalid-feedback"
               *ngIf="form.get('fecha_nacimiento')?.touched"
@@ -182,20 +212,25 @@
 
           <div class="col-md-6">
             <label class="form-label fw-semibold">Contraseña</label>
-            <div class="input-group">
+
+            <div class="input-group input-group-lg">
+              <span class="input-group-text">
+                <i class="bi bi-lock"></i>
+              </span>
+
               <input
                 [type]="showPassword ? 'text' : 'password'"
-                class="form-control rounded-start-3"
+                class="form-control"
                 formControlName="password"
                 placeholder="Ingrese la contraseña"
                 [class.is-invalid]="
                   form.get('password')?.invalid && form.get('password')?.touched
                 "
               />
+
               <button
                 type="button"
-                class="btn rounded-end-3"
-                [ngClass]="showPassword ? 'btn-success' : 'btn-danger'"
+                class="btn btn-outline-secondary"
                 (click)="togglePasswordVisibility()"
               >
                 <i
@@ -203,25 +238,32 @@
                 ></i>
               </button>
             </div>
+
             <div class="invalid-feedback" *ngIf="form.get('password')?.touched">
               <div *ngIf="form.get('password')?.hasError('required')">
                 La contraseña es obligatoria
               </div>
               <div *ngIf="form.get('password')?.hasError('invalidPassword')">
-                Debe tener al menos 8 caracteres, con mayúscula, minúscula,
+                Debe tener al menos 11 caracteres, con mayúscula, minúscula,
                 número y carácter especial
               </div>
             </div>
           </div>
-
           <div class="col-md-6">
             <label class="form-label fw-semibold">Rol (opcional)</label>
-            <select class="form-select" formControlName="rol">
-              <option value="">Sin rol asignado</option>
-              <option *ngFor="let r of roles" [value]="r.id">
-                {{ r.nombre }}
-              </option>
-            </select>
+
+            <div class="input-group input-group-lg">
+              <span class="input-group-text">
+                <i class="bi bi-person-gear"></i>
+              </span>
+
+              <select class="form-select" formControlName="rol">
+                <option value="">Sin rol asignado</option>
+                <option *ngFor="let r of roles" [value]="r.id">
+                  {{ r.nombre }}
+                </option>
+              </select>
+            </div>
           </div>
 
           <div class="col-md-6 mb-4">

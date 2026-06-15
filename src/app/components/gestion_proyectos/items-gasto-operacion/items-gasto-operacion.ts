@@ -94,6 +94,7 @@ export class ItemsGastoOperacion {
     unidad: string;
     precio_unitario: number;
     precioOriginal: number;
+    cantidad_global: number;
   }> = [];
   // 4) FORMULARIO (REGISTRAR / EDITAR)
 
@@ -141,6 +142,7 @@ export class ItemsGastoOperacion {
     unidad: string;
     precio_unitario: number;
     precioOriginal: number;
+    cantidad_global: number;
   }> = [];
 
   // 8) PDFs
@@ -449,10 +451,10 @@ export class ItemsGastoOperacion {
 
   calcularCosto(): void {}
 
-  formatearNumero(valor: number): string {
+  formatearNumero(valor: number, decimales: number = 2): string {
     return new Intl.NumberFormat('es-BO', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
+      minimumFractionDigits: decimales,
+      maximumFractionDigits: decimales,
     }).format(Number(valor) || 0);
   }
 
@@ -987,6 +989,26 @@ export class ItemsGastoOperacion {
     this.mostrarModalInsumos = false;
   }
 
+  private calcularCantidadGlobalInsumo(r: any): number {
+    const cantidadInsumo = Number(
+      r?.cantidad ?? r?.cantidad_global ?? r?.cantidad_insumo ?? 0,
+    ) || 0;
+
+    const gastoId = Number(
+      r?.gasto_operacion?.id ??
+        r?.gasto_operacion ??
+        r?.gasto_operacion_id ??
+        r?.gastoOperacion ??
+        r?.id_gasto_operacion ??
+        0,
+    );
+
+    const gasto = this.gastos.find((g) => Number(g.id) === gastoId);
+    const cantidadItem = Number(gasto?.cantidad ?? r?.cantidad_item ?? 1) || 1;
+
+    return Number((cantidadInsumo * cantidadItem).toFixed(5));
+  }
+
   cargarInsumosProyecto(): void {
     this.clearMensajes();
     this.insumosProyecto = [];
@@ -1022,6 +1044,7 @@ export class ItemsGastoOperacion {
             unidad: string;
             precio_unitario: number;
             precioOriginal: number;
+            cantidad_global: number;
           }
         >();
 
@@ -1031,6 +1054,7 @@ export class ItemsGastoOperacion {
 
           const unidad = (r?.unidad || '').toUpperCase().trim();
           const p = Number(r?.precio_unitario) || 0;
+          const cantidadGlobal = this.calcularCantidadGlobalInsumo(r);
 
           const key = `${desc}|${unidad}`;
 
@@ -1040,7 +1064,13 @@ export class ItemsGastoOperacion {
               unidad,
               precio_unitario: p,
               precioOriginal: p,
+              cantidad_global: cantidadGlobal,
             });
+          } else {
+            const existente = map.get(key)!;
+            existente.cantidad_global = Number(
+              (existente.cantidad_global + cantidadGlobal).toFixed(5),
+            );
           }
         });
 

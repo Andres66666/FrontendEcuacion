@@ -174,6 +174,17 @@ export class ServiciosProyectos {
     });
   }
 
+  getDatosVistaGastoOperacion(idProyecto: number): Observable<any> {
+    if (!idProyecto) return throwError(() => new Error('ID inválido'));
+    const params = this.buildUsuarioParams().set(
+      'proyecto',
+      String(idProyecto),
+    );
+    return this.http.get<any>(`${this.apiUrl}GastosOperaciones/datos_vista/`, {
+      params,
+    });
+  }
+
   getGastosOperacionPorModulo(idModulo: number): Observable<GastoOperacion[]> {
     if (!idModulo) return throwError(() => new Error('ID inválido'));
     const params = this.buildUsuarioParams().set('modulo', String(idModulo));
@@ -271,13 +282,7 @@ export class ServiciosProyectos {
   }
 
   getCatalogoMaterialesPorProyecto(idProyecto: number): Observable<any[]> {
-    const params = this.buildUsuarioParams().set(
-      'proyecto',
-      String(idProyecto),
-    );
-    return this.http.get<any[]>(`${this.apiUrl}materiales/ultimos_precios/`, {
-      params,
-    });
+    return this.getMaterialesPorProyecto(idProyecto);
   }
 
   getMaterialesIDGasto(id: number): Observable<Materiales[]> {
@@ -366,13 +371,7 @@ export class ServiciosProyectos {
   }
 
   getCatalogoManoDeObraPorProyecto(idProyecto: number): Observable<any[]> {
-    const params = this.buildUsuarioParams().set(
-      'proyecto',
-      String(idProyecto),
-    );
-    return this.http.get<any[]>(`${this.apiUrl}mano_de_obra/ultimos_precios/`, {
-      params,
-    });
+    return this.getManoDeObraPorProyecto(idProyecto);
   }
 
   getManoDeObraPorProyecto(idProyecto: number) {
@@ -471,14 +470,7 @@ export class ServiciosProyectos {
   getCatalogoEquipoHerramientaPorProyecto(
     idProyecto: number,
   ): Observable<any[]> {
-    const params = this.buildUsuarioParams().set(
-      'proyecto',
-      String(idProyecto),
-    );
-    return this.http.get<any[]>(
-      `${this.apiUrl}equipo_herramienta/ultimos_precios/`,
-      { params },
-    );
+    return this.getEquiposPorProyecto(idProyecto);
   }
 
   getEquiposPorProyecto(idProyecto: number) {
