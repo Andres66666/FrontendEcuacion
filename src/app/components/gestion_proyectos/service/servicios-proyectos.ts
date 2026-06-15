@@ -234,13 +234,18 @@ export class ServiciosProyectos {
       .pipe(tap(() => this.dataChanged.next()));
   }
 
-  moverItem(itemId: number, moduloDestinoId: number): Observable<any> {
+  moverItem(
+    itemId: number,
+    moduloDestinoId: number,
+    posicion: number
+  ): Observable<any> {
     return this.http
       .post(
         `${this.apiUrl}GastosOperaciones/mover_item/`,
         {
           item_id: itemId,
           modulo_destino_id: moduloDestinoId,
+          posicion: posicion,
         },
         { params: this.buildUsuarioParams() },
       )

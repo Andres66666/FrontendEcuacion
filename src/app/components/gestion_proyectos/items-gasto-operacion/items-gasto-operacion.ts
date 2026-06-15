@@ -827,9 +827,7 @@ export class ItemsGastoOperacion {
 
     this.accionAccionModal = 'MOVER';
 
-    const actualId = this.getModuloIdDeGasto(item);
-
-    this.modulosDestino = this.modulos.filter((m) => m.id !== actualId);
+    this.modulosDestino = [...this.modulos];
 
     this.moduloDestino = null;
     this.posicionDestino = 1;
@@ -846,14 +844,8 @@ export class ItemsGastoOperacion {
 
   setAccionModal(tipo: 'MOVER' | 'DUPLICAR'): void {
     this.accionAccionModal = tipo;
-    if (!this.itemSeleccionado) return;
 
-    const actualId = this.getModuloIdDeGasto(this.itemSeleccionado);
-
-    this.modulosDestino =
-      tipo === 'MOVER'
-        ? this.modulos.filter((m) => m.id !== actualId)
-        : [...this.modulos];
+    this.modulosDestino = [...this.modulos];
 
     this.moduloDestino = null;
     this.posicionDestino = 1;
@@ -876,7 +868,12 @@ export class ItemsGastoOperacion {
 
     if (this.accionAccionModal === 'MOVER') {
       this.service
-        .moverItem(this.itemSeleccionado.id, destino)
+        this.service
+          .moverItem(
+            this.itemSeleccionado.id,
+            destino,
+            this.posicionDestino
+          )
         .pipe(
           tap(() => this.service.notifyDataChanged()),
           catchError((err) => {
