@@ -1099,6 +1099,16 @@ export class ItemsGastoOperacion {
       : base.filter((x) => (x.descripcion || '').toUpperCase().includes(q));
   }
 
+  getSubtotalGeneralInsumos(): number {
+    return this.redondear2(
+      (this.insumosFiltrados || []).reduce((s, i) => {
+        const cantidad = Number(i?.cantidad_global) || 0;
+        const precio = Number(i?.precio_unitario) || 0;
+        return s + cantidad * precio;
+      }, 0),
+    );
+  }
+
   actualizarPrecioDesdeModal(i: any): void {
     this.clearMensajes();
 
