@@ -110,7 +110,7 @@ export class CustomValidatorsService {
       const email = control.value?.trim();
       if (!email) return { required: true };
 
-      if (email.length > 30) return { maxLength: true };
+      if (email.length > 70) return { maxLength: true };
 
       const regex = /^[a-zA-Z0-9._%+-]+@(gmail|hotmail|outlook)\.(com|es)$/;
       return regex.test(email) ? null : { invalidEmail: true };
