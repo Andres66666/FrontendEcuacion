@@ -245,13 +245,12 @@ export class ServiciosProyectos {
         {
           item_id: itemId,
           modulo_destino_id: moduloDestinoId,
-          posicion: posicion,
+          orden_destino: posicion,   // <-- cambiar aquí
         },
-        { params: this.buildUsuarioParams() },
+        { params: this.buildUsuarioParams() }
       )
       .pipe(tap(() => this.dataChanged.next()));
   }
-
   duplicarItem(itemId: number, moduloDestinoId: number): Observable<any> {
     return this.http
       .post(

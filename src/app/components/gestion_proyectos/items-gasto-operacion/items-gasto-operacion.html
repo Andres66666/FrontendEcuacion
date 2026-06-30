@@ -744,6 +744,8 @@
             [(ngModel)]="posicionDestino"
             [disabled]="!toNumber(moduloDestino)"
           >
+            <option [ngValue]="null" disabled>Seleccione una posición</option>
+
             <option
               *ngFor="let p of getPosicionesDisponibles(toNumber(moduloDestino))"
               [ngValue]="p"

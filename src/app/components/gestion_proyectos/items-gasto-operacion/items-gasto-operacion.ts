@@ -121,7 +121,7 @@ export class ItemsGastoOperacion {
 
   modulosDestino: Modulo[] = [];
   moduloDestino: any = null;
-  posicionDestino = 1;
+  posicionDestino: number | null = null;
 
   mostrarModalMover = false;
   mostrarModalDuplicar = false;
@@ -830,7 +830,7 @@ export class ItemsGastoOperacion {
     this.modulosDestino = [...this.modulos];
 
     this.moduloDestino = null;
-    this.posicionDestino = 1;
+    this.posicionDestino = null;
 
     this.filtroModulosDestino = '';
     this.modulosDestinoFiltrados = [...this.modulosDestino];
@@ -848,7 +848,7 @@ export class ItemsGastoOperacion {
     this.modulosDestino = [...this.modulos];
 
     this.moduloDestino = null;
-    this.posicionDestino = 1;
+    this.posicionDestino = null;
 
     this.filtroModulosDestino = '';
     this.modulosDestinoFiltrados = [...this.modulosDestino];
@@ -860,27 +860,37 @@ export class ItemsGastoOperacion {
   }
 
   confirmarAccionModal(): void {
-    if (!this.itemSeleccionado)
+    if (!this.itemSeleccionado) {
       return this.mostrarAdvertencia('Seleccione un ítem.');
+    }
 
     const destino = this.toNumber(this.moduloDestino);
-    if (!destino) return this.mostrarAdvertencia('Seleccione módulo destino.');
+
+    if (!destino) {
+      return this.mostrarAdvertencia('Seleccione módulo destino.');
+    }
 
     if (this.accionAccionModal === 'MOVER') {
+
+      if (this.posicionDestino === null) {
+        return this.mostrarAdvertencia('Seleccione una posición.');
+      }
+
       this.service
-        this.service
-          .moverItem(
-            this.itemSeleccionado.id,
-            destino,
-            this.posicionDestino
-          )
+        .moverItem(
+          this.itemSeleccionado.id,
+          destino,
+          this.posicionDestino! // Ya fue validado que no es null
+        )
         .pipe(
           tap(() => this.service.notifyDataChanged()),
           catchError((err) => {
             console.error(err);
-            this.mostrarError(err?.error?.error || 'No se pudo mover el ítem.');
+            this.mostrarError(
+              err?.error?.error || 'No se pudo mover el ítem.'
+            );
             return EMPTY;
-          }),
+          })
         )
         .subscribe(() => {
           this.cerrarModalAccion();
@@ -890,6 +900,7 @@ export class ItemsGastoOperacion {
       return;
     }
 
+    // DUPLICAR
     this.service
       .duplicarItem(this.itemSeleccionado.id, destino)
       .pipe(
@@ -897,10 +908,10 @@ export class ItemsGastoOperacion {
         catchError((err) => {
           console.error(err);
           this.mostrarError(
-            err?.error?.error || 'No se pudo duplicar el ítem.',
+            err?.error?.error || 'No se pudo duplicar el ítem.'
           );
           return EMPTY;
-        }),
+        })
       )
       .subscribe(() => {
         this.cerrarModalAccion();
