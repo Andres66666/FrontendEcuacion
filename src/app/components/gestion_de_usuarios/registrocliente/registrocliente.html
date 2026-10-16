@@ -211,15 +211,18 @@
           </small>
         </div>
 
+              
         <!-- CI -->
         <div class="col-12 col-md-6">
           <label for="ci" class="form-label fw-semibold">
             Cédula de Identidad (CI)
           </label>
+
           <div class="input-group input-group-lg">
             <span class="input-group-text">
               <i class="bi bi-credit-card"></i>
             </span>
+
             <input
               id="ci"
               type="text"
@@ -229,20 +232,22 @@
               #ci="ngModel"
               required
               minlength="7"
-              maxlength="8"
-              pattern="^[0-8]{7,8}$"
+              maxlength="10"
+              pattern="^[0-9]{7,10}$"
               placeholder="Ingresa tu CI"
               (input)="soloNumeros($event, 'ci')"
             />
           </div>
+
           <small
             class="text-with"
-            *ngIf="(ci.invalid && ci.touched) || (formularioEnviado && ci.invalid)"
+            *ngIf="(ci.invalid && ci.touched) ||
+                  (formularioEnviado && ci.invalid)"
           >
-            El CI debe contener solo números y tener entre 7 y 8 dígitos.
+            El CI debe contener únicamente números y tener entre 7 y 10 dígitos.
           </small>
         </div>
-      </div>
+
 
       <!-- BOTONES -->
       <div class="d-flex flex-column flex-md-row gap-2 mt-4">
