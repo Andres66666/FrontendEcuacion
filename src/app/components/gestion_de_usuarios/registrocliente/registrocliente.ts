@@ -82,10 +82,14 @@ export class Registrocliente {
     }
 
     if (campo === 'ci') {
-      valor = valor.slice(0, 9);
+      valor = valor.slice(0, 10);
     }
 
     this.form[campo] = valor;
+  }
+
+  ciValido(ci: string): boolean {
+    return /^\d{7,10}$/.test(ci);
   }
 
   validarPasswordInput(event: any) {
@@ -105,21 +109,23 @@ export class Registrocliente {
   passwordValida(password: string): boolean {
     if (password.length !== 11) return false;
 
-    const letras = (password.match(/[A-Za-z]/g) || []).length;
+    const mayusculas = (password.match(/[A-Z]/g) || []).length;
+    const minusculas = (password.match(/[a-z]/g) || []).length;
     const numeros = (password.match(/[0-9]/g) || []).length;
     const especiales = (password.match(/[^A-Za-z0-9]/g) || []).length;
 
-    return letras >= 1 && numeros >= 1 && especiales === 1;
+    return (
+      mayusculas >= 1 &&
+      minusculas >= 1 &&
+      numeros >= 1 &&
+      especiales === 1
+    );
   }
 
   telefonoValido(telefono: string): boolean {
     return /^[67]\d{7}$/.test(telefono);
   }
-
-  ciValido(ci: string): boolean {
-    return /^\d{7,8}$/.test(ci);
-  }
-
+ 
   nombreValido(nombre: string): boolean {
     return /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(nombre.trim());
   }
